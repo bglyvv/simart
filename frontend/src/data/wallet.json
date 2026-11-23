@@ -1,0 +1,42 @@
+{
+  "topbar": {
+    "title": "Uşaq Cüzdanı",
+    "subtitle": "İkiqat girişli maliyyə cüzdanı idarəçiliyi"
+  },
+  "balanceHero": {
+    "label": "UŞAQ CÜZDAN BALANSI",
+    "amount": "15.50 AZN",
+    "xpBadge": "⭐ 4,250 XP",
+    "companionEmoji": "🐰"
+  },
+  "allowance": {
+    "title": "💰 Valideyn Şərti Cib Pulu",
+    "description": "\"Almaz liqasına keçsən → 10 AZN cüzdana yüklənəcək\"",
+    "percent": 62
+  },
+  "donations": [
+    {
+      "icon": "paw", "iconBg": "green-100", "title": "Kimsəsiz Heyvanlara Sığınacaq Dəstəyi",
+      "sponsor": "Rəsmi Sponsor: PASHA Bank", "buttonLabel": "500 XP İanə Et (5 AZN Real Pul Köçürüləcək)",
+      "buttonStyle": "success"
+    },
+    {
+      "icon": "tree", "iconBg": "blue-100", "title": "Meşə Salma Kampaniyası",
+      "sponsor": "Rəsmi Sponsor: Kapital Bank", "buttonLabel": "300 XP İanə Et (3 AZN Real Pul Köçürüləcək)",
+      "buttonStyle": "outline"
+    }
+  ],
+  "tip": "Sənin vərdişlərin dünyada real yaxşılığa çevrilir!",
+  "transactions": [
+    { "icon": "arrow-down-circle", "direction": "in", "title": "Valideyn Cib Pulu", "when": "20 Avqust, 09:12", "amount": "+5.00 AZN" },
+    { "icon": "arrow-up-circle", "direction": "out", "title": "Heyvan Sığınacağına İanə", "when": "18 Avqust, 14:40", "amount": "−5.00 AZN" },
+    { "icon": "arrow-down-circle", "direction": "in", "title": "Liqa Mükafatı — Gümüş", "when": "15 Avqust, 19:02", "amount": "+10.00 AZN" },
+    { "icon": "arrow-up-circle", "direction": "out", "title": "ToyWorld Kuponu", "when": "10 Avqust, 11:25", "amount": "−3.50 AZN" },
+    { "icon": "arrow-down-circle", "direction": "in", "title": "Həftəlik Seriya Bonusu", "when": "7 Avqust, 08:00", "amount": "+2.00 AZN" },
+    { "icon": "arrow-down-circle", "direction": "in", "title": "Valideyn Cib Pulu", "when": "1 Avqust, 09:00", "amount": "+7.00 AZN" }
+  ],
+  "monthlySummary": {
+    "income": "+24.00 AZN",
+    "donated": "−8.50 AZN"
+  }
+}

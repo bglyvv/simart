@@ -1,0 +1,11 @@
+{
+  "login": {
+    "title": "Tərəfdaş Paneli",
+    "subtitle": "Mükafat/ianə kodlarını təsdiqləmək üçün hesabınızla giriş edin.",
+    "cta": "Daxil Ol"
+  },
+  "dashboard": {
+    "title": "Tərəfdaş Paneli",
+    "subtitle": "Uşağın təqdim etdiyi kodu oxut və ya əllə daxil et"
+  }
+}

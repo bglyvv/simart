@@ -1,0 +1,74 @@
+{
+  "topbar": {
+    "title": "Gündəlik Vərdişlər",
+    "subtitle": "Farid Bağıyev üçün bugünkü tapşırıq matrisi · Çərşənbə, 20 Avqust",
+    "xp": "1,250 XP"
+  },
+  "aiCameraTask": {
+    "badge": "AI KAMERA AKTİV",
+    "title": "Diş fırçalama aşkarlanması (Computer Vision)",
+    "description": "Kameranı aktivləşdirin — fırçalama hərəkəti minimum 60 saniyə izlənilir, təsdiq avtomatik xal əlavə edir.",
+    "progress": { "current": 30, "total": 60, "unit": "saniyə" },
+    "cta": "Kameranı Aç"
+  },
+  "categories": [
+    {
+      "key": "physical",
+      "icon": "water",
+      "iconBg": "blue-100",
+      "title": "Fiziki Sağlamlıq",
+      "completed": 2,
+      "total": 3,
+      "tasks": [
+        { "title": "Su içmək (4/4 stəkan)", "note": "Hər tamamlanma = +1 xal", "xp": "+4 XP", "done": true },
+        { "title": "Səhər/axşam diş fırçalamaq", "note": "AI Kamera ilə avtomatlaşdırılıb", "xp": "+2 XP", "done": true },
+        { "title": "15 dəqiqəlik səhər idmanı", "note": "Hələ başlanmayıb", "xp": "+3 XP", "done": false }
+      ]
+    },
+    {
+      "key": "mental",
+      "icon": "brain",
+      "iconBg": "purple-100",
+      "title": "Zehni İnkişaf",
+      "completed": 1,
+      "total": 2,
+      "tasks": [
+        { "title": "Günlük 20 səhifə kitab oxumaq", "note": "60% tamamlandı", "xp": "+3 XP", "done": false },
+        { "title": "Yeni xarici söz öyrənmək", "note": "Bugünkü söz: \"Curious\"", "xp": "+2 XP", "done": true }
+      ]
+    },
+    {
+      "key": "social",
+      "icon": "handshake",
+      "iconBg": "green-100",
+      "title": "Sosial & Rəqəmsal Davranış",
+      "completed": 1,
+      "total": 2,
+      "tasks": [
+        { "title": "Ailə üzvləri ilə salamlaşmaq və təşəkkür etmək", "note": "Gündəlik qeyd", "xp": "+1 XP", "done": true },
+        { "title": "Ekran limitinə riayət edilməsi", "note": "Bu gün 1s 40dq istifadə olunub", "xp": "+3 XP", "done": false }
+      ]
+    }
+  ],
+  "weeklyStreak": {
+    "badge": "7 GÜN",
+    "days": [
+      { "label": "B.e", "state": "done" },
+      { "label": "Ç.a", "state": "done" },
+      { "label": "Ç", "state": "done" },
+      { "label": "C.a", "state": "today" },
+      { "label": "C", "state": "upcoming" },
+      { "label": "Ş", "state": "upcoming" },
+      { "label": "B", "state": "upcoming" }
+    ]
+  },
+  "xpSummary": {
+    "total": "1,250 XP",
+    "league": "Gümüş Liqa · Növbəti: 2,000 XP",
+    "progressPercent": 62
+  },
+  "todayStats": [
+    { "icon": "check-circle", "iconBg": "green-100", "value": "4 / 8", "label": "Tamamlanan tapşırıq" },
+    { "icon": "timer", "iconBg": "blue-100", "value": "1s 40dq", "label": "Bugünkü ekran vaxtı" }
+  ]
+}

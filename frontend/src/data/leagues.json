@@ -1,0 +1,42 @@
+{
+  "topbar": {
+    "title": "Liqalar və Mükafatlar",
+    "subtitle": "Topladığın xalları real hədiyyələrə çevir",
+    "xp": "2,000 XP"
+  },
+  "progressHero": {
+    "status": "Cari Status: Gümüş Liqa 🥈",
+    "formula": "Liqa Tərəqqi Düsturu: XP = 1000 × 2^(L−1)",
+    "streakBadge": "🔥 7 GÜNLÜK SERİYA · 2× XP AKTİVDİR",
+    "tiers": [
+      { "icon": "medal", "label": "Bürünc · 1K", "active": false },
+      { "icon": "medal", "label": "Gümüş · 2K", "active": true },
+      { "icon": "medal", "label": "Qızıl · 4K", "active": false },
+      { "icon": "diamond", "label": "Almaz · 8K", "active": false }
+    ],
+    "progressPercent": 62
+  },
+  "rewards": [
+    {
+      "icon": "books", "iconBg": "blue-100", "title": "Libra Kitab Mağazası",
+      "description": "10 AZN-lik kitab endirimi", "cost": "⭐ 400 XP",
+      "buttonLabel": "🔒 Valideyn Təsdiqi ilə", "buttonStyle": "outline"
+    },
+    {
+      "icon": "ice-cream", "iconBg": "green-100", "title": "Bambini Dondurma",
+      "description": "1 pulsuz uşaq dondurması", "cost": "⭐ 250 XP",
+      "buttonLabel": "🔒 Valideyn Təsdiqi ilə", "buttonStyle": "outline"
+    },
+    {
+      "icon": "ticket", "iconBg": "amber-100", "title": "Genclik Parkı",
+      "description": "2 nəfərlik giriş bileti", "cost": "⭐ 900 XP",
+      "buttonLabel": "🔒 Valideyn Təsdiqi ilə", "buttonStyle": "outline"
+    },
+    {
+      "icon": "gift", "iconBg": "purple-100", "title": "ToyWorld Mağazası",
+      "description": "15 AZN-lik hədiyyə kartı", "cost": "⭐ 600 XP",
+      "buttonLabel": "Xalları Dəyiş →", "buttonStyle": "primary"
+    }
+  ],
+  "note": "⚠️ Kupon kodu yalnız valideyn tərəfindən mobil tətbiqdə təsdiq edildikdən sonra unikal QR / promo-kod olaraq açılır."
+}

@@ -1,0 +1,64 @@
+{
+  "topbar": {
+    "title": "Təhlükəsiz Sosial Mühit",
+    "subtitle": "İki-mərhələli təhlükəsizlik və AI moderasiyası ilə qorunur",
+    "badge": "🛡️ AI Filter Aktiv"
+  },
+  "posts": [
+    {
+      "handle": "@UlduzKəşfiyyatçı_44",
+      "avatarEmoji": "🐰",
+      "avatarBg": "purple-100",
+      "timeAgo": "13 dəqiqə əvvəl",
+      "mediaEmoji": "📖",
+      "mediaFrom": "#8A4FFF",
+      "mediaTo": "#6B32E0",
+      "caption": "Bu gün 30 səhifə kitab oxudum və yeni sözlər öyrəndim! 🎉",
+      "likes": 15,
+      "comments": 4
+    },
+    {
+      "handle": "@Deniz_99",
+      "avatarEmoji": "🐬",
+      "avatarBg": "blue-100",
+      "timeAgo": "1 saat əvvəl",
+      "mediaEmoji": "🧩",
+      "mediaFrom": "#2A75D3",
+      "mediaTo": "#1E5BA8",
+      "caption": "Tangram oyununda 5 ulduz qazandım! Ən sevdiyim oyun budur.",
+      "likes": 22,
+      "comments": 6
+    },
+    {
+      "handle": "@BalacaAlim_09",
+      "avatarEmoji": "🦊",
+      "avatarBg": "green-100",
+      "timeAgo": "3 saat əvvəl",
+      "mediaEmoji": "🏃",
+      "mediaColor": "#e8a317",
+      "caption": "Bugün 15 dəqiqəlik səhər idmanımı tamamladım! 💪",
+      "likes": 9,
+      "comments": 2
+    }
+  ],
+  "leaderboard": {
+    "title": "🏆 TOP 10 Lider Lövhəsi",
+    "note": "Avatar və təxəllüs əsasında sıralanır — real ad göstərilmir",
+    "rows": [
+      { "rank": 1, "rankColor": "#e8a317", "avatarEmoji": "🐰", "avatarBg": "purple-100", "name": "UlduzKəşfiyyatçı_44", "xp": "6,250 XP" },
+      { "rank": 2, "rankColor": "#94a3b8", "avatarEmoji": "🦊", "avatarBg": "green-100", "name": "BalacaAlim_99", "xp": "6,480 XP" },
+      { "rank": 3, "rankColor": "#c08a4e", "avatarEmoji": "🐯", "avatarBg": "blue-100", "name": "KəşfiyyatçıTədqiqatçı_17", "xp": "5,180 XP" },
+      { "rank": 4, "rankColor": "#94a3b8", "avatarEmoji": "🐼", "avatarBg": "amber-100", "name": "KəşfiyyatçıFərid_06", "xp": "4,650 XP" },
+      { "rank": 5, "rankColor": "#94a3b8", "avatarEmoji": "🐨", "avatarBg": "purple-100", "name": "UlduzGücü_77", "xp": "3,990 XP" }
+    ]
+  },
+  "safetyRules": {
+    "title": "🛡️ Rəqəmsal Təhlükəsizlik Qaydaları",
+    "rules": [
+      "Soyad, real ad və sosial fotolar GÖSTƏRİLMİR.",
+      "Uşaqlar yeni məlumatları valideyn təsdiqi olmadan paylaşa bilməz.",
+      "Rəqəmsal davranış: hədə şəkil valideyn xəbərdar olunur.",
+      "COPPA və GDPR-K Uşaq Məxfiliyi Standartlarına uyğundur."
+    ]
+  }
+}

@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   SİMART — DESIGN TOKENS (v2 — fresh redesign)
+   Two voices: a playful, rounded "kid mode" (Fredoka + saturated colors)
+   for everything the child touches, and a calmer "parent mode" (Poppins/
+   Inter, restrained color) for account, auth and analytics screens.
+   ========================================================================== */
+@theme {
+  /* ---- Brand colors ---- */
+  --color-purple-900: #3a1680;
+  --color-purple-700: #6b32e0;
+  --color-purple-600: #8a4fff;
+  --color-purple-500: #9d6bff;
+  --color-purple-400: #b490ff;
+  --color-purple-200: #ddc9ff;
+  --color-purple-100: #ede4ff;
+  --color-purple-50: #f6f1ff;
+
+  --color-blue-700: #1e5ba8;
+  --color-blue-600: #2a75d3;
+  --color-blue-500: #4a90e8;
+  --color-blue-400: #7bb3f0;
+  --color-blue-100: #dceafb;
+  --color-blue-50: #eff6ff;
+
+  --color-green-700: #15803d;
+  --color-green-600: #22c55e;
+  --color-green-500: #34d399;
+  --color-green-100: #d7f7e3;
+  --color-green-50: #f0fdf4;
+
+  --color-amber-600: #e8a317;
+  --color-amber-500: #f5b83d;
+  --color-amber-text: #92700c;
+  --color-amber-100: #fef4c8;
+  --color-amber-50: #fffbeb;
+
+  --color-coral-600: #ff6b6b;
+  --color-coral-500: #ff8787;
+  --color-coral-100: #ffe3e3;
+  --color-coral-50: #fff5f5;
+
+  --color-teal-600: #0d9488;
+  --color-teal-500: #2dd4bf;
+  --color-teal-100: #ccfbf1;
+
+  --color-red-600: #ef4444;
+  --color-red-100: #fee2e2;
+
+  /* ---- Navy / dark surfaces ---- */
+  --color-navy-950: #070b1a;
+  --color-navy-900: #10132b;
+  --color-navy-800: #1b2040;
+  --color-navy-700: #2a3058;
+  --color-navy-600: #434a7a;
+  --color-indigo-900: #241b5e;
+
+  /* ---- Neutrals (light theme) ---- */
+  --color-bg: #f5f4fb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8f8fd;
+  --color-border: #e6e3f5;
+  --color-border-soft: #efedfa;
+  --color-text-900: #181537;
+  --color-text-700: #423e66;
+  --color-text-500: #6b6790;
+  --color-text-400: #9793b8;
+  --color-text-on-dark: #f3f1fb;
+  --color-text-on-dark-muted: #a9a5d1;
+
+  /* ---- Gradients ---- */
+  --background-image-grad-primary: linear-gradient(135deg, #a259ff 0%, #6b32e0 100%);
+  --background-image-grad-blue: linear-gradient(135deg, #4a90e8 0%, #1e5ba8 100%);
+  --background-image-grad-hero: linear-gradient(135deg, #6b32e0 0%, #2a75d3 60%, #0ea5e9 100%);
+  --background-image-grad-focus: linear-gradient(160deg, #10132b 0%, #241b5e 60%, #3a1680 100%);
+  --background-image-grad-sunset: linear-gradient(135deg, #ff8787 0%, #ffb86b 100%);
+  --background-image-grad-mint: linear-gradient(135deg, #2dd4bf 0%, #22c55e 100%);
+  --background-image-grad-mesh: radial-gradient(circle at 15% 15%, rgba(162, 89, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 85% 20%, rgba(74, 144, 232, 0.14), transparent 45%),
+    radial-gradient(circle at 50% 95%, rgba(45, 212, 191, 0.12), transparent 45%);
+
+  /* ---- Typography ---- */
+  --font-display: 'Fredoka', 'Poppins', 'Segoe UI', sans-serif;
+  --font-heading: 'Poppins', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', 'Segoe UI', sans-serif;
+
+  --font-size-h1: clamp(28px, 4vw, 44px);
+  --font-size-h2: clamp(22px, 3vw, 32px);
+  --font-size-h3: clamp(19px, 2.2vw, 24px);
+  --font-size-h4: 20px;
+  --font-size-body-lg: 17px;
+  --font-size-body: 15px;
+  --font-size-body-sm: 13px;
+  --font-size-caption: 11px;
+
+  /* ---- Radius ---- */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 30px;
+
+  /* ---- Shadow ---- */
+  --shadow-purple: 0 10px 30px -5px rgba(138, 79, 255, 0.35);
+  --shadow-green: 0 10px 24px -4px rgba(34, 197, 94, 0.35);
+  --shadow-soft: 0 2px 10px rgba(24, 21, 55, 0.06);
+  --shadow-float: 0 20px 45px -12px rgba(24, 21, 55, 0.22);
+}
+
+@utility bg-grad-primary-soft {
+  background-image: linear-gradient(135deg, rgba(162, 89, 255, 0.18) 0%, rgba(107, 50, 224, 0.18) 100%);
+}
+
+@utility bg-grad-mesh {
+  background-image: var(--background-image-grad-mesh);
+}
+
+@utility glass-dark {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@utility glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+:root {
+  --sidebar-w: 272px;
+  --topbar-h: 76px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text-900);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-18px) translateX(10px); }
+}
+.animate-float {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+@keyframes shake-x {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+.animate-shake {
+  animation: shake-x 0.5s ease-in-out;
+}

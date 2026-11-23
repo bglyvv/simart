@@ -1,0 +1,20 @@
+{
+  "topbar": {
+    "title": "Farid (6 yaş)",
+    "subtitle": "2 Video Limitinə Çatıldı",
+    "badge": "🔒 PLEYER BLOKLANDI"
+  },
+  "panel": {
+    "countdown": "14:59",
+    "countdownLabel": "Göz İstirahəti Sayğacı",
+    "title": "Gözlərimizə istirahət verək, Farid! 🌿",
+    "description": "Ard-arda 2 video izlədiyin üçün tətbiq pleyeri 15 dəqiqəlik müvəqqəti istirahət rejiminə keçdi.",
+    "suggestionsLabel": "💡 FASİLƏ ZAMANI NƏ EDƏ BİLƏRSƏN?",
+    "suggestions": [
+      { "icon": "water", "text": "1 stəkan təravətləndirici su iç", "xp": "+1 XP" },
+      { "icon": "eye", "text": "Pəncərədən uzağa bax və gözlərini qırp", "xp": null },
+      { "icon": "person-run", "text": "Otaqda 2 dəqiqəlik yüngül idman et", "xp": null }
+    ],
+    "lockedButton": "🔒 Video Pleyer Kilidlidir (14:59)"
+  }
+}

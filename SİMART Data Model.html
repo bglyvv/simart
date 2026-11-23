@@ -1,0 +1,628 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<title>SİMART Data Model</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340..720;1,9..144,420..520&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #F2F4FB;
+    --surface: #FFFFFF;
+    --surface-2: #E9ECF7;
+    --ink: #171B2E;
+    --ink-muted: #5B6478;
+    --line: rgba(23,27,46,0.13);
+    --line-strong: rgba(23,27,46,0.22);
+    --accent: #6B32E0;
+    --accent-soft: #EFE7FD;
+    --accent-ink: #FFFFFF;
+    --mono-tint: #F6F4FC;
+    --shadow: 0 1px 2px rgba(23,27,46,0.04), 0 8px 24px -12px rgba(23,27,46,0.16);
+
+    --d-identity: #3E53C9;
+    --d-habits: #1C8A4C;
+    --d-content: #2568BE;
+    --d-focus: #0E8780;
+    --d-games: #8A4FFF;
+    --d-economy: #B5790A;
+    --d-social: #C23B64;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10121D;
+      --surface: #171A29;
+      --surface-2: #1F2335;
+      --ink: #ECEEF8;
+      --ink-muted: #9BA2BE;
+      --line: rgba(236,238,248,0.14);
+      --line-strong: rgba(236,238,248,0.26);
+      --accent: #B197FF;
+      --accent-soft: #2B2149;
+      --accent-ink: #171B2E;
+      --mono-tint: #1C1E30;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+
+      --d-identity: #8C9AFF;
+      --d-habits: #4FD98B;
+      --d-content: #6CB2FF;
+      --d-focus: #4FD8CE;
+      --d-games: #C9A6FF;
+      --d-economy: #E3B255;
+      --d-social: #F08AAC;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10121D;
+    --surface: #171A29;
+    --surface-2: #1F2335;
+    --ink: #ECEEF8;
+    --ink-muted: #9BA2BE;
+    --line: rgba(236,238,248,0.14);
+    --line-strong: rgba(236,238,248,0.26);
+    --accent: #B197FF;
+    --accent-soft: #2B2149;
+    --accent-ink: #171B2E;
+    --mono-tint: #1C1E30;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+
+    --d-identity: #8C9AFF;
+    --d-habits: #4FD98B;
+    --d-content: #6CB2FF;
+    --d-focus: #4FD8CE;
+    --d-games: #C9A6FF;
+    --d-economy: #E3B255;
+    --d-social: #F08AAC;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+    line-height: 1.55;
+  }
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 56px 28px 80px;
+  }
+
+  h1, h2, h3 { text-wrap: balance; font-weight: 600; margin: 0; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 560;
+    font-size: clamp(34px, 5vw, 50px);
+    margin-top: 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    max-width: 640px;
+    color: var(--ink-muted);
+    font-size: 16.5px;
+    margin-top: 16px;
+  }
+
+  .stat-strip {
+    display: flex;
+    gap: 36px;
+    margin: 36px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .stat-strip div { display: flex; flex-direction: column; gap: 2px; }
+  .stat-strip dt {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+  }
+  .stat-strip dd {
+    margin: 0;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 22px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  section { margin-top: 64px; }
+  section > h2 {
+    font-family: "Fraunces", Georgia, serif;
+    font-size: 22px;
+    font-weight: 540;
+    margin-bottom: 18px;
+  }
+
+  .diagram-frame {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 20px;
+    overflow-x: auto;
+  }
+  .diagram-frame pre.mermaid { margin: 0; min-width: 760px; }
+
+  .diagram-note {
+    color: var(--ink-muted);
+    font-size: 14px;
+    margin-top: 14px;
+    max-width: 680px;
+  }
+
+  .domain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .domain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--d);
+    border-radius: 12px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+  }
+  .domain-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 15.5px;
+    font-weight: 600;
+    margin-bottom: 11px;
+  }
+  .domain-card .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--d);
+    flex: none;
+  }
+  .domain-card ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .domain-card li { font-size: 13.5px; color: var(--ink-muted); }
+  .domain-card code {
+    background: var(--mono-tint);
+    color: var(--ink);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 12.5px;
+  }
+
+  .notes { counter-reset: note; }
+  .notes ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
+  .notes li {
+    counter-increment: note;
+    position: relative;
+    padding-left: 38px;
+    font-size: 14.5px;
+    color: var(--ink-muted);
+    max-width: 700px;
+  }
+  .notes li::before {
+    content: counter(note);
+    position: absolute;
+    left: 0; top: 0;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .notes li code { background: var(--mono-tint); color: var(--ink); padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .notes strong { color: var(--ink); font-weight: 600; }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-muted);
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    main > * { animation: rise 0.5s ease-out both; }
+    main > *:nth-child(2) { animation-delay: 0.05s; }
+    main > *:nth-child(3) { animation-delay: 0.1s; }
+    main > *:nth-child(4) { animation-delay: 0.15s; }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Schema reference · proposed backend</div>
+    <h1>SİMART Data Model</h1>
+    <p class="lede">
+      Nineteen tables across seven domains — the relational shape the real backend
+      should take once it exists. Today the whole app runs on mock JSON files and a
+      persisted Zustand store in the browser (<code>simart-app-state</code>); nothing
+      below is built yet, including the <code>backend/</code> scaffold just started
+      for content sync.
+    </p>
+    <dl class="stat-strip">
+      <div><dt>Domains</dt><dd>7</dd></div>
+      <div><dt>Tables</dt><dd>19</dd></div>
+      <div><dt>Built so far</dt><dd>0</dd></div>
+    </dl>
+  </header>
+
+  <section>
+    <h2>Entity relationships</h2>
+    <div class="diagram-frame">
+      <pre class="mermaid">
+erDiagram
+  FAMILY {
+    uuid id PK
+    timestamptz created_at
+  }
+  PARENT {
+    uuid id PK
+    uuid family_id FK
+    text full_name
+    text email
+    text password_hash
+    text pin_hash
+  }
+  CHILD {
+    uuid id PK
+    uuid family_id FK
+    text name
+    text avatar_emoji
+    text gender
+    date date_of_birth
+    text city
+  }
+  HABIT_CATEGORY {
+    uuid id PK
+    text key
+    text title
+    text icon
+  }
+  HABIT_TASK {
+    uuid id PK
+    uuid category_id FK
+    text title
+    text note
+    int xp_value
+  }
+  HABIT_COMPLETION {
+    uuid id PK
+    uuid child_id FK
+    uuid task_id FK
+    date log_date
+    timestamptz completed_at
+  }
+  PLAYLIST {
+    uuid id PK
+    text youtube_playlist_id
+    text title
+    text audience
+    text description
+    text color_from
+    text color_to
+  }
+  VIDEO {
+    uuid id PK
+    uuid playlist_id FK
+    text youtube_video_id
+    text title
+    int duration_seconds
+  }
+  WATCH_PROGRESS {
+    uuid id PK
+    uuid child_id FK
+    uuid video_id FK
+    int watched_pct
+    timestamptz updated_at
+  }
+  FOCUS_SESSION {
+    uuid id PK
+    uuid child_id FK
+    timestamptz started_at
+    timestamptz locked_until
+    int minutes
+    text trigger_reason
+  }
+  GAME {
+    uuid id PK
+    text slug
+    text title
+    text icon
+    text axis
+  }
+  GAME_RESULT {
+    uuid id PK
+    uuid child_id FK
+    uuid game_id FK
+    int score
+    timestamptz played_at
+  }
+  XP_TRANSACTION {
+    uuid id PK
+    uuid child_id FK
+    int amount
+    text reason
+    text source_type
+    uuid source_id
+    timestamptz created_at
+  }
+  REWARD {
+    uuid id PK
+    text title
+    text description
+    int cost_xp
+    text sponsor
+    text icon
+  }
+  REWARD_REDEMPTION {
+    uuid id PK
+    uuid child_id FK
+    uuid reward_id FK
+    uuid approved_by_parent_id FK
+    text status
+    timestamptz redeemed_at
+  }
+  WALLET_TRANSACTION {
+    uuid id PK
+    uuid child_id FK
+    text title
+    text direction
+    numeric amount_azn
+    text source_type
+    uuid source_id
+    timestamptz occurred_at
+  }
+  DONATION_CAMPAIGN {
+    uuid id PK
+    text title
+    text sponsor
+    int xp_cost
+    numeric azn_amount
+    text icon
+  }
+  SOCIAL_POST {
+    uuid id PK
+    uuid child_id FK
+    text handle
+    text avatar_emoji
+    text caption
+    text media_emoji
+    timestamptz created_at
+  }
+  POST_LIKE {
+    uuid id PK
+    uuid child_id FK
+    uuid post_id FK
+    timestamptz created_at
+  }
+
+  FAMILY ||--o{ PARENT : has
+  FAMILY ||--o{ CHILD : has
+  HABIT_CATEGORY ||--o{ HABIT_TASK : contains
+  CHILD ||--o{ HABIT_COMPLETION : logs
+  HABIT_TASK ||--o{ HABIT_COMPLETION : "completed as"
+  PLAYLIST ||--o{ VIDEO : contains
+  CHILD ||--o{ WATCH_PROGRESS : tracks
+  VIDEO ||--o{ WATCH_PROGRESS : "watched via"
+  CHILD ||--o{ FOCUS_SESSION : triggers
+  CHILD ||--o{ GAME_RESULT : plays
+  GAME ||--o{ GAME_RESULT : "played as"
+  CHILD ||--o{ XP_TRANSACTION : earns
+  CHILD ||--o{ REWARD_REDEMPTION : redeems
+  REWARD ||--o{ REWARD_REDEMPTION : "redeemed as"
+  PARENT |o--o{ REWARD_REDEMPTION : approves
+  CHILD ||--o{ WALLET_TRANSACTION : moves
+  CHILD ||--o{ SOCIAL_POST : publishes
+  CHILD ||--o{ POST_LIKE : likes
+  SOCIAL_POST ||--o{ POST_LIKE : "liked via"
+      </pre>
+    </div>
+    <p class="diagram-note">
+      <code>DONATION_CAMPAIGN</code> and <code>LEAGUE</code> don't appear as connected
+      boxes on purpose — see notes 2 and 3 below for why.
+    </p>
+  </section>
+
+  <section>
+    <h2>By domain</h2>
+    <div class="domain-grid">
+      <article class="domain-card" style="--d: var(--d-identity)">
+        <h3><span class="dot"></span>Identity &amp; access</h3>
+        <ul>
+          <li><code>family</code> — the account; everything else hangs off it.</li>
+          <li><code>parent</code> — email/password <em>and</em> the PIN that gates <code>/analitika</code> &amp; <code>/tənzimləmələr</code>.</li>
+          <li><code>child</code> — one row per profile (avatar, DOB, city) — a family can hold several.</li>
+        </ul>
+      </article>
+      <article class="domain-card" style="--d: var(--d-habits)">
+        <h3><span class="dot"></span>Habits</h3>
+        <ul>
+          <li><code>habit_category</code> — Fiziki / Zehni / Sosial, shared across families.</li>
+          <li><code>habit_task</code> — the catalog of trackable tasks per category.</li>
+          <li><code>habit_completion</code> — one row per child, per task, per day.</li>
+        </ul>
+      </article>
+      <article class="domain-card" style="--d: var(--d-content)">
+        <h3><span class="dot"></span>Content (YouTube)</h3>
+        <ul>
+          <li><code>playlist</code> — synced from @Simartaz, audience tag merged in by hand.</li>
+          <li><code>video</code> — never a file, just a <code>youtube_video_id</code> + title + duration.</li>
+          <li><code>watch_progress</code> — per child, per video.</li>
+        </ul>
+      </article>
+      <article class="domain-card" style="--d: var(--d-focus)">
+        <h3><span class="dot"></span>Focus mode</h3>
+        <ul>
+          <li><code>focus_session</code> — one row per lock: when it started, until when, why.</li>
+        </ul>
+      </article>
+      <article class="domain-card" style="--d: var(--d-games)">
+        <h3><span class="dot"></span>Games &amp; cognition</h3>
+        <ul>
+          <li><code>game</code> — the six mini-games, each tagged with a cognitive axis.</li>
+          <li><code>game_result</code> — one row per play; feeds the parent dashboard's radar chart.</li>
+        </ul>
+      </article>
+      <article class="domain-card" style="--d: var(--d-economy)">
+        <h3><span class="dot"></span>Economy</h3>
+        <ul>
+          <li><code>xp_transaction</code> — the XP ledger (see note 1).</li>
+          <li><code>reward</code> / <code>reward_redemption</code> — league-shop catalog + parent-approved claims.</li>
+          <li><code>wallet_transaction</code> / <code>donation_campaign</code> — real AZN, kept separate from XP.</li>
+        </ul>
+      </article>
+      <article class="domain-card" style="--d: var(--d-social)">
+        <h3><span class="dot"></span>Social</h3>
+        <ul>
+          <li><code>social_post</code> — posted under an anonymized handle, never the child's name.</li>
+          <li><code>post_like</code> — one row per child, per post liked.</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="notes">
+    <h2>Design notes</h2>
+    <ol>
+      <li>
+        <strong>XP is a ledger, not a counter.</strong> Every action that grants or
+        spends XP — a habit completion, a game result, a reward redemption, a donation —
+        writes one <code>xp_transaction</code> row instead of mutating a single <code>xp</code>
+        field (which is what today's mock store does). Current balance is <code>SUM(amount)</code>;
+        history and "why did my XP change" come for free.
+      </li>
+      <li>
+        <strong>No <code>league</code> table.</strong> League standing is a pure function
+        of the XP balance — <code>XP = 1000 × 2^(L−1)</code>, exactly the formula already
+        in <code>leagues.json</code> — so it's computed at read time, not stored.
+      </li>
+      <li>
+        <strong><code>source_type</code> / <code>source_id</code> is a polymorphic reference,</strong>
+        used on both ledgers (<code>xp_transaction</code>, <code>wallet_transaction</code>).
+        One row can point at a habit completion, a game result, a redemption, or a
+        <code>donation_campaign</code> — without a separate nullable FK column for every
+        possible source. <code>donation_campaign</code> stays unconnected in the diagram
+        for the same reason.
+      </li>
+      <li>
+        <strong>Catalog vs. instance.</strong> <code>habit_task</code>, <code>game</code>,
+        <code>reward</code>, <code>donation_campaign</code>, <code>playlist</code> and
+        <code>video</code> describe what's <em>possible</em>; <code>habit_completion</code>,
+        <code>game_result</code>, <code>reward_redemption</code> and <code>watch_progress</code>
+        record what a specific child actually did.
+      </li>
+      <li>
+        <strong>Matches the existing content contract.</strong> <code>playlist</code> and
+        <code>video</code> map 1:1 onto the <code>Playlist</code> / <code>PlaylistVideo</code>
+        shape <code>frontend/src/lib/contentService.ts</code> already returns, so
+        <code>GET /api/content/playlists</code> becomes a straight read off these two
+        tables joined with the <code>backend/src/playlistMeta.ts</code> audience mapping —
+        no shape change on the frontend side.
+      </li>
+    </ol>
+  </section>
+
+  <footer>
+    <span>SİMART · schema reference</span>
+    <span>Nothing on this page is implemented yet — mock JSON + Zustand still runs the app.</span>
+  </footer>
+</main>
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="/_runtime/mermaid-11.16.1.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+
+</body></html>

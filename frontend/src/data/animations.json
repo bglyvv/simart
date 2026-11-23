@@ -1,0 +1,21 @@
+{
+  "topbar": {
+    "title": "Animasiya Mərkəzi",
+    "subtitle": "Cari seriya: Animasiya — Suyun Qorunması",
+    "xp": "1,250 XP"
+  },
+  "player": {
+    "title": "Suyun Qorunması",
+    "currentTime": "02:45",
+    "duration": "07:12",
+    "progressPercent": 38
+  },
+  "noteInput": {
+    "placeholder": "Suyun qorunması haqqında maraqlı fakt...",
+    "cta": "Qeydi Yadda Saxla ✓"
+  },
+  "notes": [
+    { "timestamp": "01:02", "title": "Suyun qorunması faktı", "meta": "Fərid tərəfindən əlavə edildi · 2 dəqiqə əvvəl" }
+  ],
+  "limitWarning": "2 Video Limitinə Çatdı — Autoplay Kilidləndi (15:00-dan sonra açılır)"
+}

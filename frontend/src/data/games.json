@@ -1,0 +1,22 @@
+{
+  "topbar": {
+    "title": "Zəka Oyunları Mərkəzi",
+    "subtitle": "Farid Bağıyev üçün Koqnitiv İnkişaf",
+    "xp": "🎮 4,750 XP / Oyun"
+  },
+  "infoBanner": "Oda AI Məntiqi Aktivdir — Oyunların çətinliyi Faridin cavab sürətinə görə avtomatik tənzimlənir.",
+  "games": [
+    { "icon": "cards", "iconBg": "purple-100", "title": "Memory Match", "description": "Vizual Yaddaş Oyunu — cütləri tapıb yaddaşını gücləndir." },
+    { "icon": "triangle", "iconBg": "red-100", "title": "Tangram", "description": "Geometrik Tapşırıqlar — fiqurları düzərək məkan təfəkkürünü inkişaf etdir." },
+    { "icon": "grid", "iconBg": "green-100", "title": "Sudoku for Kids", "description": "Rəqəm və Məntiq Oyunu — sadələşdirilmiş sudoku ilə məntiqi düşün." },
+    { "icon": "link", "iconBg": "blue-100", "title": "Puzzle Logic", "description": "Ardıcıl Məntiq Tapmacası — ardıcıllığı tapıb məntiqi zənciri tamamla." },
+    { "icon": "palette", "iconBg": "amber-100", "title": "Rənglərin Sehri", "description": "Rəng və Forma Tanıma — yaradıcılığı və diqqəti eyni anda inkişaf etdirir." },
+    { "icon": "text", "iconBg": "purple-100", "title": "Söz Tapmacası", "description": "Erkən Oxu Bacarığı — hərfləri birləşdirərək yeni sözlər kəşf et." }
+  ],
+  "achievements": [
+    { "icon": "🧠", "iconBg": "purple-100", "value": "15 Oyun", "label": "Bu həftə tamamlandı" },
+    { "icon": "🎯", "iconBg": "green-100", "value": "%82 Orta", "label": "Uğur nisbəti" },
+    { "icon": "🔥", "iconBg": "amber-100", "value": "5 Gün", "label": "Ardıcıl oyun seriyası" },
+    { "icon": "⚡", "iconBg": "blue-100", "value": "3.1 san.", "label": "Orta reaksiya sürəti" }
+  ]
+}

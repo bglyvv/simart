@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: simart-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/content/playlists
+    envVars:
+      - key: ConnectionStrings__SimartDb
+        sync: false
+      - key: Jwt__SigningKey
+        sync: false
+      - key: YouTube__ApiKey
+        sync: false
+      - key: Cors__AllowedOrigins__0
+        sync: false

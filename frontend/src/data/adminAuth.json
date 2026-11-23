@@ -1,0 +1,14 @@
+{
+  "login": {
+    "title": "İdarəetmə Paneli",
+    "subtitle": "Məzmun idarəetməsinə daxil olmaq üçün hesabınızla giriş edin.",
+    "cta": "Daxil Ol"
+  },
+  "dashboard": {
+    "title": "İdarəetmə Paneli",
+    "subtitle": "Məzmun və auditoriya baxışı",
+    "syncCta": "YouTube-da Yeni Video Axtar",
+    "syncing": "Axtarılır...",
+    "audienceNote": "Playlistlərin öz auditoriya nişanı (Valideyn/Uşaq) bu paneldən redaktə olunmur. Yeni videolar isə YouTube-dan tapılan kimi aşağıda nəzərdən keçirilir — hər biri üçün playlist (və ya heç biri) və auditoriya siz seçirsiniz."
+  }
+}

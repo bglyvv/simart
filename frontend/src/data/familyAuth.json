@@ -1,0 +1,106 @@
+{
+  "login": {
+    "eyebrow": "Sağlam İnkişaf Platforması",
+    "title": "Ailənizə yenidən xoş gəlmisiniz.",
+    "description": "Uşağınızın gündəlik vərdişlərini, ekran vaxtını və inkişafını izləyin — o isə oyunlar, animasiya və mükafatlarla motivasiya alsın.",
+    "stats": [
+      { "number": "7", "label": "Əsas Modul" },
+      { "number": "100%", "label": "Valideyn Nəzarəti" },
+      { "number": "AI", "label": "Kamera Təhlükəsizliyi" }
+    ],
+    "form": {
+      "title": "Hesaba Daxil Olun",
+      "subtitle": "Valideyn e-poçtu və şifrənizi daxil edin",
+      "cta": "Daxil Ol →",
+      "switchText": "Hesabınız yoxdur? Qeydiyyatdan keçin"
+    }
+  },
+  "signup": {
+    "eyebrow": "Sağlam İnkişaf Platforması",
+    "title": "Ailənizin rəqəmsal vərdiş dünyası.",
+    "description": "Uşağınızın gündəlik vərdişlərini, ekran vaxtını və inkişafını izləyin — o isə oyunlar, animasiya və mükafatlarla motivasiya alsın.",
+    "stats": [
+      { "number": "7", "label": "Əsas Modul" },
+      { "number": "100%", "label": "Valideyn Nəzarəti" },
+      { "number": "AI", "label": "Kamera Təhlükəsizliyi" }
+    ],
+    "form": {
+      "title": "Ailə Hesabının Yaradılması",
+      "subtitle": "Valideyn məlumatlarını daxil edin — Addım 1/2",
+      "fields": {
+        "fullName": "Kənan Bağıyev",
+        "email": "kenan.bagiyev@simart.az",
+        "passwordHint": "Min. 8 simvol — böyük hərf, rəqəm və xüsusi simvol tərkibli"
+      },
+      "termsText": "İstifadəçi razılaşmasını və Məxfilik Siyasətini qəbul edirəm.",
+      "cta": "Növbəti: Uşaq Profili Əlavə Et →",
+      "switchText": "Artıq hesabınız var? Daxil olun"
+    }
+  },
+  "forgotPassword": {
+    "eyebrow": "Sağlam İnkişaf Platforması",
+    "title": "Şifrənizi unutmusunuz? Problem deyil.",
+    "description": "E-poçt ünvanınızı daxil edin — hesabınız varsa, şifrəni sıfırlamaq üçün link göndəririk.",
+    "stats": [
+      { "number": "7", "label": "Əsas Modul" },
+      { "number": "100%", "label": "Valideyn Nəzarəti" },
+      { "number": "AI", "label": "Kamera Təhlükəsizliyi" }
+    ],
+    "form": {
+      "title": "Şifrəni Sıfırlayın",
+      "subtitle": "Qeydiyyatdan keçdiyiniz e-poçt ünvanını daxil edin",
+      "cta": "Sıfırlama Linki Göndər",
+      "switchText": "Şifrənizi xatırladınız? Daxil olun",
+      "successMessage": "Əgər bu e-poçt qeydiyyatdan keçibsə, şifrəni sıfırlamaq üçün link göndərildi. Zəhmət olmasa e-poçt qutunuzu yoxlayın."
+    }
+  },
+  "resetPassword": {
+    "eyebrow": "Sağlam İnkişaf Platforması",
+    "title": "Yeni şifrə təyin edin.",
+    "description": "Güclü, yadda saxlaya biləcəyiniz bir şifrə seçin.",
+    "stats": [
+      { "number": "7", "label": "Əsas Modul" },
+      { "number": "100%", "label": "Valideyn Nəzarəti" },
+      { "number": "AI", "label": "Kamera Təhlükəsizliyi" }
+    ],
+    "form": {
+      "title": "Yeni Şifrə Təyin Edin",
+      "subtitle": "Hesabınız üçün yeni bir şifrə daxil edin",
+      "cta": "Şifrəni Yenilə",
+      "invalidLinkMessage": "Bu sıfırlama linki yanlışdır və ya vaxtı bitib. Yenidən sıfırlama linki istəyin.",
+      "successMessage": "Şifrəniz uğurla yeniləndi! İndi yeni şifrənizlə daxil ola bilərsiniz."
+    }
+  },
+  "addChild": {
+    "title": "Təhlükəsiz və əyləncəli avatarlar.",
+    "description": "Uşağınızın real şəklini yükləmək məcburi deyil — hazır dizayn edilmiş təhlükəsiz avatarlar arasından seçim edə bilər.",
+    "floatingAvatars": ["🐰", "🌸", "🐬", "🐸"],
+    "form": {
+      "title": "Uşaq Profilinin Əlavə Edilməsi",
+      "subtitle": "Təhlükəsiz Avatar Seçin",
+      "avatarOptions": ["🐰", "🌸", "🐬", "🐸", "🦊", "🐼", "🐯", "🐨", "🦁", "🐵", "🐙", "🦄"],
+      "selectedAvatar": "🐰",
+      "name": "Farid",
+      "gender": "boy",
+      "dob": { "day": "15", "month": "İyul", "year": "2020" },
+      "city": "Bakı",
+      "cta": "Farid Üçün Profili Yarat ✨"
+    }
+  },
+  "familyGate": {
+    "welcomeTitle": "Xoş gəldiniz, Kənan Bağıyev",
+    "welcomeSubtitle": "Davam etmək üçün profil seçin",
+    "members": [
+      { "name": "Farid (Uşaq Profili)", "role": "6 yaş · Balaca Kəşfiyyatçı", "avatarEmoji": "🐰", "kind": "child" },
+      { "name": "Kənan Bağıyev (Valideyn)", "role": "İdarəetmə və Analitika Paneli", "avatarEmoji": "👤", "kind": "parent" },
+      { "name": "Yeni Ailə Üzvü Əlavə Et", "role": "Uşaq və ya Valideyn profili", "avatarEmoji": "+", "kind": "add" }
+    ],
+    "gate": {
+      "title": "Valideyn Keçid Qapısı",
+      "description": "Kənan Bağıyev hesabına daxil olmaq üçün Master PIN daxil edin.",
+      "pinLength": 4,
+      "filledPins": 3,
+      "altAction": "Şifrə ilə Davam Et"
+    }
+  }
+}

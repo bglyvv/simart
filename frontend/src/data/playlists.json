@@ -1,0 +1,100 @@
+[
+  {
+    "id": "PLgBu2SwaPp7PMG8--4SqfrHZLA3FpOIYQ",
+    "title": "Valideyn Bələdçisi",
+    "audience": "parent",
+    "description": "Mütəxəssislərlə valideynlik və uşaq inkişafı mövzusunda söhbətlər (YouTube-da podkast olaraq yayımlanır)",
+    "colorFrom": "#4A90E8",
+    "colorTo": "#2A5BA8",
+    "videos": [
+      { "youtubeId": "l-2JxduEzBs", "title": "Övladımı ekranın zərərlərindən necə qoruyum? | Ceyran Əhmədova | Valideyn Bələdçisi #1", "duration": "42:19" },
+      { "youtubeId": "NketcI9JYZ0", "title": "Sevgi olmadan övlad tərbiyəsi mümkündürmü? | Yasəmən Səmədova | Valideyn Bələdçisi #2", "duration": "1:16:08" },
+      { "youtubeId": "2dh7iZikAv0", "title": "Övladımı sağlam görmək istəyirəm | Səbinə Nurəliyeva | Valideyn Bələdçisi #3", "duration": "1:47:17" },
+      { "youtubeId": "ZktLNW6X0Hs", "title": "Təhsildə ilk addımlar: Valideynlər nələrə diqqət etməli? | Günel Əkbər | Valideyn Bələdçisi #4", "duration": "1:15:18" },
+      { "youtubeId": "uCaOl-1-gfo", "title": "Uşaqlarda intellektual inkişaf və öyrənmə həvəsi | Rövşən Abdullaoğlu | Valideyn Bələdçisi #5", "duration": "1:31:16" },
+      { "youtubeId": "_RMhRuxDOCI", "title": "Uşaqların asudə vaxtının səmərəli idarə olunması | Hüseyn Həsənov | Valideyn Bələdçisi #6", "duration": "1:29:25" },
+      { "youtubeId": "ldMkrBQadcw", "title": "Uşaq tərbiyəsində cəza, yoxsa mükafat? | Elmir İsgəndərov | Valideyn Bələdçisi #7", "duration": "1:33:03" },
+      { "youtubeId": "ystwPHzxV58", "title": "Mütaliə: Uşaq zəkasının gizli mühərriki | Fatimə Alxaz & Pərviz Seyidli | Valideyn Bələdçisi #8", "duration": "1:05:45" },
+      { "youtubeId": "gPy-flWigos", "title": "Övlad tərbiyəsində azadlığın sərhədləri haradan keçir? | İlqar Kamil | Valideyn Bələdçisi #9", "duration": "1:26:57" },
+      { "youtubeId": "NkghPiSZmcA", "title": "Övladımın bu davranışı normaldırmı? | Yasəmən Səmədova | Valideyn Bələdçisi #10", "duration": "1:01:30" },
+      { "youtubeId": "CdQN_e-2JEU", "title": "SİMART / Valideyn Bələdçisi (tanıtım)", "duration": "0:09" },
+      { "youtubeId": "pZVF8A00d-c", "title": "Övladınıza nə qədər azadlıq verməlisiz? | İlqar Kamil", "duration": "1:37" }
+    ]
+  },
+  {
+    "id": "PLOh9ddbI6d68",
+    "title": "AI - süni intellekt",
+    "audience": "child",
+    "description": "Süni intellekt dəstəyi ilə hazırlanmış qısa animasiyalar",
+    "colorFrom": "#5b9ae0",
+    "colorTo": "#3d7cc4",
+    "videos": [
+      { "youtubeId": "GPuoqqKu2D8", "title": "\"İgid şahin\" | Sİ animasiya #01", "duration": "6:59" }
+    ]
+  },
+  {
+    "id": "PLgBu2SwaPp7MbKMfViA02Hq3oHRgV3N9Z",
+    "title": "3D animasiyalar",
+    "audience": "child",
+    "colorFrom": "#8A4FFF",
+    "colorTo": "#6B32E0",
+    "videos": [
+      { "youtubeId": "3wRcQdclz2Y", "title": "\"Şəhidlər ölmür\" | 3D animasiya #01", "duration": "7:52" },
+      { "youtubeId": "-BB--2LyXcA", "title": "\"Tikanlı Kol\" | 3D animasiya #02", "duration": "7:51" }
+    ]
+  },
+  {
+    "id": "PLgBu2SwaPp7OE2z2fOKjLixcaM6Fhh15U",
+    "title": "Hekayələrin sehri - illustrativ Animasiyalar",
+    "audience": "child",
+    "colorFrom": "#2A75D3",
+    "colorTo": "#1E5BA8",
+    "videos": [
+      { "youtubeId": "G5St7aG7FO8", "title": "\"Kitab, dəftər və qələm\" | Hekayələrin sehri #1", "duration": "9:09" },
+      { "youtubeId": "t9frl3-smcg", "title": "\"Duz\" | Hekayələrin sehri #2", "duration": "8:47" },
+      { "youtubeId": "A6BwnK6NT8g", "title": "\"İçərişəhərin sirli sakini\" | Hekayələrin sehri #3", "duration": "16:37" },
+      { "youtubeId": "-0rYqKo7nXA", "title": "\"Kərpickəsən qocanın hekayəsi\" | Hekayələrin sehri #4", "duration": "6:00" },
+      { "youtubeId": "LBxmmcNxl_c", "title": "\"Əhmədin dostları\" | Hekayələrin sehri #5", "duration": "19:38" },
+      { "youtubeId": "DIEP-VlEmuY", "title": "\"Ərik ağacı\" | Hekayələrin sehri #6", "duration": "7:48" },
+      { "youtubeId": "ZDGSFbOVQOQ", "title": "\"Şahidlər\" | Hekayələrin sehri #7", "duration": "9:53" },
+      { "youtubeId": "r2vPrX0LGhY", "title": "\"Qara kəmər\" | Hekayələrin sehri #8", "duration": "10:14" },
+      { "youtubeId": "PObnOoC99dU", "title": "\"Arılar kimi bax\" | Hekayələrin sehri #9", "duration": "12:59" },
+      { "youtubeId": "FwQMTSLzh_4", "title": "\"Gümrahlığın sirri\" | Hekayələrin sehri #10", "duration": "8:04" },
+      { "youtubeId": "aPJz-AaAYt8", "title": "\"Məstan pişik\" | Hekayələrin sehri #11", "duration": "17:13" },
+      { "youtubeId": "_M0XQtXy-7c", "title": "\"Çəyirdək əhvalatı\" | Hekayələrin sehri #12", "duration": "11:58" },
+      { "youtubeId": "ew59Chj68Fs", "title": "\"Mustafanın buludu\" (1-ci hissə) | Hekayələrin sehri #13", "duration": "10:59" },
+      { "youtubeId": "DJDIusmWQRM", "title": "\"Mustafanın buludu\" (2-ci hissə) | Hekayələrin sehri #14", "duration": "14:17" },
+      { "youtubeId": "YDPI_Dx5wdY", "title": "\"İki daş\" | Hekayələrin sehri #15", "duration": "8:05" },
+      { "youtubeId": "bJ0pdoBopBY", "title": "\"Humay ananın oğulları\" | Hekayələrin sehri #16", "duration": "19:12" },
+      { "youtubeId": "SDfuQEQVpEg", "title": "\"Yaşıl çərpələng\" | Hekayələrin sehri #17", "duration": "12:46" },
+      { "youtubeId": "jzVd0TZWo_U", "title": "\"Təranənin arzusu\" | Hekayələrin sehri #18", "duration": "7:24" },
+      { "youtubeId": "p13UZyPA-hI", "title": "\"Dünyanın ən gözəl fikri\" | Hekayələrin sehri #19", "duration": "12:10" },
+      { "youtubeId": "5No4E-QBGNE", "title": "\"Tısbağanın yolu\" | Hekayələrin sehri #20", "duration": "19:40" },
+      { "youtubeId": "1tVKfMVDRZQ", "title": "\"Səhra çiçəyi\" | Hekayələrin sehri #21", "duration": "7:43" },
+      { "youtubeId": "WPkZED19zxw", "title": "\"Balaca qardaş\" | Hekayələrin sehri #22", "duration": "9:50" },
+      { "youtubeId": "pfWBqz6hzEg", "title": "\"Xoşbəxtliyin mənası\" | Hekayələrin sehri #23", "duration": "5:51" },
+      { "youtubeId": "ea-gpc-QAl4", "title": "\"Əsl çempion\" | Hekayələrin sehri #24", "duration": "10:53" },
+      { "youtubeId": "yyfFtxOTs_c", "title": "\"Sarı fırça\" | Hekayələrin sehri #25", "duration": "9:10" },
+      { "youtubeId": "AnkS9JjMdhs", "title": "\"Yaxşılıq\" | Hekayələrin sehri #26", "duration": "8:30" },
+      { "youtubeId": "XvVc6KUGgIE", "title": "\"Orxanın sərgüzəştləri\" (Niyə mən) | Hekayələrin sehri #27", "duration": "11:34" },
+      { "youtubeId": "mtVGvlULXaI", "title": "\"Orxanın sərgüzəştləri\" (Əzizimiz Orxan) | Hekayələrin sehri #28", "duration": "8:06" },
+      { "youtubeId": "Ru0RLMU3MH0", "title": "\"Heyva ağacı\" | Hekayələrin sehri #29", "duration": "8:54" },
+      { "youtubeId": "foWckGHAcy8", "title": "\"Ən gözəl muzey\" | Hekayələrin sehri #30", "duration": "10:13" },
+      { "youtubeId": "kJSYiaS1trE", "title": "\"Kaktusun fədəkarlığı\" | Hekayələrin sehri #31", "duration": "13:14" },
+      { "youtubeId": "R-TZv7DmNb4", "title": "\"Vaxtsız banlayan xoruz\" | Hekayələrin sehri #32", "duration": "6:38" },
+      { "youtubeId": "3F5scR9ySoE", "title": "\"İnşa müsabiqəsi\" | Hekayələrin sehri #33", "duration": "9:17" },
+      { "youtubeId": "GNEB9xkwVm8", "title": "\"Sirli gecikmə\" | Hekayələrin sehri #36", "duration": "12:06" }
+    ]
+  },
+  {
+    "id": "PLgBu2SwaPp7Px0hnchHVSNqugUAGp_mnv",
+    "title": "Tədbirlər",
+    "audience": "child",
+    "description": "15 videodur — bu playlistin tam siyahısı bu seansda yüklənmədi, yalnız 1 video ID əldə olundu.",
+    "colorFrom": "#e8a317",
+    "colorTo": "#c6870a",
+    "videos": [
+      { "youtubeId": "eLop5dJ-y6k", "title": "Tədbirlər (başlıq alınmadı)", "duration": "0:00" }
+    ]
+  }
+]

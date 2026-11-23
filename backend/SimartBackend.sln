@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C60B8973-905D-409C-B18B-3818A02D06E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimartBackend.Api", "src\SimartBackend.Api\SimartBackend.Api.csproj", "{11B8163A-C269-4E4F-9928-68F137346777}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimartBackend.Domain", "src\SimartBackend.Domain\SimartBackend.Domain.csproj", "{C00F5D42-ABB3-4AB7-9185-E95C3CE00C5E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimartBackend.Application", "src\SimartBackend.Application\SimartBackend.Application.csproj", "{C4D291F9-C100-4315-A03B-A7723C706793}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimartBackend.Infrastructure", "src\SimartBackend.Infrastructure\SimartBackend.Infrastructure.csproj", "{86ACC1E9-7D4D-47AA-B3B4-DA634E5250B7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{235D9E0C-CC80-484D-BB18-BBB0365689D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimartBackend.Tests", "tests\SimartBackend.Tests\SimartBackend.Tests.csproj", "{C5A759E8-27E0-4C63-B009-48804F3CF0F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{11B8163A-C269-4E4F-9928-68F137346777}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11B8163A-C269-4E4F-9928-68F137346777}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11B8163A-C269-4E4F-9928-68F137346777}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11B8163A-C269-4E4F-9928-68F137346777}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C00F5D42-ABB3-4AB7-9185-E95C3CE00C5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C00F5D42-ABB3-4AB7-9185-E95C3CE00C5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C00F5D42-ABB3-4AB7-9185-E95C3CE00C5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C00F5D42-ABB3-4AB7-9185-E95C3CE00C5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4D291F9-C100-4315-A03B-A7723C706793}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4D291F9-C100-4315-A03B-A7723C706793}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4D291F9-C100-4315-A03B-A7723C706793}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4D291F9-C100-4315-A03B-A7723C706793}.Release|Any CPU.Build.0 = Release|Any CPU
+		{86ACC1E9-7D4D-47AA-B3B4-DA634E5250B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{86ACC1E9-7D4D-47AA-B3B4-DA634E5250B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{86ACC1E9-7D4D-47AA-B3B4-DA634E5250B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{86ACC1E9-7D4D-47AA-B3B4-DA634E5250B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5A759E8-27E0-4C63-B009-48804F3CF0F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5A759E8-27E0-4C63-B009-48804F3CF0F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5A759E8-27E0-4C63-B009-48804F3CF0F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5A759E8-27E0-4C63-B009-48804F3CF0F7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{11B8163A-C269-4E4F-9928-68F137346777} = {C60B8973-905D-409C-B18B-3818A02D06E7}
+		{C00F5D42-ABB3-4AB7-9185-E95C3CE00C5E} = {C60B8973-905D-409C-B18B-3818A02D06E7}
+		{C4D291F9-C100-4315-A03B-A7723C706793} = {C60B8973-905D-409C-B18B-3818A02D06E7}
+		{86ACC1E9-7D4D-47AA-B3B4-DA634E5250B7} = {C60B8973-905D-409C-B18B-3818A02D06E7}
+		{C5A759E8-27E0-4C63-B009-48804F3CF0F7} = {235D9E0C-CC80-484D-BB18-BBB0365689D9}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,39 @@
+{
+  "topbar": {
+    "title": "Valideyn Dashboard",
+    "subtitle": "Koqnitiv İnkişaf Analitikası · Zəka Oyunları Telemetriyası",
+    "badge": "HƏFTƏLİK HESABAT"
+  },
+  "profile": {
+    "name": "Farid Bağıyev",
+    "meta": "6 yaş · İzlənən profil",
+    "avatarEmoji": "🐰",
+    "stats": [
+      { "label": "CƏMI OYNANAN OYUN", "value": "128 sessiya" },
+      { "label": "ORTA CAVAB SÜRƏTİ", "value": "3.2 saniyə" },
+      { "label": "BU HƏFTƏ AKTİV GÜN", "value": "6 / 7 gün" },
+      { "label": "ƏN GÜCLÜ SAHƏ", "value": "Yaradıcılıq", "accent": true }
+    ]
+  },
+  "radar": {
+    "title": "Koqnitiv İnkişaf Xəritəsi",
+    "subtitle": "Oyun nəticələri əsasında avtomatik hesablanan analitik profil",
+    "axes": [
+      { "label": "Diqqət", "value": 76 },
+      { "label": "Məntiq", "value": 70 },
+      { "label": "Reaksiya", "value": 65 },
+      { "label": "Yaddaş", "value": 80 },
+      { "label": "Yaradıcılıq", "value": 92 }
+    ]
+  },
+  "insight": {
+    "label": "PEDAQOJİ QİYMƏTLƏNDİRMƏ (FARİD ÜÇÜN)",
+    "text": "Farid bu həftə diqqət və məntiq testlərində sabit sürət göstərir. Yaddaş göstəricilərini gücləndirmək üçün Tangram tövsiyə olunur."
+  },
+  "gameHistory": [
+    { "icon": "cards", "iconBg": "purple-100", "title": "Memory Match", "when": "Bugün, 09:14", "score": "94%" },
+    { "icon": "triangle", "iconBg": "red-100", "title": "Tangram", "when": "Dünən, 18:02", "score": "81%" },
+    { "icon": "grid", "iconBg": "green-100", "title": "Sudoku for Kids", "when": "Dünən, 17:20", "score": "76%" },
+    { "icon": "link", "iconBg": "blue-100", "title": "Puzzle Logic", "when": "2 gün əvvəl", "score": "69%" }
+  ]
+}

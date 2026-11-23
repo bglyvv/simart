@@ -1,0 +1,153 @@
+/**
+ * IDENTITY SERVICE — backed by the real SimartBackend.Api
+ * ---------------------------------------------------------
+ * `POST /api/identity/signup`, `POST /api/identity/login`,
+ * `POST /api/identity/families/{id}/children`, and
+ * `GET /api/identity/families/{id}/children`, served by
+ * `backend/src/SimartBackend.Api` (see backend/README.md — "Identity (account
+ * creation + login)"). Signup auto-issues a bearer token (no separate login call
+ * needed right after creating an account); `addChildAccount`/`fetchFamilyChildren`
+ * both require that token — the backend checks it's for the same familyId being
+ * read/written. No refresh-token flow, so a token is only ever good for the 7 days
+ * the backend issues it for.
+ *
+ * `LoginPage.tsx` calls `loginFamily` then `fetchFamilyChildren` to restore which
+ * child profile(s) belong to a returning parent on a device with nothing cached
+ * locally — login alone only ever returns family/parent info, never children.
+ *
+ * SignupPage also sets the local PIN gate (useAppStore.setPin) directly from what
+ * the user just entered — that's a separate, unrelated bridge for
+ * FamilyGatePage's local PIN check, not real verification against the backend.
+ * LoginPage can't do the same (login verifies the password, not the PIN — there's
+ * no PIN-verify endpoint), so a returning parent's local `pin` stays whatever was
+ * already cached on that device (or the '1234' default on a brand-new one).
+ */
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+export interface SignUpFamilyInput {
+  fullName: string;
+  email: string;
+  password: string;
+  pin: string;
+}
+
+export interface LoginInput {
+  email: string;
+  password: string;
+}
+
+export interface FamilyAccount {
+  familyId: string;
+  parentId: string;
+  fullName: string;
+  email: string;
+  /** Send as `Authorization: Bearer {token}` — required by addChildAccount. */
+  token: string;
+}
+
+export interface AddChildInput {
+  familyId: string;
+  name: string;
+  avatarEmoji: string;
+  gender: 'boy' | 'girl';
+  /** ISO 'YYYY-MM-DD' */
+  dateOfBirth: string;
+  city: string;
+}
+
+export interface ChildAccount {
+  childId: string;
+  familyId: string;
+  name: string;
+  avatarEmoji: string;
+  gender: string;
+  dateOfBirth: string;
+  city: string;
+}
+
+async function postJson<TResult>(path: string, body: unknown, token?: string): Promise<TResult> {
+  if (!API_BASE_URL) {
+    throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');
+  }
+
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(new URL(path, API_BASE_URL), {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(problem?.error ?? `POST ${path} failed: ${response.status} ${response.statusText}`);
+  }
+
+  return (await response.json()) as TResult;
+}
+
+/** For ForgotPassword/ResetPassword — both return 204 No Content on success, no
+ * body to parse (postJson would throw trying to parse an empty response). */
+async function postVoid(path: string, body: unknown): Promise<void> {
+  if (!API_BASE_URL) {
+    throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');
+  }
+
+  const response = await fetch(new URL(path, API_BASE_URL), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(problem?.error ?? `POST ${path} failed: ${response.status} ${response.statusText}`);
+  }
+}
+
+export function signUpFamily(input: SignUpFamilyInput): Promise<FamilyAccount> {
+  return postJson('/api/identity/signup', input);
+}
+
+export function loginFamily(input: LoginInput): Promise<FamilyAccount> {
+  return postJson('/api/identity/login', input);
+}
+
+export function addChildAccount(input: AddChildInput, token: string): Promise<ChildAccount> {
+  const { familyId, ...body } = input;
+  return postJson(`/api/identity/families/${familyId}/children`, body, token);
+}
+
+/** POST /api/identity/forgot-password — always resolves, whether or not the email
+ * matches a real account (the backend never reveals which — see
+ * ForgotPasswordCommandHandler's doc comment). If it does, a reset email goes out
+ * via Resend; the frontend should show the same generic message regardless. */
+export function forgotPassword(email: string): Promise<void> {
+  return postVoid('/api/identity/forgot-password', { email });
+}
+
+/** POST /api/identity/reset-password — token comes from the link in the reset
+ * email (`?token=` on ResetPasswordPage's route). Throws if the token is
+ * missing/expired/already used — same message for all three, so this can't be
+ * used to probe which case occurred. */
+export function resetPassword(token: string, newPassword: string): Promise<void> {
+  return postVoid('/api/identity/reset-password', { token, newPassword });
+}
+
+export async function fetchFamilyChildren(familyId: string, token: string): Promise<ChildAccount[]> {
+  if (!API_BASE_URL) {
+    throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');
+  }
+
+  const response = await fetch(new URL(`/api/identity/families/${familyId}/children`, API_BASE_URL), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(problem?.error ?? `GET children failed: ${response.status} ${response.statusText}`);
+  }
+
+  return (await response.json()) as ChildAccount[];
+}

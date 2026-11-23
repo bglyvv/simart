@@ -1,0 +1,55 @@
+using SimartBackend.Domain.Common;
+using SimartBackend.Domain.Entities.Identity;
+
+namespace SimartBackend.Domain.Entities.Habits;
+
+/// <summary>Fiziki / Zehni / Sosial — shared across families.</summary>
+public class HabitCategory : ISoftDeletable
+{
+    public Guid Id { get; set; }
+    public required string Key { get; set; }
+    public required string Title { get; set; }
+    public required string Icon { get; set; }
+
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
+    public Guid? DeletedBy { get; set; }
+
+    public ICollection<HabitTask> Tasks { get; set; } = new List<HabitTask>();
+}
+
+/// <summary>The catalog of trackable tasks per category.</summary>
+public class HabitTask : ISoftDeletable
+{
+    public Guid Id { get; set; }
+    public Guid CategoryId { get; set; }
+    public required string Title { get; set; }
+    public string? Note { get; set; }
+    public int XpValue { get; set; }
+
+    /// <summary>Null for the shared admin catalog (visible to every family). Set when
+    /// a parent created this task for their own family — then it's only visible to,
+    /// and completable by, that family's children. No navigation property: nothing
+    /// here ever needs to load the Family from a task, just filter by this id (see
+    /// GetHabitCategoriesQueryHandler), so there's no FK/cascade to reason about.</summary>
+    public Guid? FamilyId { get; set; }
+
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedAt { get; set; }
+    public Guid? DeletedBy { get; set; }
+
+    public HabitCategory Category { get; set; } = null!;
+}
+
+/// <summary>One row per child, per task, per day.</summary>
+public class HabitCompletion
+{
+    public Guid Id { get; set; }
+    public Guid ChildId { get; set; }
+    public Guid TaskId { get; set; }
+    public DateOnly LogDate { get; set; }
+    public DateTimeOffset CompletedAt { get; set; }
+
+    public Child Child { get; set; } = null!;
+    public HabitTask Task { get; set; } = null!;
+}

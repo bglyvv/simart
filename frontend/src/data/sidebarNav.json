@@ -1,0 +1,20 @@
+{
+  "primaryNav": [
+    { "key": "home", "icon": "home", "label": "Ana Səhifə", "path": "/ana-sehife" },
+    { "key": "habits", "icon": "check-square", "label": "Vərdişlər", "path": "/vərdişlər" },
+    { "key": "animation", "icon": "play", "label": "Animasiya", "path": "/animasiya" },
+    { "key": "social", "icon": "users", "label": "Sosial", "path": "/sosial" },
+    { "key": "leagues", "icon": "trophy", "label": "Liqalar", "path": "/liqalar" },
+    { "key": "games", "icon": "puzzle", "label": "Oyunlar", "path": "/oyunlar" },
+    { "key": "wallet", "icon": "wallet", "label": "Cüzdan", "path": "/cüzdan" }
+  ],
+  "parentNav": [
+    { "key": "analytics", "icon": "chart-bar", "label": "Analitika Paneli", "path": "/analitika" },
+    { "key": "settings", "icon": "gear", "label": "Tənzimləmələr", "path": "/tənzimləmələr" }
+  ],
+  "activeChild": {
+    "name": "Farid Bağıyev",
+    "avatarEmoji": "🐰",
+    "meta": "6 yaş · Aktiv Profil"
+  }
+}
