@@ -40,7 +40,7 @@ export default function PinPad({
   }
 
   const dotBase = dark ? 'border-white/25 bg-white/15' : 'border-border bg-surface-alt';
-  const dotFilled = 'border-purple-600 bg-purple-600';
+  const dotFilled = dark ? 'border-white bg-white' : 'border-primary bg-primary';
   const keyBase = dark
     ? 'border border-white/10 bg-white/6 text-white hover:bg-white/12'
     : 'border border-border bg-surface-alt text-text-900 hover:bg-border-soft';
@@ -65,7 +65,7 @@ export default function PinPad({
             disabled={key === ''}
             onClick={() => press(key)}
             whileTap={key ? { scale: 0.92 } : undefined}
-            className={`flex h-14 items-center justify-center rounded-xl text-lg font-semibold transition-colors ${
+            className={`flex h-14 items-center justify-center rounded-sm text-lg font-semibold transition-colors ${
               key === '' ? 'invisible' : keyBase
             }`}
           >

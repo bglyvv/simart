@@ -7,25 +7,25 @@ import Topbar, { XpPill } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
 import { Icon } from '../lib/icons';
-import { useAppStore } from '../store/useAppStore';
+import { useActiveChild, EMPTY_RECORD } from '../store/useAppStore';
 import habitsData from '../data/habits.json';
 import navData from '../data/sidebarNav.json';
 
 const QUICK_LINKS = [
-  { to: '/vərdişlər', icon: 'check-square', label: 'Vərdişlər', color: 'from-blue-500 to-blue-600' },
-  { to: '/animasiya', icon: 'play', label: 'Animasiya', color: 'from-purple-500 to-purple-700' },
-  { to: '/oyunlar', icon: 'puzzle', label: 'Oyunlar', color: 'from-teal-500 to-teal-600' },
-  { to: '/sosial', icon: 'users', label: 'Sosial', color: 'from-blue-400 to-blue-600' },
-  { to: '/liqalar', icon: 'trophy', label: 'Liqalar', color: 'from-amber-500 to-amber-600' },
-  { to: '/cüzdan', icon: 'wallet', label: 'Cüzdan', color: 'from-coral-500 to-coral-600' },
+  { to: '/vərdişlər', icon: 'check-square', label: 'Vərdişlər' },
+  { to: '/animasiya', icon: 'play', label: 'Animasiya' },
+  { to: '/oyunlar', icon: 'puzzle', label: 'Oyunlar' },
+  { to: '/sosial', icon: 'users', label: 'Sosial' },
+  { to: '/liqalar', icon: 'trophy', label: 'Liqalar' },
+  { to: '/cüzdan', icon: 'wallet', label: 'Cüzdan' },
 ];
 
 export default function HomePage() {
   const openMenu = useOpenMobileMenu();
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
-  const streakDays = useAppStore((s) => s.streakDays);
-  const habitDone = useAppStore((s) => s.habitDone);
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
+  const streakDays = child?.streakDays ?? 0;
+  const habitDone = child?.habitDone ?? EMPTY_RECORD;
   const navigate = useNavigate();
 
   const { doneCount, totalCount } = useMemo(() => {
@@ -53,7 +53,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="sm:col-span-2 lg:col-span-2">
-              <Card className="h-full bg-grad-primary text-white" padding="lg">
+              <Card className="h-full bg-primary text-white" padding="lg">
                 <p className="text-body-sm font-bold uppercase tracking-wide text-white/70">Bugünkü Vərdişlər</p>
                 <p className="mt-2 font-display text-h2 font-semibold">
                   {doneCount} / {totalCount} tamamlandı
@@ -72,7 +72,7 @@ export default function HomePage() {
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
               <Card className="flex h-full flex-col justify-between" padding="lg">
-                <div className="flex items-center gap-2 text-amber-600">
+                <div className="flex items-center gap-2 text-sand-text">
                   <Flame size={22} />
                   <span className="font-display text-h3 font-semibold text-text-900">{streakDays} gün</span>
                 </div>
@@ -90,11 +90,13 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 * i }}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.96 }}
-                className={`flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br p-5 text-white shadow-soft ${l.color}`}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface p-5 text-text-900 shadow-soft transition-colors hover:bg-surface-alt"
               >
-                <Icon name={l.icon} size={26} />
+                <span className="flex size-11 items-center justify-center rounded-xl bg-surface-alt text-text-700">
+                  <Icon name={l.icon} size={22} />
+                </span>
                 <span className="text-body-sm font-bold">{l.label}</span>
               </motion.button>
             ))}

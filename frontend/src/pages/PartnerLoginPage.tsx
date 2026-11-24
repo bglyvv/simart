@@ -65,7 +65,7 @@ export default function PartnerLoginPage() {
         className="relative z-10 w-full max-w-md rounded-2xl border border-white/12 bg-white/6 p-6 text-center backdrop-blur-md sm:p-8"
       >
         <div className="mb-6 flex items-center justify-center gap-3">
-          <LogoMark height={36} />
+          <LogoMark height={36} variant="dark" />
         </div>
 
         <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-grad-primary text-2xl shadow-purple">

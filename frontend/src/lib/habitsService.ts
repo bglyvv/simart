@@ -204,3 +204,16 @@ export function uncompleteHabitTask(childId: string, taskId: string, logDate: st
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+/** GET /api/habits/children/{childId}/xp — the real, authoritative total XP
+ * (the same XpTransaction ledger sum a redeem/donate attempt checks
+ * server-side). The frontend's own `child.xp` is a local, optimistically
+ * updated counter that can drift from this (e.g. a streak bonus computed
+ * server-side that the local "+N XP" guess didn't know about) — reconciling
+ * against this on page load avoids a child/parent seeing "enough" XP locally
+ * and then getting a real 400 on an actual spend. */
+export function fetchChildXp(childId: string, token: string): Promise<number> {
+  return requestJson<{ totalXp: number }>(`/api/habits/children/${childId}/xp`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((r) => r.totalXp);
+}

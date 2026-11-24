@@ -6,7 +6,7 @@ import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { XpPill, IconButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import YoutubePlayer, { type YoutubePlayerHandle } from '../components/YoutubePlayer';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useActiveChild, getActiveChild, EMPTY_RECORD } from '../store/useAppStore';
 import { celebrate } from '../lib/confetti';
 import { fetchPlaylists, fetchWatchProgress, upsertWatchProgress, youtubeThumbnailUrl, type Playlist } from '../lib/contentService';
 import { addScreenTime, startFocusLock as startFocusLockRequest } from '../lib/focusService';
@@ -25,14 +25,14 @@ export default function AnimationsPage() {
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
-  const watchedPct = useAppStore((s) => s.watchedPct);
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
+  const watchedPct = child?.watchedPct ?? EMPTY_RECORD;
   const setWatchedPct = useAppStore((s) => s.setWatchedPct);
   const addXp = useAppStore((s) => s.addXp);
-  const videoNotes = useAppStore((s) => s.videoNotes);
+  const videoNotes = child?.videoNotes ?? EMPTY_RECORD;
   const addVideoNote = useAppStore((s) => s.addVideoNote);
-  const videoCompletionDates = useAppStore((s) => s.videoCompletionDates);
+  const videoCompletionDates = child?.videoCompletionDates ?? EMPTY_RECORD;
   const recordVideoCompletion = useAppStore((s) => s.recordVideoCompletion);
   const startFocusLockLocal = useAppStore((s) => s.startFocusLock);
   const syncFocusLockUntil = useAppStore((s) => s.syncFocusLockUntil);
@@ -69,7 +69,7 @@ export default function AnimationsPage() {
     fetchWatchProgress(child.childId, parent.token)
       .then((rows) => {
         if (cancelled) return;
-        const current = useAppStore.getState().watchedPct;
+        const current = getActiveChild()?.watchedPct ?? {};
         for (const row of rows) {
           if (row.watchedPct > (current[row.youtubeId] ?? 0)) setWatchedPct(row.youtubeId, row.watchedPct);
         }
@@ -260,9 +260,9 @@ export default function AnimationsPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_340px]">
-          <div className="flex flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6">
             <Card padding="none" className="overflow-hidden">
-              <div className="aspect-video bg-navy-900">
+              <div className="aspect-video bg-primary">
                 {activeVideo && !isPlaying && (
                   <button
                     onClick={() => setIsPlaying(true)}
@@ -276,7 +276,7 @@ export default function AnimationsPage() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                     <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="flex size-16 items-center justify-center rounded-full bg-white/95 text-purple-600 shadow-lg transition-transform group-hover:scale-105">
+                      <span className="flex size-16 items-center justify-center rounded-full bg-white/95 text-primary shadow-lg transition-transform group-hover:scale-105">
                         <Play size={28} className="ml-1" fill="currentColor" />
                       </span>
                     </span>
@@ -307,7 +307,7 @@ export default function AnimationsPage() {
                     driven by the actual IFrame API position) — no more manual
                     "mark as watched" click. */}
                 {activeVideo && (watchedPct[activeVideo.youtubeId] ?? 0) >= 100 ? (
-                  <span className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-green-600 px-5 font-semibold text-white">
+                  <span className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-success px-5 font-semibold text-white">
                     <Check size={16} /> Tamamlandı
                   </span>
                 ) : activeVideo && (watchedPct[activeVideo.youtubeId] ?? 0) > 0 ? (
@@ -323,12 +323,12 @@ export default function AnimationsPage() {
                   onKeyDown={(e) => e.key === 'Enter' && saveNote()}
                   placeholder={isPlaying ? data.noteInput.placeholder : 'Qeyd əlavə etmək üçün əvvəlcə videonu başladın'}
                   disabled={!isPlaying}
-                  className="h-12 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-purple-600 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-12 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary disabled:cursor-not-allowed disabled:opacity-60"
                 />
                 <button
                   onClick={saveNote}
                   disabled={!isPlaying || !note.trim()}
-                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-purple-600 px-5 font-semibold text-white disabled:opacity-60"
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-semibold text-white disabled:opacity-60"
                 >
                   <Check size={16} /> Yadda Saxla
                 </button>
@@ -347,9 +347,9 @@ export default function AnimationsPage() {
                   <button
                     key={n.id}
                     onClick={() => jumpToNote(n.timestampSeconds)}
-                    className="flex items-start gap-3 rounded-xl bg-surface-alt px-4 py-3 text-left transition-colors hover:bg-purple-50"
+                    className="flex items-start gap-3 rounded-xl bg-surface-alt px-4 py-3 text-left transition-colors hover:bg-sand-tint"
                   >
-                    <span className="shrink-0 rounded-md bg-purple-100 px-2 py-1 text-caption font-bold tabular-nums text-purple-700">
+                    <span className="shrink-0 rounded-md bg-sand-tint px-2 py-1 text-caption font-bold tabular-nums text-sand-text">
                       {n.timestampLabel}
                     </span>
                     <p className="text-body-sm font-semibold text-text-900">{n.text}</p>
@@ -359,14 +359,14 @@ export default function AnimationsPage() {
             </Card>
           </div>
 
-          <Card padding="lg" className="h-fit">
+          <Card padding="lg" className="h-fit min-w-0">
             <h3 className="mb-4 font-display font-semibold text-text-900">Animasiya Kitabxanası</h3>
             <div className="flex flex-col gap-2">
               {playlists.length === 0 && !loadError && (
                 <p className="text-body-sm text-text-400">Yüklənir...</p>
               )}
               {loadError && (
-                <p className="text-body-sm text-red-600">
+                <p className="text-body-sm text-error">
                   Animasiyalar yüklənmədi — backend işə düşübmü?
                 </p>
               )}
@@ -420,7 +420,7 @@ export default function AnimationsPage() {
                               key={video.youtubeId}
                               onClick={() => selectVideo(video.youtubeId)}
                               className={`flex items-center gap-3 rounded-lg p-2 text-left transition-colors ${
-                                isActive ? 'bg-purple-50 ring-2 ring-purple-600' : 'hover:bg-surface'
+                                isActive ? 'bg-surface-alt ring-2 ring-primary' : 'hover:bg-surface'
                               }`}
                             >
                               <div className="relative size-9 shrink-0 overflow-hidden rounded-md">

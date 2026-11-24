@@ -3,7 +3,13 @@ type Axis = { label: string; value: number };
 /** A small dependency-free radar/pentagon chart, drawn from N axis values (0-100).
  *  Everything — grid, data polygon and labels — lives inside one SVG viewBox,
  *  so the whole chart scales fluidly with its container instead of being a
- *  fixed pixel size. */
+ *  fixed pixel size.
+ *
+ *  Premium redesign: neutral grid, sage data highlight — DESIGN_SYSTEM.md §6
+ *  ("neutral bars, sage highlights, minimal grid lines"). Assumes a light
+ *  card background (restyled alongside its one consumer, ParentDashboardPage,
+ *  in the same phase — see root CLAUDE.md's Phase 1 note on why this was
+ *  deferred rather than done with the other shared primitives). */
 export default function RadarChart({ axes, size = 320 }: { axes: Axis[]; size?: number }) {
   const n = axes.length;
   const center = size / 2;
@@ -29,29 +35,29 @@ export default function RadarChart({ axes, size = 320 }: { axes: Axis[]; size?: 
             key={level}
             points={axes.map((_, i) => pointAt(i, level)).map((p) => `${p.x},${p.y}`).join(' ')}
             fill="none"
-            stroke="rgba(255,255,255,0.12)"
+            className="stroke-border"
             strokeWidth={1}
           />
         ))}
         {axes.map((_, i) => {
           const p = pointAt(i, 1);
-          return (
-            <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} stroke="rgba(255,255,255,0.12)" strokeWidth={1} />
-          );
+          return <line key={i} x1={center} y1={center} x2={p.x} y2={p.y} className="stroke-border" strokeWidth={1} />;
         })}
-        <polygon points={dataPath} fill="rgba(162,89,255,0.35)" stroke="#a259ff" strokeWidth={2} />
+        {/* rgba mirrors --color-sage (#a7b8a0) at 35% — SVG fill can't read a
+            CSS custom property's components for alpha blending directly. */}
+        <polygon points={dataPath} fill="rgba(167,184,160,0.35)" className="stroke-sage" strokeWidth={2} />
         {dataPoints.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r={4} fill="#c7a3ff" />
+          <circle key={i} cx={p.x} cy={p.y} r={4} className="fill-sage" />
         ))}
         {axes.map((a, i) => {
           const p = pointAt(i, 1.26);
           const anchor = p.x < center - 10 ? 'end' : p.x > center + 10 ? 'start' : 'middle';
           return (
             <text key={a.label} x={p.x} y={p.y} textAnchor={anchor} dominantBaseline="middle">
-              <tspan x={p.x} dy="-0.3em" className="fill-white text-[13px] font-bold">
+              <tspan x={p.x} dy="-0.3em" className="fill-text-900 text-[13px] font-bold">
                 {a.label}
               </tspan>
-              <tspan x={p.x} dy="1.3em" className="fill-purple-400 text-[11px] font-bold">
+              <tspan x={p.x} dy="1.3em" className="fill-text-500 text-[11px] font-bold">
                 {a.value}%
               </tspan>
             </text>

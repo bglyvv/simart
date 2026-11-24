@@ -6,7 +6,8 @@ import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useActiveChild, type ChildProfile } from '../store/useAppStore';
+import { useActivityStore } from '../store/useActivityStore';
 import {
   fetchHabitCategories,
   createFamilyHabitTask,
@@ -26,7 +27,8 @@ export default function SettingsPage() {
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
+  const child = useActiveChild();
+  const backendChildren = useAppStore((s) => s.children).filter((c) => !!c.childId);
   const pin = useAppStore((s) => s.pin);
   const setPin = useAppStore((s) => s.setPin);
   const logoutParent = useAppStore((s) => s.logoutParent);
@@ -76,7 +78,9 @@ export default function SettingsPage() {
 
           {parent?.familyId && <RewardApprovalsCard familyId={parent.familyId} token={parent.token} />}
 
-          {parent?.familyId && child?.childId && <AllowanceCard childId={child.childId} token={parent.token} />}
+          {parent?.familyId && backendChildren.length > 0 && (
+            <AllowanceCard childOptions={backendChildren} token={parent.token} />
+          )}
 
           <Card padding="lg">
             <h3 className="mb-1 font-display font-semibold text-text-900">Master PIN</h3>
@@ -86,7 +90,7 @@ export default function SettingsPage() {
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
                 placeholder="Yeni 4 rəqəmli PIN"
-                className="h-12 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-purple-600"
+                className="h-12 min-w-0 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary"
               />
               <Button variant="primary" size="sm" onClick={savePin}>
                 <KeyRound size={15} /> Yadda Saxla
@@ -196,7 +200,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
         Ailəniz üçün öz vərdişlərinizi yaradın — maksimum {MAX_FAMILY_TASKS} ədəd, hər biri ən çox {MAX_TASK_XP} XP.
       </p>
 
-      {loadError && <p className="mb-3 text-body-sm text-red-600">Yüklənmədi — backend işə düşübmü?</p>}
+      {loadError && <p className="mb-3 text-body-sm text-error">Yüklənmədi — backend işə düşübmü?</p>}
 
       {customTasks.length > 0 && (
         <div className="mb-4 flex flex-col gap-2">
@@ -206,7 +210,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
                 <p className="truncate text-body-sm font-bold text-text-900">{t.title}</p>
                 <p className="truncate text-caption text-text-400">{t.categoryTitle}</p>
               </div>
-              <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-caption font-bold text-amber-text">
+              <span className="shrink-0 rounded-full bg-sand-tint px-2.5 py-1 text-caption font-bold text-sand-text">
                 +{t.xpValue} XP
               </span>
             </div>
@@ -227,7 +231,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-purple-600"
+              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
             >
               {(categories ?? []).map((c) => (
                 <option key={c.id} value={c.id}>{c.title}</option>
@@ -240,7 +244,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Otağı yığışdırmaq"
-              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-purple-600"
+              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
             />
           </label>
           <label>
@@ -249,7 +253,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Qeyd"
-              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-purple-600"
+              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
             />
           </label>
           <label>
@@ -260,7 +264,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
               type="number"
               min={1}
               max={MAX_TASK_XP}
-              className="h-11 w-28 rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-purple-600"
+              className="h-11 w-28 rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
             />
           </label>
           <div className="flex gap-2">
@@ -283,6 +287,7 @@ function CustomHabitsCard({ familyId, token }: { familyId: string; token: string
  * further change) or rejects it (the XP is refunded). Matches the reward
  * store's own disclaimer text about codes only unlocking after approval. */
 function RewardApprovalsCard({ familyId, token }: { familyId: string; token: string }) {
+  const addActivity = useActivityStore((s) => s.addEntry);
   const [pending, setPending] = useState<RewardRedemption[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
@@ -305,6 +310,15 @@ function RewardApprovalsCard({ familyId, token }: { familyId: string; token: str
     try {
       await (approve ? approveRedemption : rejectRedemption)(redemptionId, token);
       toast.success(approve ? 'Mükafat təsdiqləndi.' : 'Mükafat ləğv edildi, XP geri qaytarıldı.');
+      const row = pending?.find((r) => r.id === redemptionId);
+      addActivity({
+        type: approve ? 'reward_approved' : 'reward_rejected',
+        text: row
+          ? `"${row.rewardTitle}" mükafatı (${row.childName}) ${approve ? 'təsdiqləndi' : 'ləğv edildi'}`
+          : approve
+            ? 'Mükafat sorğusu təsdiqləndi'
+            : 'Mükafat sorğusu ləğv edildi',
+      });
       setPending((rows) => rows?.filter((r) => r.id !== redemptionId) ?? rows);
     } catch (err) {
       // Same reasoning as LoginPage/LeaguesPage: the backend's error text is
@@ -329,7 +343,7 @@ function RewardApprovalsCard({ familyId, token }: { familyId: string; token: str
         Uşağınızın mükafat mağazasından etdiyi sorğular — təsdiqlədikdə xal geri qaytarılmır, ləğv etdikdə xal geri qaytarılır.
       </p>
 
-      {loadError && <p className="mb-3 text-body-sm text-red-600">Yüklənmədi — backend işə düşübmü?</p>}
+      {loadError && <p className="mb-3 text-body-sm text-error">Yüklənmədi — backend işə düşübmü?</p>}
 
       {(pending ?? []).length > 0 && (
         <div className="flex flex-col gap-2">
@@ -371,9 +385,19 @@ function RewardApprovalsCard({ familyId, token }: { familyId: string; token: str
  * their own family, not an admin-gated action). Deliberately NOT built:
  * automatic AZN credits tied to a league-tier change or a weekly streak —
  * see GrantAllowanceCommand's doc comment in the backend for why. */
-function AllowanceCard({ childId, token }: { childId: string; token: string }) {
+function AllowanceCard({ childOptions, token }: { childOptions: ChildProfile[]; token: string }) {
+  const addActivity = useActivityStore((s) => s.addEntry);
+  const activeChild = useActiveChild();
+  // Defaults to whichever child is currently active in the switcher, but a
+  // multi-child family can send allowance to any of their backend-synced
+  // children from here, independent of which one is active.
+  const [selectedLocalId, setSelectedLocalId] = useState(
+    () => (activeChild && childOptions.some((c) => c.localId === activeChild.localId) ? activeChild.localId : childOptions[0].localId),
+  );
   const [amount, setAmount] = useState('5');
   const [submitting, setSubmitting] = useState(false);
+
+  const selectedChild = childOptions.find((c) => c.localId === selectedLocalId) ?? childOptions[0];
 
   async function handleGrant(e: FormEvent) {
     e.preventDefault();
@@ -382,10 +406,15 @@ function AllowanceCard({ childId, token }: { childId: string; token: string }) {
       toast.error('Düzgün məbləğ daxil edin.');
       return;
     }
+    if (!selectedChild.childId) return;
     setSubmitting(true);
     try {
-      await grantAllowance(childId, amountAzn, token);
+      await grantAllowance(selectedChild.childId, amountAzn, token);
       toast.success(`${amountAzn.toFixed(2)} AZN cib pulu cüzdana əlavə edildi.`);
+      addActivity({
+        type: 'allowance_granted',
+        text: `${selectedChild.name} üçün ${amountAzn.toFixed(2)} AZN cib pulu göndərildi`,
+      });
       setAmount('5');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Cib pulu əlavə edilə bilmədi.');
@@ -400,19 +429,35 @@ function AllowanceCard({ childId, token }: { childId: string; token: string }) {
       <p className="mb-4 text-body-sm text-text-500">
         Uşağınızın real cüzdan balansına birbaşa cib pulu yükləyin.
       </p>
-      <form onSubmit={handleGrant} className="flex gap-3">
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          type="number"
-          min={0.01}
-          max={500}
-          step="0.01"
-          className="h-12 w-32 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-purple-600"
-        />
-        <Button type="submit" variant="primary" disabled={submitting}>
-          {submitting ? 'Göndərilir...' : <><Wallet size={15} /> AZN Göndər</>}
-        </Button>
+      <form onSubmit={handleGrant} className="flex flex-col gap-3">
+        {childOptions.length > 1 && (
+          <label>
+            <span className="mb-1.5 block text-caption font-bold text-text-700">UŞAQ</span>
+            <select
+              value={selectedLocalId}
+              onChange={(e) => setSelectedLocalId(e.target.value)}
+              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
+            >
+              {childOptions.map((c) => (
+                <option key={c.localId} value={c.localId}>{c.avatar} {c.name}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        <div className="flex gap-3">
+          <input
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            type="number"
+            min={0.01}
+            max={500}
+            step="0.01"
+            className="h-12 w-32 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary"
+          />
+          <Button type="submit" variant="primary" disabled={submitting}>
+            {submitting ? 'Göndərilir...' : <><Wallet size={15} /> AZN Göndər</>}
+          </Button>
+        </div>
       </form>
     </Card>
   );

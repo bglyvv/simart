@@ -11,7 +11,8 @@ import Modal from '../components/ui/Modal';
 import VoucherQrModal from '../components/ui/VoucherQrModal';
 import IconTile from '../components/ui/IconTile';
 import { Icon } from '../lib/icons';
-import { useAppStore, LEAGUE_TIERS } from '../store/useAppStore';
+import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
+import { useActivityStore } from '../store/useActivityStore';
 import { bigCelebrate } from '../lib/confetti';
 import { fetchRewards, redeemReward as redeemRewardRequest, type Reward as BackendReward } from '../lib/leaguesService';
 import { fetchHabitStreak } from '../lib/habitsService';
@@ -51,11 +52,12 @@ function azerbaijaniRedeemError(err: unknown): string {
 export default function LeaguesPage() {
   const openMenu = useOpenMobileMenu();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
   const addXp = useAppStore((s) => s.addXp);
-  const redeemedRewards = useAppStore((s) => s.redeemedRewards);
+  const redeemedRewards = child?.redeemedRewards ?? EMPTY_RECORD;
   const redeemRewardLocal = useAppStore((s) => s.redeemReward);
+  const addActivity = useActivityStore((s) => s.addEntry);
   const [pendingReward, setPendingReward] = useState<RewardRow | null>(null);
   const [backendRewards, setBackendRewards] = useState<BackendReward[] | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -122,6 +124,10 @@ export default function LeaguesPage() {
         addXp(-pendingReward.costXp);
         bigCelebrate();
         toast.success(`${pendingReward.title} üçün sorğu göndərildi — valideyn təsdiqini gözləyir.`);
+        addActivity({
+          type: 'reward_redeemed',
+          text: `${child?.name ?? 'Uşaq'}: "${pendingReward.title}" üçün mükafat sorğusu göndərildi`,
+        });
         if (redemption.voucherCode) setVoucher({ code: redemption.voucherCode, title: pendingReward.title });
         load();
       } catch (err) {
@@ -152,24 +158,24 @@ export default function LeaguesPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <Card className="bg-grad-primary text-white" padding="lg">
+          <Card className="bg-primary text-white" padding="lg">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="flex items-center gap-2 font-display text-h3 font-semibold">
                   Cari Status:
-                  <Icon name={LEAGUE_TIERS[currentIdx].icon} size={22} className="text-amber-300" />
+                  <Icon name={LEAGUE_TIERS[currentIdx].icon} size={22} className="text-sand" />
                   {LEAGUE_TIERS[currentIdx].label.split('·')[0].trim()} Liqa
                 </h2>
                 <p className="mt-1 text-body-sm text-white/75">{data.progressHero.formula}</p>
               </div>
-              <span className="whitespace-nowrap rounded-full bg-white/15 px-4 py-2 text-body-sm font-bold">
+              <span className="rounded-full bg-white/15 px-4 py-2 text-body-sm font-bold">
                 {useBackend && streakDays !== null ? `🔥 ${streakDays} GÜNLÜK SERİYA` : data.progressHero.streakBadge}
               </span>
             </div>
 
             <div className="mt-6 flex flex-wrap justify-between gap-4">
               {LEAGUE_TIERS.map((t, i) => {
-                const tierColor = ['text-amber-700', 'text-text-400', 'text-amber-500', 'text-blue-600'][i] ?? 'text-amber-700';
+                const tierColor = ['text-text-500', 'text-text-400', 'text-sand-text', 'text-primary'][i] ?? 'text-text-500';
                 return (
                   <div key={t.label} className={`flex items-center gap-2 ${i <= currentIdx ? 'opacity-100' : 'opacity-50'}`}>
                     <span className={`flex size-10 items-center justify-center rounded-full bg-white ${tierColor}`}>
@@ -191,7 +197,7 @@ export default function LeaguesPage() {
             <p className="mb-4 text-body-sm text-text-400">Yüklənir...</p>
           )}
           {loadError && (
-            <p className="mb-4 text-body-sm text-red-600">Mükafatlar yüklənmədi — backend işə düşübmü?</p>
+            <p className="mb-4 text-body-sm text-error">Mükafatlar yüklənmədi — backend işə düşübmü?</p>
           )}
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -207,7 +213,7 @@ export default function LeaguesPage() {
                     <IconTile icon={<Icon name={reward.icon} size={24} />} tint={reward.iconBg} size="lg" rounded="md" />
                     <h3 className="mt-3 font-display font-semibold text-text-900">{reward.title}</h3>
                     <p className="mt-1 flex-1 text-body-sm text-text-500">{reward.description}</p>
-                    <p className="mt-3 text-body-sm font-bold text-amber-text">⭐ {reward.costXp} XP</p>
+                    <p className="mt-3 text-body-sm font-bold text-sand-text">⭐ {reward.costXp} XP</p>
                     <Button
                       variant={pending ? 'outline' : redeemed ? 'outline' : affordable ? 'success' : 'outline'}
                       size="sm"
@@ -227,7 +233,7 @@ export default function LeaguesPage() {
             })}
           </div>
 
-          <p className="mt-6 rounded-xl bg-amber-50 px-4 py-3 text-body-sm text-amber-text">⚠️ {data.note}</p>
+          <p className="mt-6 rounded-xl bg-sand-tint px-4 py-3 text-body-sm text-sand-text">⚠️ {data.note}</p>
         </div>
       </main>
 

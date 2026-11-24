@@ -13,19 +13,19 @@ const NAV_ITEMS = [
 ];
 
 const navItemBase =
-  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-body font-medium text-text-on-dark-muted transition-colors';
-const navItemActive = 'bg-grad-primary-soft text-white';
+  'flex items-center gap-3 rounded-sm px-3 py-2.5 text-body font-medium text-text-700 transition-colors';
+const navItemActive = 'bg-nav-active text-text-900 font-semibold';
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const admin = useAdminStore((s) => s.admin);
 
   return (
-    <div className="flex h-full flex-col bg-navy-900 px-5 py-6">
+    <div className="flex h-full flex-col border-r border-border bg-surface px-5 py-6">
       <div className="flex items-center px-3">
         <LogoMark height={28} />
       </div>
 
-      <div className="mt-4 mb-6 flex items-center gap-2 px-3 text-caption font-bold tracking-[1.2px] text-text-on-dark-muted/70">
+      <div className="mt-4 mb-6 flex items-center gap-2 px-3 text-caption font-bold tracking-[1.2px] text-text-400">
         <ShieldCheck size={14} />
         İDARƏETMƏ
       </div>
@@ -37,9 +37,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               key={item.key}
               to={item.path}
               onClick={onNavigate}
-              className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-white/5'}`}
+              className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-purple-500/15 text-purple-300">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-surface-alt text-text-700">
                 <Icon name={item.icon} size={16} />
               </span>
               <span>{item.label}</span>
@@ -48,13 +48,13 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </nav>
       </div>
 
-      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/8 bg-white/6 p-4">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-white/50 bg-grad-primary text-white shadow-[0_3px_6px_rgba(0,0,0,0.15),0_0_18px_rgba(138,79,255,0.55)]">
+      <div className="mt-4 flex items-center gap-3 rounded-md border border-border bg-surface-alt p-4">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-white">
           <ShieldCheck size={18} />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-white">{admin?.name ?? 'Admin'}</p>
-          <p className="truncate text-xs text-text-on-dark-muted">{admin?.email ?? '—'}</p>
+          <p className="truncate text-sm font-bold text-text-900">{admin?.name ?? 'Admin'}</p>
+          <p className="truncate text-xs text-text-500">{admin?.email ?? '—'}</p>
         </div>
       </div>
     </div>
@@ -75,7 +75,7 @@ export default function AdminSidebar({ mobileOpen, onMobileClose }: { mobileOpen
         {mobileOpen && (
           <motion.div className="fixed inset-0 z-40 md:hidden" initial="closed" animate="open" exit="closed">
             <motion.div
-              className="absolute inset-0 bg-navy-950/60"
+              className="absolute inset-0 bg-text-900/40"
               variants={{ open: { opacity: 1 }, closed: { opacity: 0 } }}
               onClick={onMobileClose}
             />

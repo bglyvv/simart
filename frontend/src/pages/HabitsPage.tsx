@@ -10,7 +10,8 @@ import IconTile from '../components/ui/IconTile';
 import Button from '../components/ui/Button';
 import XpBurst, { type XpBurstItem } from '../components/ui/XpBurst';
 import { Icon } from '../lib/icons';
-import { useAppStore, LEAGUE_TIERS } from '../store/useAppStore';
+import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
+import { useActivityStore } from '../store/useActivityStore';
 import { celebrate, bigCelebrate } from '../lib/confetti';
 import { todayIso } from '../lib/dob';
 import { fetchScreenTime } from '../lib/focusService';
@@ -63,12 +64,13 @@ export default function HabitsPage() {
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
   const addXp = useAppStore((s) => s.addXp);
-  const habitDone = useAppStore((s) => s.habitDone);
+  const habitDone = child?.habitDone ?? EMPTY_RECORD;
   const toggleHabit = useAppStore((s) => s.toggleHabit);
-  const streakDays = useAppStore((s) => s.streakDays);
+  const streakDays = child?.streakDays ?? 0;
+  const addActivity = useActivityStore((s) => s.addEntry);
 
   // A child added through the real signup/login flow has both a familyId (on
   // the parent) and a childId (on the child) — only then do real catalog +
@@ -290,6 +292,10 @@ export default function HabitsPage() {
               ? `${row.title} tamamlandı! +${result.xpAwarded} XP (${result.streakDays} günlük seriya bonusu!)`
               : `${row.title} tamamlandı! +${result.xpAwarded} XP`,
           );
+          addActivity({
+            type: 'habit_completed',
+            text: `${child?.name ?? 'Uşaq'}: "${row.title}" tamamlandı (+${result.xpAwarded} XP)`,
+          });
           refreshStreak();
         }
       } catch (err) {
@@ -318,7 +324,7 @@ export default function HabitsPage() {
         actions={
           <>
             <XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill>
-            <IconButton><Bell size={17} /></IconButton>
+            <IconButton onClick={() => navigate('/bildirişlər')}><Bell size={17} /></IconButton>
             <IconButton onClick={() => navigate('/tənzimləmələr')}><SettingsIcon size={17} /></IconButton>
             <AvatarButton initials={child?.name?.slice(0, 2).toUpperCase() ?? 'KB'} />
           </>
@@ -328,7 +334,7 @@ export default function HabitsPage() {
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
           <div className="flex flex-col gap-6">
-            <Card className="bg-grad-primary text-white" padding="lg">
+            <Card className="bg-primary text-white" padding="lg">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-caption font-bold uppercase tracking-wide">
                 {cameraRunning ? 'AI Kamera İzləyir…' : 'AI Kamera Aktiv'}
               </span>
@@ -355,7 +361,7 @@ export default function HabitsPage() {
             )}
             {useBackend && loadError && (
               <Card padding="lg">
-                <p className="text-body-sm text-red-600">Vərdişlər yüklənmədi — backend işə düşübmü?</p>
+                <p className="text-body-sm text-error">Vərdişlər yüklənmədi — backend işə düşübmü?</p>
               </Card>
             )}
             {useBackend && categories && categories.length === 0 && (
@@ -385,12 +391,12 @@ export default function HabitsPage() {
                         disabled={pendingTaskId === row.id}
                         onClick={() => handleToggle(row)}
                         className={`flex items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors disabled:opacity-60 ${
-                          row.done ? 'bg-green-50' : 'hover:bg-surface-alt'
+                          row.done ? 'bg-success-tint' : 'hover:bg-surface-alt'
                         }`}
                       >
                         <span
                           className={`flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                            row.done ? 'border-green-600 bg-green-600 text-white' : 'border-border'
+                            row.done ? 'border-success bg-success text-white' : 'border-border'
                           }`}
                         >
                           {row.done && <Check size={14} />}
@@ -401,7 +407,7 @@ export default function HabitsPage() {
                           </span>
                           {row.note && <span className="block text-caption text-text-400">{row.note}</span>}
                         </span>
-                        <span className={`text-body-sm font-bold ${row.done ? 'text-green-600' : 'text-text-400'}`}>
+                        <span className={`text-body-sm font-bold ${row.done ? 'text-success' : 'text-text-400'}`}>
                           +{row.xpValue} XP
                         </span>
                       </motion.button>
@@ -416,7 +422,7 @@ export default function HabitsPage() {
             <Card padding="lg">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display font-semibold text-text-900">Həftəlik Seriya</h3>
-                <span className="rounded-full bg-amber-100 px-3 py-1 text-caption font-bold text-amber-text">🔥 {weeklyStreakDisplay.badgeDays} GÜN</span>
+                <span className="rounded-full bg-sand-tint px-3 py-1 text-caption font-bold text-sand-text">🔥 {weeklyStreakDisplay.badgeDays} GÜN</span>
               </div>
               <div className="flex justify-between gap-1">
                 {weeklyStreakDisplay.days.map((d) => (
@@ -424,9 +430,9 @@ export default function HabitsPage() {
                     <div
                       className={`flex size-8 items-center justify-center rounded-full text-xs font-bold ${
                         d.state === 'done'
-                          ? 'bg-green-600 text-white'
+                          ? 'bg-success text-white'
                           : d.state === 'today'
-                            ? 'bg-grad-primary text-white'
+                            ? 'bg-primary text-white'
                             : 'bg-border text-text-400'
                       }`}
                     >
@@ -438,7 +444,7 @@ export default function HabitsPage() {
               </div>
             </Card>
 
-            <Card className="relative overflow-visible bg-grad-primary text-white" padding="lg">
+            <Card className="relative overflow-visible bg-primary text-white" padding="lg">
               <XpBurst items={xpBursts} onDone={clearXpBurst} />
               <div className="flex items-center gap-3">
                 <span className="flex size-11 items-center justify-center rounded-full bg-white/15 text-white">

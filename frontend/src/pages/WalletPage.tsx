@@ -10,7 +10,7 @@ import Button from '../components/ui/Button';
 import IconTile from '../components/ui/IconTile';
 import VoucherQrModal from '../components/ui/VoucherQrModal';
 import { Icon } from '../lib/icons';
-import { useAppStore, LEAGUE_TIERS } from '../store/useAppStore';
+import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_ARRAY } from '../store/useAppStore';
 import { celebrate } from '../lib/confetti';
 import {
   fetchDonationCampaigns,
@@ -35,11 +35,11 @@ function azerbaijaniDonateError(err: unknown): string {
 export default function WalletPage() {
   const openMenu = useOpenMobileMenu();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
   const addXp = useAppStore((s) => s.addXp);
-  const localBalance = useAppStore((s) => s.balance);
-  const localTransactions = useAppStore((s) => s.transactions);
+  const localBalance = child?.balance ?? 0;
+  const localTransactions = child?.transactions ?? EMPTY_ARRAY;
   const donateLocal = useAppStore((s) => s.donate);
 
   // A child added through the real signup/login flow has both a familyId and
@@ -134,8 +134,8 @@ export default function WalletPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_340px]">
-          <div className="flex flex-col gap-6">
-            <Card className="relative overflow-hidden bg-grad-primary text-white" padding="lg">
+          <div className="flex min-w-0 flex-col gap-6">
+            <Card className="relative overflow-hidden bg-primary text-white" padding="lg">
               <div className="absolute -right-8 -top-8 flex size-32 items-center justify-center rounded-full border border-white/20 text-5xl">
                 {child?.avatar ?? '🐰'}
               </div>
@@ -149,7 +149,7 @@ export default function WalletPage() {
             <Card padding="lg">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-display font-semibold text-text-900">💰 Valideyn Şərti Cib Pulu</h3>
-                <span className="text-body-sm font-bold text-purple-600">{Math.round(progressToDiamond)}%</span>
+                <span className="text-body-sm font-bold text-sand-text">{Math.round(progressToDiamond)}%</span>
               </div>
               <p className="mb-3 text-body-sm text-text-500">"Almaz liqasına keçsən → 10 AZN cüzdana yüklənəcək"</p>
               <ProgressBar percent={progressToDiamond} />
@@ -170,10 +170,10 @@ export default function WalletPage() {
               ))}
             </div>
 
-            <p className="rounded-xl bg-purple-50 px-4 py-3 text-center text-body-sm font-medium text-purple-700">{data.tip}</p>
+            <p className="rounded-xl bg-sand-tint px-4 py-3 text-center text-body-sm font-medium text-sand-text">{data.tip}</p>
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6">
             <Card padding="lg">
               <h3 className="mb-4 font-display font-semibold text-text-900">Əməliyyat Tarixçəsi</h3>
               <div className="scrollbar-thin flex max-h-96 flex-col gap-3 overflow-y-auto">
@@ -186,7 +186,7 @@ export default function WalletPage() {
                   >
                     <span
                       className={`flex size-9 shrink-0 items-center justify-center rounded-full ${
-                        t.direction === 'in' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                        t.direction === 'in' ? 'bg-success-tint text-success' : 'bg-error-tint text-error'
                       }`}
                     >
                       {t.direction === 'in' ? <ArrowDown size={15} /> : <ArrowUp size={15} />}
@@ -197,7 +197,7 @@ export default function WalletPage() {
                         {useBackend ? new Date(t.when).toLocaleString('az-AZ') : t.when}
                       </p>
                     </div>
-                    <span className={`shrink-0 text-body-sm font-bold ${t.direction === 'in' ? 'text-green-600' : 'text-red-500'}`}>
+                    <span className={`shrink-0 text-body-sm font-bold ${t.direction === 'in' ? 'text-success' : 'text-error'}`}>
                       {t.direction === 'in' ? '+' : '−'}
                       {t.amount.toFixed(2)} AZN
                     </span>
@@ -210,11 +210,11 @@ export default function WalletPage() {
               <h3 className="mb-3 font-display font-semibold text-text-900">Bu Ayın Xülasəsi</h3>
               <div className="flex items-center justify-between py-1">
                 <span className="text-body-sm text-text-500">Daxil olan</span>
-                <span className="font-bold text-green-600">+{monthly.income.toFixed(2)} AZN</span>
+                <span className="font-bold text-success">+{monthly.income.toFixed(2)} AZN</span>
               </div>
               <div className="flex items-center justify-between py-1">
                 <span className="text-body-sm text-text-500">İanə edilən</span>
-                <span className="font-bold text-red-500">−{monthly.donated.toFixed(2)} AZN</span>
+                <span className="font-bold text-error">−{monthly.donated.toFixed(2)} AZN</span>
               </div>
             </Card>
           </div>

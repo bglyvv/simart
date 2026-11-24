@@ -36,7 +36,7 @@ export default function Topbar({
 
 export function AvatarButton({ initials = 'KB' }: { initials?: string }) {
   return (
-    <div className="flex size-11 items-center justify-center rounded-full bg-grad-primary font-display text-body-sm font-bold text-white">
+    <div className="flex size-11 items-center justify-center rounded-full bg-primary font-display text-body-sm font-bold text-white">
       {initials}
     </div>
   );
@@ -55,7 +55,7 @@ export function IconButton({ children, onClick }: { children: ReactNode; onClick
 
 export function XpPill({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center whitespace-nowrap rounded-full bg-amber-100 px-4 py-2.5 text-body-sm font-bold text-amber-text">
+    <div className="flex items-center whitespace-nowrap rounded-full bg-sand-tint px-4 py-2.5 text-body-sm font-bold text-sand-text">
       {children}
     </div>
   );

@@ -23,10 +23,10 @@ export default function IconTile({
     md: 'rounded-md',
     full: 'rounded-full',
   }[rounded];
-  const bg = TINT_BG[tint] ?? 'bg-purple-100';
-  // react-icons glyphs use currentColor, so give the tile a matching text tone;
+  const bg = TINT_BG[tint] ?? 'bg-surface-alt';
+  // Lucide glyphs use currentColor, so give the tile a matching text tone;
   // emoji content ignores `color` entirely, so this is a no-op for those call sites.
-  const text = TINT_TEXT[tint] ?? 'text-purple-700';
+  const text = TINT_TEXT[tint] ?? 'text-text-700';
 
   return (
     <div

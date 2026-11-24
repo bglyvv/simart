@@ -61,6 +61,7 @@ using SimartBackend.Application.Habits.Commands.UncompleteHabitTask;
 using SimartBackend.Application.Habits.Queries.GetHabitCategories;
 using SimartBackend.Application.Habits.Queries.GetHabitCompletions;
 using SimartBackend.Application.Habits.Queries.GetHabitStreak;
+using SimartBackend.Application.Habits.Queries.GetChildXp;
 using SimartBackend.Application.Identity;
 using SimartBackend.Application.Identity.Commands.AddChild;
 using SimartBackend.Application.Identity.Commands.DeactivateFamily;
@@ -1043,6 +1044,36 @@ app.MapGet("/api/habits/children/{childId:guid}/streak", async (
 })
 .RequireAuthorization()
 .WithName("GetHabitStreak");
+
+// The real, authoritative total XP — the same ledger sum a redeem/donate
+// attempt checks server-side. Added because the frontend's own xp display
+// is a local, optimistically-updated counter that can drift from this (e.g.
+// a streak bonus computed server-side that the local "+3 XP" guess didn't
+// know about) — a child could see enough XP locally to afford a reward and
+// still get a real 400 from the spend, with nothing on screen explaining
+// why. Lets pages reconcile the displayed number against the real one.
+app.MapGet("/api/habits/children/{childId:guid}/xp", async (
+    ISender sender, Guid childId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        var totalXp = await sender.Send(new GetChildXpQuery(callerFamilyId, childId), cancellationToken);
+        return Results.Ok(new { totalXp });
+    }
+    catch (HabitChildNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (HabitAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+})
+.RequireAuthorization()
+.WithName("GetChildXp");
 
 // Focus Mode's "video limit reached" lock — FocusSession existed in the schema
 // since the start with no handler ever touching it; AnimationsPage.tsx starts a

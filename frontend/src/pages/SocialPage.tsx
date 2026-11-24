@@ -7,7 +7,7 @@ import Topbar, { AvatarButton } from '../components/Topbar';
 import Badge from '../components/ui/Badge';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useActiveChild, EMPTY_RECORD } from '../store/useAppStore';
 import {
   fetchPosts,
   createPost,
@@ -31,8 +31,8 @@ const MEDIA_EMOJI_OPTIONS = ['📖', '🧩', '🏃', '🎨', '⚽', '🎵', '�
 export default function SocialPage() {
   const openMenu = useOpenMobileMenu();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const likedPosts = useAppStore((s) => s.likedPosts);
+  const child = useActiveChild();
+  const likedPosts = child?.likedPosts ?? EMPTY_RECORD;
   const toggleLike = useAppStore((s) => s.toggleLike);
   const useBackend = !!(parent?.familyId && child?.childId);
 
@@ -124,7 +124,7 @@ export default function SocialPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="flex flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6">
             {useBackend && (
               <Card padding="lg">
                 {!composing ? (
@@ -138,14 +138,14 @@ export default function SocialPage() {
                       onChange={(e) => setCaption(e.target.value.slice(0, MAX_CAPTION_LENGTH))}
                       placeholder="Bu gün nə etdin? (real ad və ya yer yazma)"
                       rows={3}
-                      className="w-full resize-none rounded-xl border-2 border-border bg-surface px-4 py-3 text-body-sm text-text-900 outline-none focus:border-purple-600"
+                      className="w-full resize-none rounded-xl border-2 border-border bg-surface px-4 py-3 text-body-sm text-text-900 outline-none focus:border-primary"
                     />
                     <div className="flex items-center justify-between">
                       <span className="text-caption text-text-400">{caption.length} / {MAX_CAPTION_LENGTH}</span>
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => setMediaEmoji(null)}
-                          className={`flex size-8 items-center justify-center rounded-lg border-2 text-sm ${mediaEmoji === null ? 'border-purple-600 bg-purple-50' : 'border-border-soft'}`}
+                          className={`flex size-8 items-center justify-center rounded-lg border-2 text-sm ${mediaEmoji === null ? 'border-primary bg-surface-alt' : 'border-border-soft'}`}
                           aria-label="Şəkilsiz"
                         >
                           ∅
@@ -154,7 +154,7 @@ export default function SocialPage() {
                           <button
                             key={emoji}
                             onClick={() => setMediaEmoji(emoji)}
-                            className={`flex size-8 items-center justify-center rounded-lg border-2 text-base ${mediaEmoji === emoji ? 'border-purple-600 bg-purple-50' : 'border-border-soft'}`}
+                            className={`flex size-8 items-center justify-center rounded-lg border-2 text-base ${mediaEmoji === emoji ? 'border-primary bg-surface-alt' : 'border-border-soft'}`}
                           >
                             {emoji}
                           </button>
@@ -176,7 +176,7 @@ export default function SocialPage() {
               <p className="text-body-sm text-text-400">Yüklənir...</p>
             )}
             {useBackend && loadError && (
-              <p className="text-body-sm text-red-600">Sosial lenta yüklənmədi — backend işə düşübmü?</p>
+              <p className="text-body-sm text-error">Sosial lenta yüklənmədi — backend işə düşübmü?</p>
             )}
 
             {useBackend
@@ -204,11 +204,11 @@ export default function SocialPage() {
                   return (
                     <motion.div key={post.handle} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                       <Card padding="lg">
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="flex size-10 items-center justify-center rounded-full bg-purple-100 text-lg">{post.avatarEmoji}</span>
-                            <div>
-                              <p className="font-bold text-text-900">{post.handle}</p>
+                        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-alt text-lg">{post.avatarEmoji}</span>
+                            <div className="min-w-0">
+                              <p className="truncate font-bold text-text-900">{post.handle}</p>
                               <p className="text-caption text-text-400">{post.timeAgo}</p>
                             </div>
                           </div>
@@ -225,7 +225,7 @@ export default function SocialPage() {
                           <motion.button
                             whileTap={{ scale: 0.85 }}
                             onClick={() => toggleLike(post.handle)}
-                            className={`flex items-center gap-1.5 text-body-sm font-bold transition-colors ${liked ? 'text-coral-600' : 'text-text-500'}`}
+                            className={`flex items-center gap-1.5 text-body-sm font-bold transition-colors ${liked ? 'text-error' : 'text-text-500'}`}
                           >
                             <Heart size={16} fill={liked ? 'currentColor' : 'none'} /> {likeCount} Bəyənmə
                           </motion.button>
@@ -240,7 +240,7 @@ export default function SocialPage() {
                 })}
           </div>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex min-w-0 flex-col gap-6">
             <Card padding="lg">
               <h3 className="font-display font-semibold text-text-900">{data.leaderboard.title}</h3>
               <p className="mb-4 mt-1 text-caption text-text-400">{data.leaderboard.note}</p>
@@ -250,11 +250,11 @@ export default function SocialPage() {
                     <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xs font-bold text-text-500">
                       {i + 1}
                     </span>
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-purple-100 text-base">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
                       {row.avatarEmoji}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.handle}</span>
-                    <span className="shrink-0 text-body-sm font-bold text-purple-600">{row.totalXp} XP</span>
+                    <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.totalXp} XP</span>
                   </div>
                 ))}
                 {!useBackend &&
@@ -266,21 +266,21 @@ export default function SocialPage() {
                       >
                         {row.rank}
                       </span>
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-purple-100 text-base">
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
                         {row.avatarEmoji}
                       </span>
                       <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.name}</span>
-                      <span className="shrink-0 text-body-sm font-bold text-purple-600">{row.xp}</span>
+                      <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.xp}</span>
                     </div>
                   ))}
               </div>
             </Card>
 
-            <Card padding="lg" className="border-green-100 bg-green-50">
+            <Card padding="lg" className="border-success/25 bg-success-tint">
               <h3 className="font-display font-semibold text-text-900">{data.safetyRules.title}</h3>
               <ul className="mt-3 flex flex-col gap-2.5">
                 {data.safetyRules.rules.map((rule) => (
-                  <li key={rule} className="flex items-start gap-2 text-body-sm text-green-700">
+                  <li key={rule} className="flex items-start gap-2 text-body-sm text-success">
                     <span>✓</span> {rule}
                   </li>
                 ))}
@@ -342,18 +342,18 @@ function PostCard({
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}>
       <Card padding="lg">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-full bg-purple-100 text-lg">{post.avatarEmoji}</span>
-            <div>
-              <p className="font-bold text-text-900">{post.handle}</p>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-alt text-lg">{post.avatarEmoji}</span>
+            <div className="min-w-0">
+              <p className="truncate font-bold text-text-900">{post.handle}</p>
             </div>
           </div>
           <Badge tone="blue">✓ VALİDEYN TƏSDİQLƏDİ</Badge>
         </div>
 
         {post.mediaEmoji && (
-          <div className="flex aspect-[21/9] items-center justify-center rounded-xl bg-purple-50 text-5xl">
+          <div className="flex aspect-[21/9] items-center justify-center rounded-xl bg-surface-alt text-5xl">
             {post.mediaEmoji}
           </div>
         )}
@@ -364,7 +364,7 @@ function PostCard({
           <motion.button
             whileTap={{ scale: 0.85 }}
             onClick={onToggleLike}
-            className={`flex items-center gap-1.5 text-body-sm font-bold transition-colors ${post.likedByMe ? 'text-coral-600' : 'text-text-500'}`}
+            className={`flex items-center gap-1.5 text-body-sm font-bold transition-colors ${post.likedByMe ? 'text-error' : 'text-text-500'}`}
           >
             <Heart size={16} fill={post.likedByMe ? 'currentColor' : 'none'} /> {post.likeCount} Bəyənmə
           </motion.button>
@@ -397,7 +397,7 @@ function PostCard({
                 onChange={(e) => setCommentDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                 placeholder="Şərh yaz..."
-                className="h-10 flex-1 rounded-lg border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-purple-600"
+                className="h-10 flex-1 rounded-lg border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
               />
               <Button size="sm" variant="primary" disabled={submittingComment} onClick={submitComment}>
                 <Send size={13} />

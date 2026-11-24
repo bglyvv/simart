@@ -1,29 +1,30 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { useAdminStore } from '../store/useAdminStore';
 import { usePartnerStore } from '../store/usePartnerStore';
 import { fetchActiveFocusLock } from '../lib/focusService';
 
 /** Routes that need a created family profile (the "kid app" + analytics/settings).
- *  Checks `parent` first, not just `child` (a real gap before this: a parent with
- *  no child yet got bounced to signup instead of add-child) — same two-step logic
- *  as RootRedirect below, now applied consistently at every entry point. */
+ *  Checks `parent` first, not just whether any child exists (a real gap before
+ *  this: a parent with no child yet got bounced to signup instead of
+ *  add-child) — same two-step logic as RootRedirect below, now applied
+ *  consistently at every entry point. */
 export function RequireFamily({ children }: { children: ReactNode }) {
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
+  const childCount = useAppStore((s) => s.children.length);
   if (!parent) return <Navigate to="/giris" replace />;
-  if (!child) return <Navigate to="/usaq-elave-et" replace />;
+  if (childCount === 0) return <Navigate to="/usaq-elave-et" replace />;
   return <>{children}</>;
 }
 
 /** Routes gated behind the parent PIN (analytics, settings). */
 export function RequireParentAuth({ children }: { children: ReactNode }) {
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
+  const childCount = useAppStore((s) => s.children.length);
   const authed = useAppStore((s) => s.authedAsParent);
   if (!parent) return <Navigate to="/giris" replace />;
-  if (!child) return <Navigate to="/usaq-elave-et" replace />;
+  if (childCount === 0) return <Navigate to="/usaq-elave-et" replace />;
   if (!authed) return <Navigate to="/aile-qapisi" replace />;
   return <>{children}</>;
 }
@@ -34,11 +35,11 @@ export function RequireParentAuth({ children }: { children: ReactNode }) {
  *  countdown on FocusModePage was purely cosmetic. For a backend-synced child,
  *  checks the real lock (GET .../lock/active) so it can't be bypassed by just
  *  clearing localStorage; for a local-only child (no backend account), checks
- *  the existing local `focusLockUntil` the same way FocusModePage already did. */
+ *  the active child's own local `focusLockUntil` the same way FocusModePage
+ *  already did. */
 export function RequireNotFocusLocked({ children }: { children: ReactNode }) {
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const focusLockUntil = useAppStore((s) => s.focusLockUntil);
+  const child = useActiveChild();
   const syncFocusLockUntil = useAppStore((s) => s.syncFocusLockUntil);
   const useBackend = !!(parent?.familyId && child?.childId);
   const [checked, setChecked] = useState(!useBackend);
@@ -67,7 +68,7 @@ export function RequireNotFocusLocked({ children }: { children: ReactNode }) {
 
   if (!checked) return null;
 
-  const isLocked = focusLockUntil !== null && focusLockUntil > Date.now();
+  const isLocked = !!child && child.focusLockUntil !== null && child.focusLockUntil > Date.now();
   if (isLocked) return <Navigate to="/focus-mode" replace />;
   return <>{children}</>;
 }
@@ -93,8 +94,8 @@ export function RequirePartnerAuth({ children }: { children: ReactNode }) {
  *  there via a button, not the other way around. */
 export function RootRedirect() {
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
+  const childCount = useAppStore((s) => s.children.length);
   if (!parent) return <Navigate to="/giris" replace />;
-  if (!child) return <Navigate to="/usaq-elave-et" replace />;
+  if (childCount === 0) return <Navigate to="/usaq-elave-et" replace />;
   return <Navigate to="/aile-qapisi" replace />;
 }

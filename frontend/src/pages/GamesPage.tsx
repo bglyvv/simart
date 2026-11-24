@@ -9,7 +9,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import IconTile from '../components/ui/IconTile';
 import { Icon } from '../lib/icons';
-import { useAppStore, GAME_CATALOG } from '../store/useAppStore';
+import { useAppStore, useActiveChild, GAME_CATALOG, EMPTY_ARRAY } from '../store/useAppStore';
 import { celebrate, bigCelebrate } from '../lib/confetti';
 import { fetchGamePlays, recordGamePlay, type GamePlay } from '../lib/gamesService';
 import MemoryGame from '../games/MemoryGame';
@@ -32,10 +32,10 @@ const GAME_COMPONENTS: Record<string, ComponentType<{ onFinish: (score: number) 
 export default function GamesPage() {
   const openMenu = useOpenMobileMenu();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
   const addXp = useAppStore((s) => s.addXp);
-  const gameHistory = useAppStore((s) => s.gameHistory);
+  const gameHistory = child?.gameHistory ?? EMPTY_ARRAY;
   const recordGameResult = useAppStore((s) => s.recordGameResult);
 
   // A child added through the real signup/login flow has both a familyId and
@@ -125,7 +125,7 @@ export default function GamesPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <p className="mb-6 rounded-xl bg-blue-50 px-4 py-3 text-body-sm text-blue-700">🧠 {gamesData.infoBanner}</p>
+          <p className="mb-6 rounded-xl bg-surface-alt px-4 py-3 text-body-sm text-text-700">🧠 {gamesData.infoBanner}</p>
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {GAME_CATALOG.map((g, i) => (
@@ -173,7 +173,7 @@ export default function GamesPage() {
 }
 
 function StatCard({ icon, tint, value, label }: { icon: ReactNode; tint: 'purple' | 'green' | 'amber' | 'blue'; value: string; label: string }) {
-  const tintClass = { purple: 'bg-purple-100 text-purple-700', green: 'bg-green-100 text-green-700', amber: 'bg-amber-100 text-amber-text', blue: 'bg-blue-100 text-blue-700' }[tint];
+  const tintClass = { purple: 'bg-surface-alt text-text-700', green: 'bg-sage-tint text-sage-text', amber: 'bg-sand-tint text-sand-text', blue: 'bg-surface-alt text-text-700' }[tint];
   return (
     <Card padding="lg" className="flex flex-col items-center text-center sm:items-start sm:text-left">
       <span className={`flex size-10 items-center justify-center rounded-xl ${tintClass}`}>{icon}</span>

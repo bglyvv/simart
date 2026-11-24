@@ -9,7 +9,10 @@ import { formatAzDate } from '../lib/date';
 import { formatTime } from '../lib/formatTime';
 import type { Playlist } from '../lib/contentService';
 
-export interface ChildProfile {
+/** The identity-only fields a caller (LoginPage/AddChildPage) provides when a
+ *  child profile is created or refreshed — everything else (progress state)
+ *  is seeded fresh by createChildProfile below. */
+export interface ChildProfileInput {
   /** The backend's Child.Id (set by AddChildPage/LoginPage when this child is
    * backed by a real family account) — required by the real habit-completion
    * endpoints (habitsService.ts), which are keyed by childId. Null for a child
@@ -49,9 +52,9 @@ export interface WalletTx {
 }
 
 /** A child's own note, anchored to a specific minute of a specific video —
- * same idea as Udemy's lecture notes: captured at the real playback
- * position (YoutubePlayerHandle.getCurrentTime), listed in video order (not
- * creation order), and clickable to jump the player straight back there. */
+ *  same idea as Udemy's lecture notes: captured at the real playback
+ *  position (YoutubePlayerHandle.getCurrentTime), listed in video order (not
+ *  creation order), and clickable to jump the player straight back there. */
 export interface VideoNote {
   id: string;
   timestampSeconds: number;
@@ -69,6 +72,36 @@ export interface GameResult {
   score: number;
   axis: 'attention' | 'logic' | 'memory' | 'reaction' | 'creativity';
   playedAt: number;
+}
+
+/** A full child profile: identity fields (from ChildProfileInput) plus all
+ *  per-child progress state. Multi-child support (see the approved redesign
+ *  plan's §4) moved every progress field that used to live flat on AppState
+ *  onto each child individually, keyed by `localId` — a client-generated id
+ *  that's stable for both backend-synced and local-only children, used for
+ *  routing/switching since `childId` is null for the latter. */
+export interface ChildProfile extends ChildProfileInput {
+  localId: string;
+
+  xp: number;
+  streakDays: number;
+  habitDone: Record<string, boolean>;
+  watchedPct: Record<string, number>;
+  /** Keyed by youtubeId — see VideoNote. */
+  videoNotes: Record<string, VideoNote[]>;
+  /** Keyed by youtubeId -> the local 'YYYY-MM-DD' date its first completion
+   * happened on (see src/lib/dob.ts's todayIso) — AnimationsPage's own way of
+   * counting "how many videos has this child finished today" to decide when
+   * to trigger a focus lock, without needing a backend round-trip just to ask. */
+  videoCompletionDates: Record<string, string>;
+  likedPosts: Record<string, boolean>;
+  redeemedRewards: Record<string, boolean>;
+  gameHistory: GameResult[];
+  focusLockUntil: number | null;
+  focusMinutes: number;
+
+  balance: number;
+  transactions: WalletTx[];
 }
 
 const initialHabitDone: Record<string, boolean> = {};
@@ -112,44 +145,82 @@ const seedVideoNotes: Record<string, VideoNote[]> = firstChildVideo && seedNote
     }
   : {};
 
+/** Builds a brand-new child profile: the given identity fields plus the same
+ *  demo-seeded progress defaults every single child got before multi-child
+ *  support existed (xp/streak/watch-progress/wallet seed) — preserved as-is
+ *  rather than reconsidered, since seeding fresh demo progress on every new
+ *  profile is existing, deliberate app behavior (see root CLAUDE.md), not
+ *  something this migration should change. */
+function createChildProfile(input: ChildProfileInput): ChildProfile {
+  return {
+    ...input,
+    localId: crypto.randomUUID(),
+    xp: 1250,
+    streakDays: 7,
+    habitDone: { ...initialHabitDone },
+    watchedPct: { ...seedWatchedPct },
+    videoNotes: { ...seedVideoNotes },
+    videoCompletionDates: {},
+    likedPosts: {},
+    redeemedRewards: {},
+    gameHistory: [],
+    focusLockUntil: null,
+    focusMinutes: 15,
+    balance: 15.5,
+    transactions: [...initialTx],
+  };
+}
+
+/** Applies `updater` to the currently active child and returns the
+ *  `{ children }` patch for `set(...)` — or `{}` (a no-op patch) if there is
+ *  no active child, which should only happen before any child exists yet. */
+function withActiveChild(
+  state: Pick<AppState, 'children' | 'activeChildId'>,
+  updater: (child: ChildProfile) => Partial<ChildProfile>,
+): Partial<AppState> {
+  const idx = state.children.findIndex((c) => c.localId === state.activeChildId);
+  if (idx === -1) return {};
+  const children = [...state.children];
+  children[idx] = { ...children[idx], ...updater(children[idx]) };
+  return { children };
+}
+
 export interface AppState {
   // identity
   parent: ParentProfile | null;
-  child: ChildProfile | null;
+  children: ChildProfile[];
+  /** Which of `children` the rest of the app currently reads/writes through
+   * `useActiveChild()`/`getActiveChild()`. */
+  activeChildId: string | null;
   pin: string;
   authedAsParent: boolean;
 
-  // progress
-  xp: number;
-  streakDays: number;
-  habitDone: Record<string, boolean>;
-  watchedPct: Record<string, number>;
-  /** Keyed by youtubeId — see VideoNote. */
-  videoNotes: Record<string, VideoNote[]>;
-  /** Keyed by youtubeId -> the local 'YYYY-MM-DD' date its first completion
-   * happened on (see src/lib/dob.ts's todayIso) — AnimationsPage's own way of
-   * counting "how many videos has this child finished today" to decide when
-   * to trigger a focus lock, without needing a backend round-trip just to ask. */
-  videoCompletionDates: Record<string, string>;
-  likedPosts: Record<string, boolean>;
-  redeemedRewards: Record<string, boolean>;
-  gameHistory: GameResult[];
-  focusLockUntil: number | null;
-  focusMinutes: number;
-
-  // wallet
-  balance: number;
-  transactions: WalletTx[];
-
   // actions
   setParent: (p: ParentProfile) => void;
-  setChild: (c: ChildProfile) => void;
+  /** Bulk-hydrates the family's children (LoginPage, after fetching them from
+   * the backend). Preserves already-known children's local progress by
+   * matching on `childId` — rebuilding every entry from scratch on every
+   * login would otherwise silently reset XP/habits/etc. for a returning
+   * parent on the same device. Children not already known locally (a new
+   * device, or one added elsewhere) get a freshly seeded profile. */
+  setChildren: (children: ChildProfileInput[]) => void;
+  /** Appends one new child (AddChildPage). Auto-activates it only if it's the
+   * family's first child, matching the old zero-friction single-child
+   * behavior — adding a second+ child never silently switches who's active. */
+  addChild: (c: ChildProfileInput) => void;
+  setActiveChildId: (localId: string) => void;
   setPin: (pin: string) => void;
   tryPin: (pin: string) => boolean;
   logoutParent: () => void;
   resetAll: () => void;
 
   addXp: (amount: number) => void;
+  /** Overwrites the active child's xp with the real backend ledger total
+   * (AppShell calls this on load for a backend-synced child) — reconciles the
+   * local, optimistically-updated counter against the number a spend attempt
+   * actually checks server-side, so the displayed XP can't silently drift
+   * into claiming more than what's really there to spend. */
+  syncXp: (amount: number) => void;
   toggleHabit: (id: string, xp: number) => void;
   setWatchedPct: (videoId: string, pct: number) => void;
   addVideoNote: (videoId: string, timestampSeconds: number, text: string) => void;
@@ -174,27 +245,39 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       parent: null,
-      child: null,
+      children: [],
+      activeChildId: null,
       pin: '1234',
       authedAsParent: false,
 
-      xp: 1250,
-      streakDays: 7,
-      habitDone: initialHabitDone,
-      watchedPct: seedWatchedPct,
-      videoNotes: seedVideoNotes,
-      videoCompletionDates: {},
-      likedPosts: {},
-      redeemedRewards: {},
-      gameHistory: [],
-      focusLockUntil: null,
-      focusMinutes: 15,
-
-      balance: 15.5,
-      transactions: initialTx,
-
       setParent: (p) => set({ parent: p }),
-      setChild: (c) => set({ child: c }),
+
+      setChildren: (incoming) =>
+        set((s) => {
+          const children = incoming.map((input) => {
+            const existing = s.children.find((c) => c.childId !== null && c.childId === input.childId);
+            return existing ? { ...existing, ...input } : createChildProfile(input);
+          });
+          const activeStillPresent = children.some((c) => c.localId === s.activeChildId);
+          return {
+            children,
+            activeChildId: activeStillPresent
+              ? s.activeChildId
+              : (children.length === 1 ? children[0].localId : null),
+          };
+        }),
+
+      addChild: (input) =>
+        set((s) => {
+          const profile = createChildProfile(input);
+          return {
+            children: [...s.children, profile],
+            activeChildId: s.children.length === 0 ? profile.localId : s.activeChildId,
+          };
+        }),
+
+      setActiveChildId: (localId) => set({ activeChildId: localId }),
+
       setPin: (pin) => set({ pin }),
       tryPin: (pin) => {
         const ok = pin === get().pin;
@@ -205,84 +288,89 @@ export const useAppStore = create<AppState>()(
       resetAll: () =>
         set({
           parent: null,
-          child: null,
+          children: [],
+          activeChildId: null,
           pin: '1234',
           authedAsParent: false,
-          xp: 0,
-          streakDays: 0,
-          habitDone: {},
-          watchedPct: {},
-          videoNotes: {},
-          videoCompletionDates: {},
-          likedPosts: {},
-          redeemedRewards: {},
-          gameHistory: [],
-          focusLockUntil: null,
-          balance: 0,
-          transactions: [],
         }),
 
-      addXp: (amount) => set((s) => ({ xp: Math.max(0, s.xp + amount) })),
+      addXp: (amount) =>
+        set((s) => withActiveChild(s, (c) => ({ xp: Math.max(0, c.xp + amount) }))),
+
+      syncXp: (amount) => set((s) => withActiveChild(s, () => ({ xp: amount }))),
 
       toggleHabit: (id, xp) =>
-        set((s) => {
-          const nowDone = !s.habitDone[id];
-          return {
-            habitDone: { ...s.habitDone, [id]: nowDone },
-            xp: Math.max(0, s.xp + (nowDone ? xp : -xp)),
-          };
-        }),
+        set((s) =>
+          withActiveChild(s, (c) => {
+            const nowDone = !c.habitDone[id];
+            return {
+              habitDone: { ...c.habitDone, [id]: nowDone },
+              xp: Math.max(0, c.xp + (nowDone ? xp : -xp)),
+            };
+          }),
+        ),
 
       setWatchedPct: (videoId, pct) =>
-        set((s) => ({ watchedPct: { ...s.watchedPct, [videoId]: pct } })),
+        set((s) => withActiveChild(s, (c) => ({ watchedPct: { ...c.watchedPct, [videoId]: pct } }))),
 
       addVideoNote: (videoId, timestampSeconds, text) =>
-        set((s) => {
-          const note: VideoNote = {
-            id: `note-${Date.now()}`,
-            timestampSeconds,
-            timestampLabel: formatTime(timestampSeconds),
-            text,
-            createdAt: Date.now(),
-          };
-          const existing = s.videoNotes[videoId] ?? [];
-          // Udemy-style: shown by video position, not add order.
-          const next = [...existing, note].sort((a, b) => a.timestampSeconds - b.timestampSeconds);
-          return { videoNotes: { ...s.videoNotes, [videoId]: next } };
-        }),
+        set((s) =>
+          withActiveChild(s, (c) => {
+            const note: VideoNote = {
+              id: `note-${Date.now()}`,
+              timestampSeconds,
+              timestampLabel: formatTime(timestampSeconds),
+              text,
+              createdAt: Date.now(),
+            };
+            const existing = c.videoNotes[videoId] ?? [];
+            // Udemy-style: shown by video position, not add order.
+            const next = [...existing, note].sort((a, b) => a.timestampSeconds - b.timestampSeconds);
+            return { videoNotes: { ...c.videoNotes, [videoId]: next } };
+          }),
+        ),
 
       recordVideoCompletion: (videoId, date) =>
         set((s) =>
-          s.videoCompletionDates[videoId]
-            ? s
-            : { videoCompletionDates: { ...s.videoCompletionDates, [videoId]: date } },
+          withActiveChild(s, (c) =>
+            c.videoCompletionDates[videoId]
+              ? {}
+              : { videoCompletionDates: { ...c.videoCompletionDates, [videoId]: date } },
+          ),
         ),
 
-      toggleLike: (postId) => set((s) => ({ likedPosts: { ...s.likedPosts, [postId]: !s.likedPosts[postId] } })),
+      toggleLike: (postId) =>
+        set((s) => withActiveChild(s, (c) => ({ likedPosts: { ...c.likedPosts, [postId]: !c.likedPosts[postId] } }))),
 
       redeemReward: (id, costXp) => {
         const s = get();
-        if (s.redeemedRewards[id] || s.xp < costXp) return false;
-        set({
-          redeemedRewards: { ...s.redeemedRewards, [id]: true },
-          xp: s.xp - costXp,
-        });
+        const active = s.children.find((c) => c.localId === s.activeChildId);
+        if (!active || active.redeemedRewards[id] || active.xp < costXp) return false;
+        set((s2) =>
+          withActiveChild(s2, (c) => ({
+            redeemedRewards: { ...c.redeemedRewards, [id]: true },
+            xp: c.xp - costXp,
+          })),
+        );
         return true;
       },
 
       recordGameResult: (r) =>
-        set((s) => ({
-          gameHistory: [{ ...r, playedAt: Date.now() }, ...s.gameHistory].slice(0, 30),
-        })),
+        set((s) =>
+          withActiveChild(s, (c) => ({
+            gameHistory: [{ ...r, playedAt: Date.now() }, ...c.gameHistory].slice(0, 30),
+          })),
+        ),
 
       startFocusLock: (minutes) =>
-        set({ focusLockUntil: Date.now() + minutes * 60_000, focusMinutes: minutes }),
-      syncFocusLockUntil: (until) => set({ focusLockUntil: until }),
-      clearFocusLock: () => set({ focusLockUntil: null }),
+        set((s) => withActiveChild(s, () => ({ focusLockUntil: Date.now() + minutes * 60_000, focusMinutes: minutes }))),
+      syncFocusLockUntil: (until) => set((s) => withActiveChild(s, () => ({ focusLockUntil: until }))),
+      clearFocusLock: () => set((s) => withActiveChild(s, () => ({ focusLockUntil: null }))),
 
       donate: (label, xpCost, aznAmount) => {
         const s = get();
-        if (s.xp < xpCost) return false;
+        const active = s.children.find((c) => c.localId === s.activeChildId);
+        if (!active || active.xp < xpCost) return false;
         const tx: WalletTx = {
           id: `tx-${Date.now()}`,
           title: label,
@@ -290,19 +378,85 @@ export const useAppStore = create<AppState>()(
           amount: aznAmount,
           direction: 'out',
         };
-        set({ xp: s.xp - xpCost, transactions: [tx, ...s.transactions] });
+        set((s2) => withActiveChild(s2, (c) => ({ xp: c.xp - xpCost, transactions: [tx, ...c.transactions] })));
         return true;
       },
     }),
     {
       name: 'simart-app-state',
-      // v6: ChildProfile gained childId (required by the real habit-completion
-      // endpoints) — bump so stale v5 localStorage (no childId) gets discarded
-      // instead of HabitsPage silently treating a real backend child as local-only.
-      version: 6,
+      // v7: multi-child support — `child: ChildProfile | null` became
+      // `children: ChildProfile[]` + `activeChildId`, with every per-child
+      // progress field (xp, habitDone, watchedPct, …) moving off flat
+      // top-level state onto each ChildProfile. Unlike the v5->v6 bump (which
+      // discarded stale state outright), this one migrates a single existing
+      // child forward into the new shape instead of losing their progress.
+      version: 7,
+      migrate: (persisted, version) => {
+        const p = persisted as Record<string, unknown> | null;
+        if (version >= 7 || !p) return persisted as AppState;
+
+        const children: ChildProfile[] = [];
+        const oldChild = p.child as (ChildProfileInput & Record<string, unknown>) | null | undefined;
+        if (oldChild) {
+          children.push({
+            localId: crypto.randomUUID(),
+            childId: oldChild.childId ?? null,
+            name: oldChild.name as string,
+            avatar: oldChild.avatar as string,
+            gender: oldChild.gender as 'boy' | 'girl',
+            dobDay: oldChild.dobDay as string,
+            dobMonth: oldChild.dobMonth as string,
+            dobYear: oldChild.dobYear as string,
+            city: oldChild.city as string,
+            age: oldChild.age as number,
+            xp: (p.xp as number) ?? 1250,
+            streakDays: (p.streakDays as number) ?? 7,
+            habitDone: (p.habitDone as Record<string, boolean>) ?? {},
+            watchedPct: (p.watchedPct as Record<string, number>) ?? {},
+            videoNotes: (p.videoNotes as Record<string, VideoNote[]>) ?? {},
+            videoCompletionDates: (p.videoCompletionDates as Record<string, string>) ?? {},
+            likedPosts: (p.likedPosts as Record<string, boolean>) ?? {},
+            redeemedRewards: (p.redeemedRewards as Record<string, boolean>) ?? {},
+            gameHistory: (p.gameHistory as GameResult[]) ?? [],
+            focusLockUntil: (p.focusLockUntil as number | null) ?? null,
+            focusMinutes: (p.focusMinutes as number) ?? 15,
+            balance: (p.balance as number) ?? 15.5,
+            transactions: (p.transactions as WalletTx[]) ?? [],
+          });
+        }
+
+        return {
+          parent: (p.parent as AppState['parent']) ?? null,
+          children,
+          activeChildId: children[0]?.localId ?? null,
+          pin: (p.pin as string) ?? '1234',
+          authedAsParent: (p.authedAsParent as boolean) ?? false,
+        } as AppState;
+      },
     },
   ),
 );
+
+// Stable fallback references for pages reading a per-child field with
+// `child?.field ?? ...` before any child exists — a literal `{}`/`[]` there
+// would be a new object every render, which trips exhaustive-deps lint rules
+// on any useMemo/useEffect that depends on it.
+export const EMPTY_RECORD: Record<string, never> = {};
+export const EMPTY_ARRAY: readonly never[] = [];
+
+/** Reads the currently active child inside a React component (re-renders on
+ *  change, like any other store selector). Returns null before any child
+ *  exists or while the active selection hasn't settled. */
+export function useActiveChild(): ChildProfile | null {
+  return useAppStore((s) => s.children.find((c) => c.localId === s.activeChildId) ?? null);
+}
+
+/** Same as useActiveChild, but a plain function for use outside React render
+ *  (event handlers, effects, one-off reads) — mirrors useAppStore.getState(). */
+export function getActiveChild(): ChildProfile | null {
+  const s = useAppStore.getState();
+  return s.children.find((c) => c.localId === s.activeChildId) ?? null;
+}
 
 export const GAME_CATALOG: { id: string; title: string; icon: string; iconBg: string; axis: GameResult['axis']; description: string }[] = [
   { id: 'memory', title: 'Memory Match', icon: 'cards', iconBg: 'purple-100', axis: 'memory', description: 'Vizual Yaddaş Oyunu — cütləri tapıb yaddaşını gücləndir.' },

@@ -8,7 +8,7 @@ import Topbar, { AvatarButton } from '../components/Topbar';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import { Icon } from '../lib/icons';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { celebrate } from '../lib/confetti';
 import { fetchActiveFocusLock } from '../lib/focusService';
 import data from '../data/focusMode.json';
@@ -17,8 +17,8 @@ export default function FocusModePage() {
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
-  const child = useAppStore((s) => s.child);
-  const focusLockUntil = useAppStore((s) => s.focusLockUntil);
+  const child = useActiveChild();
+  const focusLockUntil = child?.focusLockUntil ?? null;
   const startFocusLock = useAppStore((s) => s.startFocusLock);
   const syncFocusLockUntil = useAppStore((s) => s.syncFocusLockUntil);
   const clearFocusLock = useAppStore((s) => s.clearFocusLock);
@@ -102,28 +102,28 @@ export default function FocusModePage() {
         }
       />
 
-      <main className="flex flex-1 flex-col items-center justify-center bg-navy-900 px-4 py-12">
+      <main className="flex flex-1 flex-col items-center justify-center bg-surface-alt px-4 py-12">
         <div className="flex w-full max-w-xl flex-col items-center gap-6">
           <motion.div
             animate={unlocked ? { scale: [1, 1.08, 1] } : {}}
             transition={{ duration: 0.6 }}
-            className={`flex size-48 items-center justify-center rounded-full sm:size-56 ${unlocked ? 'bg-grad-mint' : 'bg-grad-primary'}`}
+            className={`flex size-48 items-center justify-center rounded-full border-4 sm:size-56 ${unlocked ? 'border-success bg-success-tint' : 'border-primary bg-surface'}`}
           >
-            <div className="flex size-40 flex-col items-center justify-center gap-1 rounded-full bg-navy-900 sm:size-48">
-              <p className="font-display text-[clamp(28px,5vw,40px)] font-semibold text-white">
+            <div className="flex size-40 flex-col items-center justify-center gap-1 rounded-full bg-surface sm:size-48">
+              <p className="font-display text-[clamp(28px,5vw,40px)] font-semibold text-text-900">
                 {unlocked ? '✓' : `${mins}:${String(secs).padStart(2, '0')}`}
               </p>
-              <p className="text-body-sm text-text-on-dark-muted">{data.panel.countdownLabel}</p>
+              <p className="text-body-sm text-text-500">{data.panel.countdownLabel}</p>
             </div>
           </motion.div>
 
-          <p className="text-center font-display text-[clamp(22px,3.5vw,30px)] font-semibold text-white">
+          <p className="text-center font-display text-[clamp(22px,3.5vw,30px)] font-semibold text-text-900">
             {unlocked ? 'Əla! Gözlərin istirahət etdi 🎉' : data.panel.title}
           </p>
-          <p className="max-w-md text-center text-base text-text-on-dark-muted">{data.panel.description}</p>
+          <p className="max-w-md text-center text-base text-text-500">{data.panel.description}</p>
 
           <div className="flex w-full flex-col gap-2.5">
-            <p className="text-body-sm font-bold text-text-on-dark-muted">{data.panel.suggestionsLabel}</p>
+            <p className="text-body-sm font-bold text-text-500">{data.panel.suggestionsLabel}</p>
             {data.panel.suggestions.map((s, i) => {
               const done = !!doneSuggestions[i];
               return (
@@ -132,14 +132,14 @@ export default function FocusModePage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={() => markSuggestion(i, s.xp)}
                   className={`flex w-full items-center gap-3.5 rounded-xl border px-4 py-3.5 text-left transition-colors ${
-                    done ? 'border-green-600/40 bg-green-600/10' : 'border-white/8 bg-white/5 hover:bg-white/8'
+                    done ? 'border-success/40 bg-success-tint' : 'border-border bg-surface hover:bg-border-soft'
                   }`}
                 >
-                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-white/8 ${done ? 'text-green-500' : 'text-white'}`}>
+                  <span className={`flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-surface-alt ${done ? 'text-success' : 'text-text-700'}`}>
                     <Icon name={done ? 'check-circle' : s.icon} size={18} />
                   </span>
-                  <span className="flex-1 text-body font-bold text-white">{s.text}</span>
-                  {s.xp && <span className="text-body-sm font-bold text-green-500">{s.xp}</span>}
+                  <span className="flex-1 text-body font-bold text-text-900">{s.text}</span>
+                  {s.xp && <span className="text-body-sm font-bold text-success">{s.xp}</span>}
                 </motion.button>
               );
             })}
@@ -150,7 +150,7 @@ export default function FocusModePage() {
               <Unlock size={18} /> Animasiyaya Qayıt
             </Button>
           ) : (
-            <div className="flex h-15 w-full items-center justify-center gap-2 rounded-xl border-[1.5px] border-white/20 text-white/60">
+            <div className="flex h-15 w-full items-center justify-center gap-2 rounded-xl border border-border text-text-500">
               <Lock size={16} /> Video Pleyer Kilidlidir ({mins}:{String(secs).padStart(2, '0')})
             </div>
           )}

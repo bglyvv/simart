@@ -1,13 +1,26 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   SİMART — DESIGN TOKENS (v2 — fresh redesign)
-   Two voices: a playful, rounded "kid mode" (Fredoka + saturated colors)
-   for everything the child touches, and a calmer "parent mode" (Poppins/
-   Inter, restrained color) for account, auth and analytics screens.
+   SİMART — DESIGN TOKENS (v3 — premium minimal redesign, in progress)
+
+   One voice everywhere: minimal, neutral-first, Apple/Linear/Things-3
+   inspired. Sage and sand are supporting accents, not dominant backgrounds.
+   See new_design/DESIGN_SYSTEM.md for the source spec.
+
+   MIGRATION NOTE: the redesign is being rolled out page-by-page (see the
+   approved implementation plan at the time of this comment). The brand
+   color ramps and gradient/colored-shadow tokens in the "LEGACY" block below
+   are the OLD system, kept only so pages not yet migrated keep rendering
+   correctly — nothing new should reference them. The neutral/typography/
+   radius/spacing tokens, by contrast, have already been updated to their
+   final new-system values below, since every page already consumes those
+   same token *names* (bg-bg, text-text-900, font-display, rounded-md, …) —
+   updating their values here is itself how those pages get the new look,
+   with no per-page edits required. Delete the LEGACY block once every page
+   has migrated off it (tracked as the final QA phase cleanup step).
    ========================================================================== */
 @theme {
-  /* ---- Brand colors ---- */
+  /* ==================== LEGACY (pre-redesign, deprecated) ==================== */
   --color-purple-900: #3a1680;
   --color-purple-700: #6b32e0;
   --color-purple-600: #8a4fff;
@@ -48,7 +61,6 @@
   --color-red-600: #ef4444;
   --color-red-100: #fee2e2;
 
-  /* ---- Navy / dark surfaces ---- */
   --color-navy-950: #070b1a;
   --color-navy-900: #10132b;
   --color-navy-800: #1b2040;
@@ -56,20 +68,6 @@
   --color-navy-600: #434a7a;
   --color-indigo-900: #241b5e;
 
-  /* ---- Neutrals (light theme) ---- */
-  --color-bg: #f5f4fb;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8f8fd;
-  --color-border: #e6e3f5;
-  --color-border-soft: #efedfa;
-  --color-text-900: #181537;
-  --color-text-700: #423e66;
-  --color-text-500: #6b6790;
-  --color-text-400: #9793b8;
-  --color-text-on-dark: #f3f1fb;
-  --color-text-on-dark-muted: #a9a5d1;
-
-  /* ---- Gradients ---- */
   --background-image-grad-primary: linear-gradient(135deg, #a259ff 0%, #6b32e0 100%);
   --background-image-grad-blue: linear-gradient(135deg, #4a90e8 0%, #1e5ba8 100%);
   --background-image-grad-hero: linear-gradient(135deg, #6b32e0 0%, #2a75d3 60%, #0ea5e9 100%);
@@ -80,31 +78,79 @@
     radial-gradient(circle at 85% 20%, rgba(74, 144, 232, 0.14), transparent 45%),
     radial-gradient(circle at 50% 95%, rgba(45, 212, 191, 0.12), transparent 45%);
 
-  /* ---- Typography ---- */
-  --font-display: 'Fredoka', 'Poppins', 'Segoe UI', sans-serif;
-  --font-heading: 'Poppins', 'Segoe UI', sans-serif;
-  --font-body: 'Inter', 'Segoe UI', sans-serif;
-
-  --font-size-h1: clamp(28px, 4vw, 44px);
-  --font-size-h2: clamp(22px, 3vw, 32px);
-  --font-size-h3: clamp(19px, 2.2vw, 24px);
-  --font-size-h4: 20px;
-  --font-size-body-lg: 17px;
-  --font-size-body: 15px;
-  --font-size-body-sm: 13px;
-  --font-size-caption: 11px;
-
-  /* ---- Radius ---- */
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 22px;
-  --radius-xl: 30px;
-
-  /* ---- Shadow ---- */
   --shadow-purple: 0 10px 30px -5px rgba(138, 79, 255, 0.35);
   --shadow-green: 0 10px 24px -4px rgba(34, 197, 94, 0.35);
-  --shadow-soft: 0 2px 10px rgba(24, 21, 55, 0.06);
-  --shadow-float: 0 20px 45px -12px rgba(24, 21, 55, 0.22);
+
+  /* ==================== NEW SYSTEM (neutral/sage/sand premium) ==================== */
+
+  /* ---- Foundation neutrals ---- */
+  --color-primary: #4a3353;
+  --color-bg: #f5f5f7;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fafafa;
+  --color-border: #eaeaea;
+  --color-border-soft: #f0f0f0;
+  --color-text-900: #171717;
+  --color-text-700: #3d3d3d;
+  /* #707070, not the slightly lighter #777777 this was before — the lighter
+     value measured ~4.48:1 against white, just under WCAG AA's 4.5:1 for
+     normal text, and this token is used for real caption/label copy
+     throughout the app, not purely decorative text (Phase 9 contrast pass). */
+  --color-text-500: #707070;
+  --color-text-400: #a3a3a3;
+  /* Still used by the (not-yet-restyled) dark admin/partner login screens. */
+  --color-text-on-dark: #f5f5f5;
+  --color-text-on-dark-muted: #b3b3b3;
+
+  /* ---- Accents: supporting, not dominant ---- */
+  --color-sage: #a7b8a0;
+  --color-sage-tint: #eef2ec;
+  --color-sage-text: #51604b;
+  --color-sand: #d8c9b5;
+  --color-sand-tint: #faf3ea;
+  --color-sand-text: #8a6f4e;
+  --color-success: #668060;
+  --color-success-tint: #eaf0e8;
+  --color-error: #c45b5b;
+  --color-error-tint: #fbebeb;
+
+  /* ---- Typography: Inter everywhere, one voice ---- */
+  --font-display: 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-heading: 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, 'SF Pro Text', 'Segoe UI', sans-serif;
+
+  --font-size-display: clamp(32px, 4.2vw, 48px);
+  --font-size-h1: clamp(26px, 3.2vw, 32px);
+  --font-size-h2: clamp(20px, 2.4vw, 24px);
+  --font-size-h3: clamp(18px, 2vw, 20px);
+  --font-size-h4: 17px;
+  --font-size-body-lg: 16px;
+  --font-size-body: 15px;
+  --font-size-body-sm: 13px;
+  --font-size-caption: 12px;
+
+  /* ---- Spacing: the spec's 4px scale (xs 4 / sm 8 / md 12 / lg 16 / xl 24 /
+     2xl 32 / 3xl 48 / 4xl 64) is already exactly Tailwind's own default
+     numeric spacing scale (multiples of the base --spacing: 0.25rem = 4px),
+     so no custom tokens are needed here — use p-1/gap-2/w-3/etc. directly.
+     (Named --spacing-lg/-xl/etc. tokens were tried here and reverted: Tailwind
+     v4 resolves max-w-lg/max-w-xl/etc. against the same --spacing-{name}
+     namespace, so defining them collided with and broke every max-w-* utility
+     in the app — a real, non-obvious cross-utility collision worth remembering
+     if a named spacing scale is ever reconsidered.) */
+
+  /* ---- Radius: inputs 10 / cards 16 / large panels 20 ----
+     radius-lg and radius-xl both resolve to the "large panels" spec value
+     so every existing rounded-lg/rounded-xl call site (111+ of them) lands
+     on the new system without a per-file edit. */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 20px;
+
+  /* ---- Shadow: restrained, neutral, thin borders do most of the work ---- */
+  --shadow-soft: 0 1px 2px rgba(23, 23, 23, 0.04), 0 1px 3px rgba(23, 23, 23, 0.06);
+  --shadow-float: 0 12px 32px -8px rgba(23, 23, 23, 0.14);
 }
 
 @utility bg-grad-primary-soft {
@@ -125,6 +171,12 @@
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* New system: the sidebar/nav "active item" treatment — subtle neutral
+   background, not a gradient (DESIGN_SYSTEM.md §5 Navigation). */
+@utility bg-nav-active {
+  background-color: var(--color-surface-alt);
 }
 
 @utility scrollbar-thin {
@@ -169,4 +221,13 @@ body {
 }
 .animate-shake {
   animation: shake-x 0.5s ease-in-out;
+}
+
+/* Respect reduced-motion for the plain CSS keyframe animations above.
+   framer-motion usages get their own pass in the final QA phase. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-shake {
+    animation: none;
+  }
 }

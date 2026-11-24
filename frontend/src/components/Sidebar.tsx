@@ -1,32 +1,24 @@
 import { NavLink } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import LogoMark from './LogoMark';
+import ChildSwitcher from './ChildSwitcher';
 import navData from '../data/sidebarNav.json';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { Icon } from '../lib/icons';
 
+// Premium redesign: a plain neutral nav item, "active" reads via a subtle
+// background rather than a brand gradient — DESIGN_SYSTEM.md §5 Navigation
+// ("active item uses subtle neutral background, simple Lucide icons"). The
+// previous per-item rainbow icon-chip system (one hue per nav item) is
+// retired along with the rest of the colorful "kid mode" voice.
 const navItemBase =
-  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-body font-medium text-text-on-dark-muted transition-colors';
-const navItemActive = 'bg-grad-primary-soft text-white';
+  'flex items-center gap-3 rounded-sm px-3 py-2.5 text-body font-medium text-text-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+const navItemActive = 'bg-nav-active text-text-900 font-semibold';
 
-// Per-item accent so each nav icon reads as its own chip rather than a flat
-// emoji glyph — subdued fills on the dark sidebar, matched to the brand palette.
-const NAV_CHIP: Record<string, string> = {
-  home: 'bg-purple-500/15 text-purple-300',
-  habits: 'bg-green-500/15 text-green-300',
-  animation: 'bg-red-600/15 text-red-300',
-  social: 'bg-blue-500/15 text-blue-300',
-  leagues: 'bg-amber-500/15 text-amber-300',
-  games: 'bg-teal-500/15 text-teal-300',
-  wallet: 'bg-coral-500/15 text-coral-500',
-  analytics: 'bg-purple-500/15 text-purple-300',
-  settings: 'bg-white/10 text-text-on-dark-muted',
-};
-
-function NavIcon({ navKey, icon }: { navKey: string; icon: string }) {
+function NavIcon({ icon }: { icon: string }) {
   return (
-    <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${NAV_CHIP[navKey] ?? 'bg-white/10 text-white'}`}>
-      <Icon name={icon} size={16} />
+    <span className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-surface-alt text-text-700">
+      <Icon name={icon} size={17} />
     </span>
   );
 }
@@ -40,16 +32,16 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             key={item.key}
             to={item.path}
             onClick={onNavigate}
-            className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-white/5'}`}
+            className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
           >
-            <NavIcon navKey={item.key} icon={item.icon} />
+            <NavIcon icon={item.icon} />
             <span>{item.label}</span>
           </NavLink>
         ))}
       </nav>
 
       <div className="h-4" />
-      <p className="px-4 py-2 text-caption font-bold tracking-[1.2px] text-text-on-dark-muted/70">VALİDEYN</p>
+      <p className="px-4 py-2 text-caption font-bold tracking-[1.2px] text-text-400">VALİDEYN</p>
 
       <nav className="flex flex-col gap-1">
         {navData.parentNav.map((item) => (
@@ -57,9 +49,9 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             key={item.key}
             to={item.path}
             onClick={onNavigate}
-            className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-white/5'}`}
+            className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
           >
-            <NavIcon navKey={item.key} icon={item.icon} />
+            <NavIcon icon={item.icon} />
             <span>{item.label}</span>
           </NavLink>
         ))}
@@ -69,11 +61,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const child = useAppStore((s) => s.child);
-  const xp = useAppStore((s) => s.xp);
+  const child = useActiveChild();
+  const multiChild = useAppStore((s) => s.children.length > 1);
+  const xp = child?.xp ?? 0;
 
   return (
-    <div className="flex h-full flex-col bg-navy-900 px-5 py-6">
+    <div className="flex h-full flex-col border-r border-border bg-surface px-5 py-6">
       <div className="flex items-center px-3">
         <LogoMark height={28} />
       </div>
@@ -84,15 +77,21 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavLinks onNavigate={onNavigate} />
       </div>
 
-      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-white/8 bg-white/6 p-4">
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-white/50 bg-grad-primary text-xl shadow-[0_3px_6px_rgba(0,0,0,0.15),0_0_18px_rgba(138,79,255,0.55)]">
-          {child?.avatar ?? '🐰'}
+      {multiChild ? (
+        <div className="mt-4">
+          <ChildSwitcher />
         </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-white">{child?.name ?? navData.activeChild.name}</p>
-          <p className="truncate text-xs text-text-on-dark-muted">{xp.toLocaleString('az-AZ')} XP · Aktiv Profil</p>
+      ) : (
+        <div className="mt-4 flex items-center gap-3 rounded-md border border-border bg-surface-alt p-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-xl">
+            {child?.avatar ?? '🐰'}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-text-900">{child?.name ?? navData.activeChild.name}</p>
+            <p className="truncate text-xs text-text-500">{xp.toLocaleString('az-AZ')} XP · Aktiv Profil</p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -109,7 +108,7 @@ export default function Sidebar({ mobileOpen, onMobileClose }: { mobileOpen: boo
         {mobileOpen && (
           <motion.div className="fixed inset-0 z-40 md:hidden" initial="closed" animate="open" exit="closed">
             <motion.div
-              className="absolute inset-0 bg-navy-950/60"
+              className="absolute inset-0 bg-text-900/40"
               variants={{ open: { opacity: 1 }, closed: { opacity: 0 } }}
               onClick={onMobileClose}
             />
