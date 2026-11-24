@@ -277,11 +277,17 @@ export const useAppStore = create<AppState>()(
             return existing ? { ...existing, ...input } : createChildProfile(input);
           });
           const activeStillPresent = children.some((c) => c.localId === s.activeChildId);
+          // Always fall back to the first real child when the previous
+          // active one is gone — previously this only happened for a
+          // single-child family (children.length === 1), leaving
+          // activeChildId null on a fresh-device login for a multi-child
+          // family until a child card was explicitly clicked. Every page
+          // keyed off useActiveChild() treats null the same as "no backend
+          // account," so this silently fell back to local mock data on
+          // Sosial/Analitika for a real, logged-in multi-child family.
           return {
             children,
-            activeChildId: activeStillPresent
-              ? s.activeChildId
-              : (children.length === 1 ? children[0].localId : null),
+            activeChildId: activeStillPresent ? s.activeChildId : (children[0]?.localId ?? null),
           };
         }),
 
