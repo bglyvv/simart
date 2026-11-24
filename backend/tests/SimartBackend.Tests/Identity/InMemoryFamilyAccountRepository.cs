@@ -48,6 +48,9 @@ public sealed class InMemoryFamilyAccountRepository : IFamilyAccountRepository
     public Task<Parent?> FindParentByEmailAsync(string email, CancellationToken cancellationToken) =>
         Task.FromResult(_parents.FirstOrDefault(p => p.Email == email));
 
+    public Task<Parent?> FindParentByIdAsync(Guid parentId, CancellationToken cancellationToken) =>
+        Task.FromResult(_parents.FirstOrDefault(p => p.Id == parentId));
+
     public Task<IReadOnlyList<Family>> GetAllFamiliesWithMembersAsync(CancellationToken cancellationToken)
     {
         // AddChildAsync only ever sets Child.FamilyId (same as the real EF repository —
@@ -177,6 +180,16 @@ public sealed class InMemoryFamilyAccountRepository : IFamilyAccountRepository
 
         child.Name = name;
         child.City = city;
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> ChangeParentPinAsync(Guid parentId, string newPinHash, CancellationToken cancellationToken)
+    {
+        var parent = _parents.FirstOrDefault(p => p.Id == parentId);
+        if (parent is null)
+            return Task.FromResult(false);
+
+        parent.PinHash = newPinHash;
         return Task.FromResult(true);
     }
 }

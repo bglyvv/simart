@@ -13,3 +13,7 @@ public sealed record ResetPasswordRequest(string Token, string NewPassword);
 public sealed record UpdateParentRequest(string FullName);
 
 public sealed record UpdateChildRequest(string Name, string City);
+
+public sealed record VerifyPinRequest(string Pin);
+
+public sealed record ChangePinRequest(string CurrentPin, string NewPin);

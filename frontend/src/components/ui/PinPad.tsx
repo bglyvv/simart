@@ -5,21 +5,25 @@ import { Delete } from 'lucide-react';
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'back'];
 
 /** A real, working PIN pad: digits fill in, backspace works, and `onComplete`
- *  fires once `length` digits have been entered. */
+ *  fires once `length` digits have been entered. `onComplete` may return a
+ *  Promise (a real backend verify call) — the pad disables itself and shows
+ *  a brief "yoxlanılır..." state while awaiting it, rather than looking like
+ *  it silently did nothing during that round trip. */
 export default function PinPad({
   length = 4,
   onComplete,
   dark = true,
 }: {
   length?: number;
-  onComplete: (pin: string) => boolean | void;
+  onComplete: (pin: string) => boolean | void | Promise<boolean | void>;
   dark?: boolean;
 }) {
   const [value, setValue] = useState('');
   const [shake, setShake] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  function press(key: string) {
-    if (key === '') return;
+  async function press(key: string) {
+    if (busy || key === '') return;
     if (key === 'back') {
       setValue((v) => v.slice(0, -1));
       return;
@@ -28,7 +32,9 @@ export default function PinPad({
     const next = value + key;
     setValue(next);
     if (next.length === length) {
-      const ok = onComplete(next);
+      setBusy(true);
+      const ok = await onComplete(next);
+      setBusy(false);
       if (ok === false) {
         setShake(true);
         setTimeout(() => {
@@ -48,7 +54,7 @@ export default function PinPad({
   return (
     <div>
       <motion.div
-        className="mb-6 flex justify-center gap-3"
+        className="mb-2 flex justify-center gap-3"
         animate={shake ? { x: [0, -8, 8, -8, 8, 0] } : {}}
         transition={{ duration: 0.4 }}
       >
@@ -57,13 +63,17 @@ export default function PinPad({
         ))}
       </motion.div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <p className={`mb-4 h-4 text-center text-caption ${dark ? 'text-white/60' : 'text-text-400'}`}>
+        {busy ? 'Yoxlanılır...' : ''}
+      </p>
+
+      <div className={`grid grid-cols-3 gap-3 ${busy ? 'opacity-50' : ''}`}>
         {KEYS.map((key, i) => (
           <motion.button
             key={i}
             type="button"
-            disabled={key === ''}
-            onClick={() => press(key)}
+            disabled={key === '' || busy}
+            onClick={() => void press(key)}
             whileTap={key ? { scale: 0.92 } : undefined}
             className={`flex h-14 items-center justify-center rounded-sm text-lg font-semibold transition-colors ${
               key === '' ? 'invisible' : keyBase

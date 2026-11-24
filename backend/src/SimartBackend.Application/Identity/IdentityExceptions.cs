@@ -46,3 +46,15 @@ public sealed class InvalidParentNameException() : Exception("Full name is requi
 /// <summary>Thrown by UpdateChildCommandHandler when Name or City is blank after
 /// trimming — mapped to 400.</summary>
 public sealed class InvalidChildInfoException() : Exception("Name and city are required.");
+
+/// <summary>Thrown by ChangePinCommandHandler when the supplied current PIN
+/// doesn't match the stored hash — mapped to 400. Kept distinct from the format
+/// check below so the frontend can show "wrong PIN" vs. "PIN must be 4 digits"
+/// as separate, correctly-worded messages.</summary>
+public sealed class IncorrectPinException() : Exception("Incorrect current PIN.");
+
+/// <summary>Thrown by ChangePinCommandHandler when the new PIN isn't exactly 4
+/// digits — mapped to 400. SignUpFamilyCommandHandler never enforced this
+/// server-side (it just hashed whatever string arrived); this is the first
+/// place the 4-digit rule is actually checked on the backend.</summary>
+public sealed class InvalidPinFormatException() : Exception("PIN must be exactly 4 digits.");

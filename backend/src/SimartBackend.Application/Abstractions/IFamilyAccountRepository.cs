@@ -24,6 +24,11 @@ public interface IFamilyAccountRepository
     /// PasswordHash to verify against.</summary>
     Task<Parent?> FindParentByEmailAsync(string email, CancellationToken cancellationToken);
 
+    /// <summary>By the parent's own id — used by VerifyPinQuery/ChangePinCommand,
+    /// both keyed by the caller's own JWT subject (their own parentId), not by
+    /// email or familyId.</summary>
+    Task<Parent?> FindParentByIdAsync(Guid parentId, CancellationToken cancellationToken);
+
     /// <summary>Every family with its Parents and Children loaded — admin account
     /// directory only (GetFamiliesQuery), never used by any family-facing read path.</summary>
     Task<IReadOnlyList<Family>> GetAllFamiliesWithMembersAsync(CancellationToken cancellationToken);
@@ -89,4 +94,9 @@ public interface IFamilyAccountRepository
     /// <summary>Admin-only edit — a child's name and city. False if childId
     /// doesn't exist or is currently deactivated.</summary>
     Task<bool> UpdateChildInfoAsync(Guid childId, string name, string city, CancellationToken cancellationToken);
+
+    /// <summary>ChangePinCommandHandler's write, after it's already verified the
+    /// caller's current PIN — sets the new hash only, same shape as
+    /// UpdateParentNameAsync. False if parentId doesn't exist.</summary>
+    Task<bool> ChangeParentPinAsync(Guid parentId, string newPinHash, CancellationToken cancellationToken);
 }

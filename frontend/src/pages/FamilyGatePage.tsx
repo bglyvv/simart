@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Lock, KeyRound, UserPlus } from 'lucide-react';
+import { ArrowRight, Lock, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
 import LogoMark from '../components/LogoMark';
 import PinPad from '../components/ui/PinPad';
@@ -12,33 +12,53 @@ export default function FamilyGatePage() {
   const parent = useAppStore((s) => s.parent);
   const children = useAppStore((s) => s.children);
   const setActiveChildId = useAppStore((s) => s.setActiveChildId);
-  const tryPin = useAppStore((s) => s.tryPin);
+  const verifyPinAsync = useAppStore((s) => s.verifyPinAsync);
   const [usePassword, setUsePassword] = useState(false);
   const [pwValue, setPwValue] = useState('');
-  const pin = useAppStore((s) => s.pin);
+  // The PIN panel only appears once the parent profile is explicitly
+  // selected — previously it rendered unconditionally alongside the member
+  // list, showing the Master PIN gate (and, until now, the PIN value itself)
+  // before anyone had asked to act as the parent at all.
+  const [gateOpen, setGateOpen] = useState(false);
 
   function enterAsChild(localId: string) {
     setActiveChildId(localId);
     navigate('/ana-sehife');
   }
 
-  function handlePinComplete(value: string) {
-    const ok = tryPin(value);
-    if (ok) {
-      toast.success('Valideyn girişi təsdiqləndi.');
-      navigate('/analitika');
-    } else {
-      toast.error('PIN yanlışdır, yenidən cəhd edin.');
+  // Backend-verified now (see useAppStore.verifyPinAsync) — a thrown error
+  // (network down, Render cold-starting) is deliberately NOT treated as a
+  // wrong PIN: it fails closed (never navigates) but shows a distinct
+  // "couldn't reach the server" message instead of the misleading
+  // "PIN yanlışdır", and returns `undefined` rather than `false` so PinPad's
+  // shake animation (reserved for a genuinely wrong PIN) doesn't fire either.
+  async function handlePinComplete(value: string) {
+    try {
+      const ok = await verifyPinAsync(value);
+      if (ok) {
+        toast.success('Valideyn girişi təsdiqləndi.');
+        navigate('/analitika');
+      } else {
+        toast.error('PIN yanlışdır, yenidən cəhd edin.');
+      }
+      return ok;
+    } catch {
+      toast.error('Serverə qoşulmaq mümkün olmadı. Yenidən cəhd edin.');
+      return undefined;
     }
-    return ok;
   }
 
-  function handlePasswordSubmit() {
-    if (tryPin(pwValue)) {
-      toast.success('Valideyn girişi təsdiqləndi.');
-      navigate('/analitika');
-    } else {
-      toast.error('Kod yanlışdır.');
+  async function handlePasswordSubmit() {
+    try {
+      const ok = await verifyPinAsync(pwValue);
+      if (ok) {
+        toast.success('Valideyn girişi təsdiqləndi.');
+        navigate('/analitika');
+      } else {
+        toast.error('Kod yanlışdır.');
+      }
+    } catch {
+      toast.error('Serverə qoşulmaq mümkün olmadı. Yenidən cəhd edin.');
     }
   }
 
@@ -62,7 +82,7 @@ export default function FamilyGatePage() {
           <p className="mt-2 text-text-500">Davam etmək üçün profil seçin</p>
         </motion.div>
 
-        <div className="grid w-full gap-6 lg:grid-cols-[1fr_1.1fr]">
+        <div className={gateOpen ? 'grid w-full gap-6 lg:grid-cols-[1fr_1.1fr]' : 'w-full max-w-xl'}>
           {/* Member list */}
           <motion.div initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
             {children.map((c) => (
@@ -83,7 +103,12 @@ export default function FamilyGatePage() {
             ))}
 
             {parent && (
-              <div className="mb-4 flex w-full items-center gap-4 rounded-md border border-border bg-surface px-6 py-5">
+              <button
+                onClick={() => setGateOpen(true)}
+                className={`flex w-full items-center gap-4 rounded-md border px-6 py-5 text-left transition-colors ${
+                  gateOpen ? 'border-primary bg-surface-alt' : 'border-border bg-surface hover:bg-surface-alt'
+                }`}
+              >
                 <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xl text-text-700">
                   👤
                 </div>
@@ -92,66 +117,54 @@ export default function FamilyGatePage() {
                   <p className="mt-0.5 text-body-sm text-text-500">İdarəetmə və Analitika Paneli</p>
                 </div>
                 <Lock size={16} className="text-text-400" />
-              </div>
+              </button>
             )}
-
-            <button
-              onClick={() => navigate('/usaq-elave-et')}
-              className="flex w-full items-center gap-4 rounded-md border border-dashed border-border bg-surface px-6 py-5 text-left transition-colors hover:bg-surface-alt"
-            >
-              <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xl text-text-700">
-                <UserPlus size={20} />
-              </div>
-              <div className="flex-1">
-                <p className="text-body-lg font-bold text-text-900">Yeni Ailə Üzvü Əlavə Et</p>
-                <p className="mt-0.5 text-body-sm text-text-500">Uşaq və ya Valideyn profili</p>
-              </div>
-            </button>
           </motion.div>
 
-          {/* Parental gate */}
-          <motion.div
-            initial={{ opacity: 0, x: 14 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.18 }}
-            className="rounded-md border border-border bg-surface p-6 text-center sm:p-8"
-          >
-            <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-primary text-2xl">
-              🔒
-            </div>
-            <h2 className="font-display text-h4 font-semibold text-text-900">Valideyn Keçid Qapısı</h2>
-            <p className="mb-2 mt-3 text-body-sm leading-relaxed text-text-500">
-              {parent?.name ?? 'Valideyn'} hesabına daxil olmaq üçün Master PIN daxil edin.
-            </p>
-            <p className="mb-6 text-caption text-text-400">Demo PIN: {pin}</p>
-
-            {!usePassword ? (
-              <PinPad length={4} dark={false} onComplete={handlePinComplete} />
-            ) : (
-              <div className="flex flex-col gap-3">
-                <input
-                  value={pwValue}
-                  onChange={(e) => setPwValue(e.target.value)}
-                  type="password"
-                  placeholder="PIN daxil edin"
-                  className="h-13 w-full rounded-sm border border-border bg-surface px-5 text-center text-lg text-text-900 outline-none focus:border-primary"
-                />
-                <button
-                  onClick={handlePasswordSubmit}
-                  className="flex h-13 items-center justify-center gap-2 rounded-sm bg-primary font-semibold text-white"
-                >
-                  <KeyRound size={16} /> Davam Et
-                </button>
-              </div>
-            )}
-
-            <button
-              onClick={() => setUsePassword((v) => !v)}
-              className="mt-6 text-body-sm font-bold text-text-700 hover:text-text-900"
+          {/* Parental gate — only once the parent profile above is selected */}
+          {gateOpen && (
+            <motion.div
+              initial={{ opacity: 0, x: 14 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.18 }}
+              className="rounded-md border border-border bg-surface p-6 text-center sm:p-8"
             >
-              {usePassword ? 'PIN Pedi ilə Davam Et' : 'Şifrə ilə Davam Et'}
-            </button>
-          </motion.div>
+              <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-primary text-2xl">
+                🔒
+              </div>
+              <h2 className="font-display text-h4 font-semibold text-text-900">Valideyn Keçid Qapısı</h2>
+              <p className="mb-6 mt-3 text-body-sm leading-relaxed text-text-500">
+                {parent?.name ?? 'Valideyn'} hesabına daxil olmaq üçün Master PIN daxil edin.
+              </p>
+
+              {!usePassword ? (
+                <PinPad length={4} dark={false} onComplete={handlePinComplete} />
+              ) : (
+                <div className="flex flex-col gap-3">
+                  <input
+                    value={pwValue}
+                    onChange={(e) => setPwValue(e.target.value)}
+                    type="password"
+                    placeholder="PIN daxil edin"
+                    className="h-13 w-full rounded-sm border border-border bg-surface px-5 text-center text-lg text-text-900 outline-none focus:border-primary"
+                  />
+                  <button
+                    onClick={handlePasswordSubmit}
+                    className="flex h-13 items-center justify-center gap-2 rounded-sm bg-primary font-semibold text-white"
+                  >
+                    <KeyRound size={16} /> Davam Et
+                  </button>
+                </div>
+              )}
+
+              <button
+                onClick={() => setUsePassword((v) => !v)}
+                className="mt-6 text-body-sm font-bold text-text-700 hover:text-text-900"
+              >
+                {usePassword ? 'PIN Pedi ilə Davam Et' : 'Şifrə ilə Davam Et'}
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

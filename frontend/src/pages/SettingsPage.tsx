@@ -29,21 +29,51 @@ export default function SettingsPage() {
   const parent = useAppStore((s) => s.parent);
   const child = useActiveChild();
   const backendChildren = useAppStore((s) => s.children).filter((c) => !!c.childId);
-  const pin = useAppStore((s) => s.pin);
-  const setPin = useAppStore((s) => s.setPin);
+  const changePinAsync = useAppStore((s) => s.changePinAsync);
   const logoutParent = useAppStore((s) => s.logoutParent);
   const resetAll = useAppStore((s) => s.resetAll);
 
+  const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [changingPin, setChangingPin] = useState(false);
 
-  function savePin() {
-    if (!/^\d{4}$/.test(newPin)) {
-      toast.error('PIN 4 rəqəmdən ibarət olmalıdır.');
+  // Backend-verified now (useAppStore.changePinAsync) — the current PIN is
+  // always re-checked (server-side for a backend-synced family, locally
+  // otherwise) before anything changes; the current value is never shown
+  // anywhere in this UI, only ever typed in to prove it's known.
+  async function savePin() {
+    if (!/^\d{4}$/.test(currentPin)) {
+      toast.error('Cari PIN 4 rəqəmdən ibarət olmalıdır.');
       return;
     }
-    setPin(newPin);
-    setNewPin('');
-    toast.success('PIN yeniləndi.');
+    if (!/^\d{4}$/.test(newPin)) {
+      toast.error('Yeni PIN 4 rəqəmdən ibarət olmalıdır.');
+      return;
+    }
+    if (newPin !== confirmPin) {
+      toast.error('Yeni PIN təsdiqi uyğun gəlmir.');
+      return;
+    }
+    setChangingPin(true);
+    try {
+      await changePinAsync(currentPin, newPin);
+      toast.success('PIN yeniləndi.');
+      setCurrentPin('');
+      setNewPin('');
+      setConfirmPin('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      toast.error(
+        message.includes('Incorrect current PIN')
+          ? 'Cari PIN yanlışdır.'
+          : message.includes('4 digits')
+            ? 'Yeni PIN 4 rəqəmdən ibarət olmalıdır.'
+            : 'PIN yenilənə bilmədi.',
+      );
+    } finally {
+      setChangingPin(false);
+    }
   }
 
   function handleLogout() {
@@ -84,16 +114,36 @@ export default function SettingsPage() {
 
           <Card padding="lg">
             <h3 className="mb-1 font-display font-semibold text-text-900">Master PIN</h3>
-            <p className="mb-4 text-body-sm text-text-500">Cari PIN: <b>{pin}</b></p>
-            <div className="flex gap-3">
+            <p className="mb-4 text-body-sm text-text-500">
+              Valideyn Keçid Qapısı üçün PIN-i dəyişin. Dəyişiklik üçün cari PIN-i bilmək tələb olunur.
+            </p>
+            <div className="flex flex-col gap-3">
+              <input
+                value={currentPin}
+                onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                type="password"
+                inputMode="numeric"
+                placeholder="Cari PIN"
+                className="h-12 w-full rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary"
+              />
               <input
                 value={newPin}
                 onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                placeholder="Yeni 4 rəqəmli PIN"
-                className="h-12 min-w-0 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary"
+                type="password"
+                inputMode="numeric"
+                placeholder="Yeni PIN"
+                className="h-12 w-full rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary"
               />
-              <Button variant="primary" size="sm" onClick={savePin}>
-                <KeyRound size={15} /> Yadda Saxla
+              <input
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                type="password"
+                inputMode="numeric"
+                placeholder="Yeni PIN-i təsdiqlə"
+                className="h-12 w-full rounded-xl border-2 border-border bg-surface px-4 text-body text-text-900 outline-none focus:border-primary"
+              />
+              <Button variant="primary" size="sm" onClick={savePin} disabled={changingPin}>
+                <KeyRound size={15} /> {changingPin ? 'Yenilənir...' : 'Yadda Saxla'}
               </Button>
             </div>
           </Card>

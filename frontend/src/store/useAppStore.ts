@@ -8,6 +8,7 @@ import playlistsData from '../data/playlists.json';
 import { formatAzDate } from '../lib/date';
 import { formatTime } from '../lib/formatTime';
 import type { Playlist } from '../lib/contentService';
+import { verifyPin as verifyPinApi, changePin as changePinApi } from '../lib/identityService';
 
 /** The identity-only fields a caller (LoginPage/AddChildPage) provides when a
  *  child profile is created or refreshed — everything else (progress state)
@@ -210,7 +211,24 @@ export interface AppState {
   addChild: (c: ChildProfileInput) => void;
   setActiveChildId: (localId: string) => void;
   setPin: (pin: string) => void;
+  /** Local-only comparison — the fallback path for a "davam edə bilərsən"
+   * profile with no backend account at all (nothing to verify a PIN against
+   * server-side). Every real backend-synced family goes through
+   * verifyPinAsync instead, which calls this only as that same fallback. */
   tryPin: (pin: string) => boolean;
+  /** The real parent-gate check — backend-verified (POST /api/identity/
+   * verify-pin) when this is a backend-synced family, otherwise the same
+   * local tryPin comparison as before. Throws on a network/server error
+   * (callers should fail closed — never treat a thrown error as "PIN
+   * correct"), resolves to false on a genuinely wrong PIN. */
+  verifyPinAsync: (pin: string) => Promise<boolean>;
+  /** Backend-synced: POST /api/identity/change-pin (re-verifies currentPin
+   * server-side, throws with the backend's message on a mismatch or a
+   * malformed newPin). Local-only: compares currentPin against the local
+   * `pin` itself (there's no backend account to verify against), throwing
+   * the same shape of error on a mismatch so both paths can be handled
+   * identically by the caller. */
+  changePinAsync: (currentPin: string, newPin: string) => Promise<void>;
   logoutParent: () => void;
   resetAll: () => void;
 
@@ -284,6 +302,29 @@ export const useAppStore = create<AppState>()(
         if (ok) set({ authedAsParent: true });
         return ok;
       },
+
+      verifyPinAsync: async (pin) => {
+        const { parent } = get();
+        if (parent?.token) {
+          const ok = await verifyPinApi(pin, parent.token);
+          if (ok) set({ authedAsParent: true });
+          return ok;
+        }
+        return get().tryPin(pin);
+      },
+
+      changePinAsync: async (currentPin, newPin) => {
+        const { parent } = get();
+        if (parent?.token) {
+          await changePinApi(currentPin, newPin, parent.token);
+          return;
+        }
+        if (currentPin !== get().pin) {
+          throw new Error('Incorrect current PIN.');
+        }
+        get().setPin(newPin);
+      },
+
       logoutParent: () => set({ authedAsParent: false }),
       resetAll: () =>
         set({

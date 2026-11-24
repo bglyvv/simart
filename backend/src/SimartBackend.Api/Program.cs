@@ -64,6 +64,7 @@ using SimartBackend.Application.Habits.Queries.GetHabitStreak;
 using SimartBackend.Application.Habits.Queries.GetChildXp;
 using SimartBackend.Application.Identity;
 using SimartBackend.Application.Identity.Commands.AddChild;
+using SimartBackend.Application.Identity.Commands.ChangePin;
 using SimartBackend.Application.Identity.Commands.DeactivateFamily;
 using SimartBackend.Application.Identity.Commands.ForgotPassword;
 using SimartBackend.Application.Identity.Commands.LoginFamily;
@@ -75,6 +76,7 @@ using SimartBackend.Application.Identity.Commands.UpdateParent;
 using SimartBackend.Application.Identity.Queries.GetChildren;
 using SimartBackend.Application.Identity.Queries.GetDeactivatedFamilies;
 using SimartBackend.Application.Identity.Queries.GetFamilies;
+using SimartBackend.Application.Identity.Queries.VerifyPin;
 using SimartBackend.Application.Partners;
 using SimartBackend.Application.Partners.Commands.AdminAcceptRewardProposal;
 using SimartBackend.Application.Partners.Commands.AdminDeclineRewardProposal;
@@ -745,6 +747,53 @@ app.MapPost("/api/identity/login", async (ISender sender, LoginRequest body, Can
     }
 })
 .WithName("LoginFamily");
+
+// Backend-verified parent PIN — previously the entire "Valideyn Keçid Qapısı"
+// gate was local-only Zustand state, a plain string comparison never checked
+// against the backend's PinHash (which itself was write-only, set at signup
+// and never read back). CallerParentId is read from the token's own subject
+// claim (JwtAuthTokenService issues it as `sub`) — this is always "verify/
+// change MY OWN pin," so there's no separate ownership check the way a
+// childId-keyed endpoint needs one. A wrong PIN here is a normal 200/false
+// answer, not a 401 — the caller is already a valid bearer-token holder;
+// what's being checked is "do they currently know the PIN," not "are they
+// allowed to ask."
+app.MapPost("/api/identity/verify-pin", async (ISender sender, VerifyPinRequest body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var callerParentId))
+        return Results.Forbid();
+
+    var valid = await sender.Send(new VerifyPinQuery(callerParentId, body.Pin), cancellationToken);
+    return Results.Ok(new { valid });
+})
+.RequireAuthorization()
+.WithName("VerifyPin");
+
+app.MapPost("/api/identity/change-pin", async (ISender sender, ChangePinRequest body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var callerParentId))
+        return Results.Forbid();
+
+    try
+    {
+        await sender.Send(new ChangePinCommand(callerParentId, body.CurrentPin, body.NewPin), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (IncorrectPinException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (InvalidPinFormatException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (ParentNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("ChangePin");
 
 // Always 204, whether or not the email matches a real account — same
 // anti-enumeration shape InvalidCredentialsException already uses for login, just

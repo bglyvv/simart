@@ -87,16 +87,20 @@ async function postJson<TResult>(path: string, body: unknown, token?: string): P
   return (await response.json()) as TResult;
 }
 
-/** For ForgotPassword/ResetPassword — both return 204 No Content on success, no
- * body to parse (postJson would throw trying to parse an empty response). */
-async function postVoid(path: string, body: unknown): Promise<void> {
+/** For ForgotPassword/ResetPassword/ChangePin — all return 204 No Content on
+ * success, no body to parse (postJson would throw trying to parse an empty
+ * response). */
+async function postVoid(path: string, body: unknown, token?: string): Promise<void> {
   if (!API_BASE_URL) {
     throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');
   }
 
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const response = await fetch(new URL(path, API_BASE_URL), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(body),
   });
 
@@ -133,6 +137,25 @@ export function forgotPassword(email: string): Promise<void> {
  * used to probe which case occurred. */
 export function resetPassword(token: string, newPassword: string): Promise<void> {
   return postVoid('/api/identity/reset-password', { token, newPassword });
+}
+
+/** POST /api/identity/verify-pin — checks the supplied PIN against the caller's
+ * own backend-stored hash (the token's own subject, never a parentId the
+ * caller passes in). A plain true/false answer, not a 401/403 on a wrong
+ * PIN — the bearer token alone already proves "this session is this parent";
+ * what's being checked is "do they currently know the PIN." */
+export async function verifyPin(pin: string, token: string): Promise<boolean> {
+  const result = await postJson<{ valid: boolean }>('/api/identity/verify-pin', { pin }, token);
+  return result.valid;
+}
+
+/** POST /api/identity/change-pin — requires the current PIN (re-verified
+ * server-side before anything is written) alongside the new one. Throws with
+ * an English backend message on a wrong current PIN or a malformed new one
+ * (not exactly 4 digits) — same known-substring-to-Azerbaijani mapping
+ * pattern as every other backend error surfaced in this app's UI. */
+export function changePin(currentPin: string, newPin: string, token: string): Promise<void> {
+  return postVoid('/api/identity/change-pin', { currentPin, newPin }, token);
 }
 
 export async function fetchFamilyChildren(familyId: string, token: string): Promise<ChildAccount[]> {

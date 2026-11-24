@@ -28,6 +28,9 @@ public sealed class EfFamilyAccountRepository(SimartDbContext db) : IFamilyAccou
     public Task<Parent?> FindParentByEmailAsync(string email, CancellationToken cancellationToken) =>
         db.Parents.FirstOrDefaultAsync(p => p.Email == email, cancellationToken);
 
+    public Task<Parent?> FindParentByIdAsync(Guid parentId, CancellationToken cancellationToken) =>
+        db.Parents.FirstOrDefaultAsync(p => p.Id == parentId, cancellationToken);
+
     public async Task<IReadOnlyList<Family>> GetAllFamiliesWithMembersAsync(CancellationToken cancellationToken) =>
         await db.Families
             .Include(f => f.Parents)
@@ -192,6 +195,17 @@ public sealed class EfFamilyAccountRepository(SimartDbContext db) : IFamilyAccou
 
         child.Name = name;
         child.City = city;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> ChangeParentPinAsync(Guid parentId, string newPinHash, CancellationToken cancellationToken)
+    {
+        var parent = await db.Parents.FirstOrDefaultAsync(p => p.Id == parentId, cancellationToken);
+        if (parent is null)
+            return false;
+
+        parent.PinHash = newPinHash;
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }

@@ -25,38 +25,19 @@ function NavIcon({ icon }: { icon: string }) {
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   return (
-    <>
-      <nav className="flex flex-col gap-1">
-        {navData.primaryNav.map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.path}
-            onClick={onNavigate}
-            className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
-          >
-            <NavIcon icon={item.icon} />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="h-4" />
-      <p className="px-4 py-2 text-caption font-bold tracking-[1.2px] text-text-400">VALİDEYN</p>
-
-      <nav className="flex flex-col gap-1">
-        {navData.parentNav.map((item) => (
-          <NavLink
-            key={item.key}
-            to={item.path}
-            onClick={onNavigate}
-            className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
-          >
-            <NavIcon icon={item.icon} />
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
-    </>
+    <nav className="flex flex-col gap-1">
+      {navData.nav.map((item) => (
+        <NavLink
+          key={item.key}
+          to={item.path}
+          onClick={onNavigate}
+          className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
+        >
+          <NavIcon icon={item.icon} />
+          <span>{item.label}</span>
+        </NavLink>
+      ))}
+    </nav>
   );
 }
 
