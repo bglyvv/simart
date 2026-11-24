@@ -33,6 +33,13 @@ public sealed class CreatePostCommandHandler(
             Caption = caption,
             MediaEmoji = request.MediaEmoji,
             CreatedAt = DateTimeOffset.UtcNow,
+            // Every new post starts pending — a parent approves it via
+            // POST /api/social/posts/{postId}/approve before it's meant to be
+            // treated as live. The column itself defaults to "approved" (see
+            // ApprovalStatus's doc comment) purely so pre-existing rows from
+            // before this feature backfill correctly; this write always
+            // overrides that default for anything created from here on.
+            ApprovalStatus = SocialApprovalStatus.Pending,
         };
         await socialRepository.AddPostAsync(post, cancellationToken);
 

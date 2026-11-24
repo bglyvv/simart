@@ -1276,6 +1276,13 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("approved")
+                        .HasColumnName("approval_status");
+
                     b.Property<string>("AvatarEmoji")
                         .IsRequired()
                         .HasColumnType("text")

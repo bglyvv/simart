@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Heart, MessageCircle, ShieldCheck, ChevronDown, Send, Plus } from 'lucide-react';
+import { Heart, MessageCircle, ChevronDown, Send, Plus, Check } from 'lucide-react';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton } from '../components/Topbar';
 import Badge from '../components/ui/Badge';
@@ -16,12 +16,20 @@ import {
   fetchComments,
   createComment,
   fetchLeaderboard,
+  approvePost,
   MAX_CAPTION_LENGTH,
   type SocialPost,
   type SocialComment,
   type LeaderboardEntry,
 } from '../lib/socialService';
 import data from '../data/social.json';
+
+type StatusFilter = 'all' | 'pending' | 'approved';
+const STATUS_FILTER_LABEL: Record<StatusFilter, string> = {
+  all: 'Hamısı',
+  pending: 'Gözləyən',
+  approved: 'Təsdiqlənmiş',
+};
 
 // Same safe, pre-approved set AddChildPage's avatar picker already uses — no
 // free-form image upload anywhere in this feature, matching the page's own
@@ -35,6 +43,14 @@ export default function SocialPage() {
   const likedPosts = child?.likedPosts ?? EMPTY_RECORD;
   const toggleLike = useAppStore((s) => s.toggleLike);
   const useBackend = !!(parent?.familyId && child?.childId);
+  const allChildren = useAppStore((s) => s.children);
+  // Only this family's own children's posts can actually be approved here —
+  // the backend enforces this too (SocialChildOwnership), this just avoids
+  // showing a "Təsdiqlə" action that would 403 on click for someone else's post.
+  const ownChildIds = useMemo(
+    () => new Set(allChildren.map((c) => c.childId).filter((id): id is string => !!id)),
+    [allChildren],
+  );
 
   const [posts, setPosts] = useState<SocialPost[] | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
@@ -43,6 +59,24 @@ export default function SocialPage() {
   const [caption, setCaption] = useState('');
   const [mediaEmoji, setMediaEmoji] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
+  const filteredPosts = useMemo(() => {
+    if (!posts || statusFilter === 'all') return posts ?? [];
+    return posts.filter((p) => p.approvalStatus === statusFilter);
+  }, [posts, statusFilter]);
+
+  // Real, computed entirely from the already-fetched posts array — no new
+  // backend query needed for this.
+  const stats = useMemo(() => {
+    const rows = posts ?? [];
+    return {
+      approved: rows.filter((p) => p.approvalStatus === 'approved').length,
+      pending: rows.filter((p) => p.approvalStatus === 'pending').length,
+      totalLikes: rows.reduce((sum, p) => sum + p.likeCount, 0),
+      totalComments: rows.reduce((sum, p) => sum + p.commentCount, 0),
+    };
+  }, [posts]);
 
   function load() {
     if (!parent?.familyId || !child?.childId) return;
@@ -86,6 +120,19 @@ export default function SocialPage() {
     }
   }
 
+  async function handleApprove(post: SocialPost) {
+    if (!parent) return;
+    const previous = post.approvalStatus;
+    setPosts((rows) => rows?.map((p) => (p.id === post.id ? { ...p, approvalStatus: 'approved' } : p)) ?? rows);
+    try {
+      await approvePost(post.id, parent.token);
+    } catch (err) {
+      // Never claim it's approved if the call actually failed.
+      setPosts((rows) => rows?.map((p) => (p.id === post.id ? { ...p, approvalStatus: previous } : p)) ?? rows);
+      toast.error(err instanceof Error ? err.message : 'Təsdiqlənə bilmədi.');
+    }
+  }
+
   async function handleSubmitPost() {
     if (!parent || !child?.childId) return;
     const trimmed = caption.trim();
@@ -114,12 +161,7 @@ export default function SocialPage() {
         title={data.topbar.title}
         subtitle={data.topbar.subtitle}
         onMenuClick={openMenu}
-        actions={
-          <>
-            <Badge tone="green"><ShieldCheck size={12} className="inline" /> AI FILTER AKTİV</Badge>
-            <AvatarButton />
-          </>
-        }
+        actions={<AvatarButton />}
       />
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
@@ -179,13 +221,31 @@ export default function SocialPage() {
               <p className="text-body-sm text-error">Sosial lenta yüklənmədi — backend işə düşübmü?</p>
             )}
 
+            {useBackend && posts !== null && (
+              <div className="flex gap-2">
+                {(Object.keys(STATUS_FILTER_LABEL) as StatusFilter[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setStatusFilter(f)}
+                    className={`rounded-full border px-4 py-2 text-body-sm font-semibold transition-colors ${
+                      statusFilter === f ? 'border-primary bg-primary text-white' : 'border-border text-text-700 hover:bg-surface-alt'
+                    }`}
+                  >
+                    {STATUS_FILTER_LABEL[f]}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {useBackend
-              ? (posts ?? []).map((post, i) => (
+              ? filteredPosts.map((post, i) => (
                   <PostCard
                     key={post.id}
                     post={post}
                     index={i}
+                    canApprove={ownChildIds.has(post.childId)}
                     onToggleLike={() => handleToggleLike(post)}
+                    onApprove={() => handleApprove(post)}
                     onCommentAdded={() =>
                       setPosts((rows) =>
                         rows?.map((p) => (p.id === post.id ? { ...p, commentCount: p.commentCount + 1 } : p)) ?? rows,
@@ -232,7 +292,6 @@ export default function SocialPage() {
                           <span className="flex items-center gap-1.5 text-body-sm font-bold text-text-500">
                             <MessageCircle size={16} /> {post.comments} Şərh
                           </span>
-                          <Badge tone="green" className="ml-auto">AI FILTER: TƏSDİQLƏNDİ</Badge>
                         </div>
                       </Card>
                     </motion.div>
@@ -241,6 +300,18 @@ export default function SocialPage() {
           </div>
 
           <div className="flex min-w-0 flex-col gap-6">
+            {useBackend && posts !== null && (
+              <Card padding="lg">
+                <h3 className="font-display font-semibold text-text-900">Lenta Statistikası</h3>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <StatTile label="Təsdiqlənmiş" value={stats.approved} />
+                  <StatTile label="Gözləyən" value={stats.pending} />
+                  <StatTile label="Ümumi Bəyənmə" value={stats.totalLikes} />
+                  <StatTile label="Ümumi Şərh" value={stats.totalComments} />
+                </div>
+              </Card>
+            )}
+
             <Card padding="lg">
               <h3 className="font-display font-semibold text-text-900">{data.leaderboard.title}</h3>
               <p className="mb-4 mt-1 text-caption text-text-400">{data.leaderboard.note}</p>
@@ -275,17 +346,6 @@ export default function SocialPage() {
                   ))}
               </div>
             </Card>
-
-            <Card padding="lg" className="border-success/25 bg-success-tint">
-              <h3 className="font-display font-semibold text-text-900">{data.safetyRules.title}</h3>
-              <ul className="mt-3 flex flex-col gap-2.5">
-                {data.safetyRules.rules.map((rule) => (
-                  <li key={rule} className="flex items-start gap-2 text-body-sm text-success">
-                    <span>✓</span> {rule}
-                  </li>
-                ))}
-              </ul>
-            </Card>
           </div>
         </div>
       </main>
@@ -296,14 +356,18 @@ export default function SocialPage() {
 function PostCard({
   post,
   index,
+  canApprove,
   onToggleLike,
+  onApprove,
   onCommentAdded,
   childId,
   token,
 }: {
   post: SocialPost;
   index: number;
+  canApprove: boolean;
   onToggleLike: () => void;
+  onApprove: () => void;
   onCommentAdded: () => void;
   childId: string;
   token: string;
@@ -312,6 +376,16 @@ function PostCard({
   const [comments, setComments] = useState<SocialComment[] | null>(null);
   const [commentDraft, setCommentDraft] = useState('');
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [approving, setApproving] = useState(false);
+
+  async function handleApproveClick() {
+    setApproving(true);
+    try {
+      await onApprove();
+    } finally {
+      setApproving(false);
+    }
+  }
 
   function toggleExpanded() {
     const next = !expanded;
@@ -349,7 +423,15 @@ function PostCard({
               <p className="truncate font-bold text-text-900">{post.handle}</p>
             </div>
           </div>
-          <Badge tone="blue">✓ VALİDEYN TƏSDİQLƏDİ</Badge>
+          {post.approvalStatus === 'approved' ? (
+            <Badge tone="green">✓ Təsdiqləndi</Badge>
+          ) : canApprove ? (
+            <Button size="sm" variant="secondary" disabled={approving} onClick={handleApproveClick}>
+              <Check size={13} /> {approving ? 'Təsdiqlənir...' : 'Təsdiqlə'}
+            </Button>
+          ) : (
+            <Badge tone="amber">Təsdiq Gözlənilir</Badge>
+          )}
         </div>
 
         {post.mediaEmoji && (
@@ -375,7 +457,6 @@ function PostCard({
             <MessageCircle size={16} /> {post.commentCount} Şərh
             <ChevronDown size={14} className={`transition-transform ${expanded ? 'rotate-180' : ''}`} />
           </button>
-          <Badge tone="green" className="ml-auto">AI FILTER: TƏSDİQLƏNDİ</Badge>
         </div>
 
         {expanded && (
@@ -407,5 +488,14 @@ function PostCard({
         )}
       </Card>
     </motion.div>
+  );
+}
+
+function StatTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-surface-alt px-3 py-2.5">
+      <p className="text-body-lg font-bold text-text-900">{value}</p>
+      <p className="text-caption text-text-500">{label}</p>
+    </div>
   );
 }

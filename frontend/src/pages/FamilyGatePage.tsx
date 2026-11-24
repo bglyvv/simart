@@ -13,6 +13,7 @@ export default function FamilyGatePage() {
   const children = useAppStore((s) => s.children);
   const setActiveChildId = useAppStore((s) => s.setActiveChildId);
   const verifyPinAsync = useAppStore((s) => s.verifyPinAsync);
+  const logoutParent = useAppStore((s) => s.logoutParent);
   const [usePassword, setUsePassword] = useState(false);
   const [pwValue, setPwValue] = useState('');
   // The PIN panel only appears once the parent profile is explicitly
@@ -21,8 +22,16 @@ export default function FamilyGatePage() {
   // before anyone had asked to act as the parent at all.
   const [gateOpen, setGateOpen] = useState(false);
 
+  // Explicitly picking a child profile from this gate means the device is
+  // being handed back to that child — clears a parent's still-unlocked
+  // session (authedAsParent) from earlier, so a parent-only control (e.g.
+  // Liqalar's redeem button) becomes visible again for them. A parent
+  // switching children from the in-app ChildSwitcher while still reviewing
+  // their own dashboard is a different action and must NOT clear this —
+  // that goes through setActiveChildId directly, not through here.
   function enterAsChild(localId: string) {
     setActiveChildId(localId);
+    logoutParent();
     navigate('/ana-sehife');
   }
 

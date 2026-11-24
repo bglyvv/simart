@@ -18,6 +18,11 @@ public interface ISocialRepository
 
     Task AddPostAsync(SocialPost post, CancellationToken cancellationToken);
 
+    /// <summary>Persists a mutation made to an already-tracked post (currently
+    /// only ApprovalStatus) — same "fetch, mutate, call Update" shape
+    /// ApproveRewardRedemptionCommandHandler already uses.</summary>
+    Task UpdatePostAsync(SocialPost post, CancellationToken cancellationToken);
+
     /// <summary>Number of likes per post, for exactly the given postIds — the
     /// feed's batch way of attaching LikeCount without an N+1.</summary>
     Task<IReadOnlyDictionary<Guid, int>> GetLikeCountsAsync(IReadOnlyList<Guid> postIds, CancellationToken cancellationToken);

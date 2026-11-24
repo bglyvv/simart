@@ -14,6 +14,14 @@ public class SocialPost : ISoftDeletable
     public string? MediaEmoji { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 
+    /// <summary>"pending" until a parent approves it (see "Social" in
+    /// backend/README.md) — SocialApprovalStatus holds the two valid values.
+    /// Defaulted to "approved" at the column level (migration
+    /// AddApprovalStatusToSocialPost) so every pre-existing real post stays
+    /// visible exactly as before; CreatePostCommandHandler explicitly writes
+    /// "pending" for every new post going forward, overriding that default.</summary>
+    public required string ApprovalStatus { get; set; }
+
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }

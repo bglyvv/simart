@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Check, Clock } from 'lucide-react';
+import { Lock, Check, Clock, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton, XpPill } from '../components/Topbar';
@@ -10,6 +10,7 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import VoucherQrModal from '../components/ui/VoucherQrModal';
 import IconTile from '../components/ui/IconTile';
+import Tooltip from '../components/ui/Tooltip';
 import { Icon } from '../lib/icons';
 import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
 import { useActivityStore } from '../store/useActivityStore';
@@ -57,6 +58,10 @@ export default function LeaguesPage() {
   const addXp = useAppStore((s) => s.addXp);
   const redeemedRewards = child?.redeemedRewards ?? EMPTY_RECORD;
   const redeemRewardLocal = useAppStore((s) => s.redeemReward);
+  // A parent who just unlocked the dashboard this session shouldn't be able
+  // to redeem on the child's behalf — "Bu əməliyyatı yalnız uşaqlar özləri
+  // edə bilər." Reuses the existing PIN-gate session flag, no backend change.
+  const authedAsParent = useAppStore((s) => s.authedAsParent);
   const addActivity = useActivityStore((s) => s.addEntry);
   const [pendingReward, setPendingReward] = useState<RewardRow | null>(null);
   const [backendRewards, setBackendRewards] = useState<BackendReward[] | null>(null);
@@ -191,7 +196,18 @@ export default function LeaguesPage() {
             </div>
           </Card>
 
-          <p className="mb-4 mt-8 font-display text-h4 font-semibold text-text-900">🎁 Mükafat Mağazası</p>
+          <p className="mb-4 mt-8 flex items-center gap-2 font-display text-h4 font-semibold text-text-900">
+            🎁 Mükafat Mağazası
+            <Tooltip label={data.note}>
+              <button
+                type="button"
+                className="flex size-6 items-center justify-center rounded-full text-text-400 hover:bg-surface-alt hover:text-text-700"
+                aria-label="Mükafat mağazası haqqında"
+              >
+                <Info size={16} />
+              </button>
+            </Tooltip>
+          </p>
 
           {useBackend && !backendRewards && !loadError && (
             <p className="mb-4 text-body-sm text-text-400">Yüklənir...</p>
@@ -207,6 +223,26 @@ export default function LeaguesPage() {
                 : !!redeemedRewards[reward.title];
               const pending = useBackend && reward.redemptionStatus === 'pending';
               const affordable = xp >= reward.costXp;
+              // A parent who unlocked the dashboard this session can look, but
+              // the redeem action itself is the child's own to make — the
+              // button isn't just disabled, it's not rendered at all for a
+              // parent (only a plain status note in its place).
+              const parentLocked = authedAsParent && !redeemed;
+              const redeemButton = (
+                <Button
+                  variant={pending ? 'outline' : redeemed ? 'outline' : affordable ? 'success' : 'outline'}
+                  size="sm"
+                  full
+                  className="mt-3"
+                  disabled={redeemed}
+                  onClick={() => setPendingReward(reward)}
+                >
+                  {pending ? <><Clock size={14} /> Təsdiq Gözlənilir</>
+                    : redeemed ? <><Check size={14} /> Dəyişdirildi</>
+                    : affordable ? 'Xalları Dəyiş →'
+                    : <><Lock size={14} /> Valideyn Təsdiqi ilə</>}
+                </Button>
+              );
               return (
                 <motion.div key={reward.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                   <Card interactive padding="lg" className="flex h-full flex-col">
@@ -214,26 +250,18 @@ export default function LeaguesPage() {
                     <h3 className="mt-3 font-display font-semibold text-text-900">{reward.title}</h3>
                     <p className="mt-1 flex-1 text-body-sm text-text-500">{reward.description}</p>
                     <p className="mt-3 text-body-sm font-bold text-sand-text">⭐ {reward.costXp} XP</p>
-                    <Button
-                      variant={pending ? 'outline' : redeemed ? 'outline' : affordable ? 'success' : 'outline'}
-                      size="sm"
-                      full
-                      className="mt-3"
-                      disabled={redeemed}
-                      onClick={() => setPendingReward(reward)}
-                    >
-                      {pending ? <><Clock size={14} /> Təsdiq Gözlənilir</>
-                        : redeemed ? <><Check size={14} /> Dəyişdirildi</>
-                        : affordable ? 'Xalları Dəyiş →'
-                        : <><Lock size={14} /> Valideyn Təsdiqi ilə</>}
-                    </Button>
+                    {parentLocked ? (
+                      <p className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-sm bg-surface-alt text-body-sm font-semibold text-text-500">
+                        <Lock size={14} /> Yalnız Uşaq Üçün
+                      </p>
+                    ) : (
+                      redeemButton
+                    )}
                   </Card>
                 </motion.div>
               );
             })}
           </div>
-
-          <p className="mt-6 rounded-xl bg-sand-tint px-4 py-3 text-body-sm text-sand-text">⚠️ {data.note}</p>
         </div>
       </main>
 

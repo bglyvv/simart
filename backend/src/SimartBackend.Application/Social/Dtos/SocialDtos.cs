@@ -4,11 +4,11 @@ namespace SimartBackend.Application.Social.Dtos;
 
 public sealed record SocialPostDto(
     Guid Id, Guid ChildId, string Handle, string AvatarEmoji, string Caption, string? MediaEmoji,
-    DateTimeOffset CreatedAt, int LikeCount, int CommentCount, bool LikedByMe)
+    DateTimeOffset CreatedAt, int LikeCount, int CommentCount, bool LikedByMe, string ApprovalStatus)
 {
     public static SocialPostDto FromDomain(SocialPost post, int likeCount, int commentCount, bool likedByMe) => new(
         post.Id, post.ChildId, post.Handle, post.AvatarEmoji, post.Caption, post.MediaEmoji,
-        post.CreatedAt, likeCount, commentCount, likedByMe);
+        post.CreatedAt, likeCount, commentCount, likedByMe, post.ApprovalStatus);
 }
 
 public sealed record SocialCommentDto(

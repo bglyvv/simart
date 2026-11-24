@@ -22,6 +22,12 @@ public sealed class EfSocialRepository(SimartDbContext db) : ISocialRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task UpdatePostAsync(SocialPost post, CancellationToken cancellationToken)
+    {
+        db.SocialPosts.Update(post);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyDictionary<Guid, int>> GetLikeCountsAsync(
         IReadOnlyList<Guid> postIds, CancellationToken cancellationToken) =>
         await db.PostLikes

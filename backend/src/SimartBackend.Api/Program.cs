@@ -46,6 +46,7 @@ using SimartBackend.Application.Games.Commands.RecordGamePlay;
 using SimartBackend.Application.Games.Queries.GetGamePlays;
 using SimartBackend.Application.Habits;
 using SimartBackend.Application.Social;
+using SimartBackend.Application.Social.Commands.ApprovePost;
 using SimartBackend.Application.Social.Commands.CreateComment;
 using SimartBackend.Application.Social.Commands.CreatePost;
 using SimartBackend.Application.Social.Commands.LikePost;
@@ -1563,6 +1564,38 @@ app.MapGet("/api/social/leaderboard", async (ISender sender, int? limit, Cancell
 })
 .RequireAuthorization()
 .WithName("GetLeaderboard");
+
+// Real post-approval moderation — a parent approving their own child's
+// pending post (see SocialPost.ApprovalStatus's doc comment). The caller must
+// own the POST's child, resolved from the post itself since this route only
+// ever carries a postId, not a childId — same ownership check every other
+// Social endpoint uses, just fed a different source for the childId.
+app.MapPost("/api/social/posts/{postId:guid}/approve", async (
+    ISender sender, Guid postId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        await sender.Send(new ApprovePostCommand(callerFamilyId, postId), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (SocialPostNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (SocialChildNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (SocialAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+})
+.RequireAuthorization()
+.WithName("ApprovePost");
 
 // Mini-games — Game/GameResult existed in the schema from the start with zero
 // handlers; GamesPage.tsx's six games always played fine (all client-side

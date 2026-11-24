@@ -23,6 +23,9 @@ export interface SocialPost {
   likeCount: number;
   commentCount: number;
   likedByMe: boolean;
+  /** "pending" until a parent approves it (see "Social" in backend/README.md) —
+   * every pre-existing real post backfilled as "approved". */
+  approvalStatus: 'pending' | 'approved';
 }
 
 export interface SocialComment {
@@ -122,6 +125,15 @@ export function createComment(
 
 export function fetchLeaderboard(token: string, limit = 10): Promise<LeaderboardEntry[]> {
   return requestJson<LeaderboardEntry[]>(`/api/social/leaderboard?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
+/** Real post-approval moderation — a parent approving their own child's
+ * pending post. Idempotent — approving an already-approved post is a no-op. */
+export function approvePost(postId: string, token: string): Promise<void> {
+  return requestVoid(`/api/social/posts/${postId}/approve`, {
+    method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
   });
 }

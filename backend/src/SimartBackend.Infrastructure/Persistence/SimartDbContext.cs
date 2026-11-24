@@ -94,6 +94,14 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
             .HasForeignKey(w => w.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Column-level default so every pre-existing real post backfills as
+        // "approved" and stays visible exactly as before this feature —
+        // CreatePostCommandHandler always writes "pending" explicitly for a
+        // new post, overriding this default at the application layer.
+        modelBuilder.Entity<SocialPost>()
+            .Property(p => p.ApprovalStatus)
+            .HasDefaultValue(SimartBackend.Application.Social.SocialApprovalStatus.Approved);
+
         // Composite key — one row per (task, child) pair, no surrogate id needed.
         modelBuilder.Entity<HabitTaskAssignment>()
             .HasKey(a => new { a.TaskId, a.ChildId });
