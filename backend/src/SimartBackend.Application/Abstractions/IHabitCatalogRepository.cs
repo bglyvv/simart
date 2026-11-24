@@ -21,6 +21,20 @@ public interface IHabitCatalogRepository
 
     Task AddTaskAsync(HabitTask task, CancellationToken cancellationToken);
 
+    /// <summary>CreateFamilyHabitTaskCommand's write — the task itself plus one
+    /// HabitTaskAssignment row per selected child, in a single SaveChanges
+    /// (atomic). Only ever called for a FamilyId-set task; the admin catalog's
+    /// AddTaskAsync above never writes assignments.</summary>
+    Task AddFamilyTaskWithAssignmentsAsync(HabitTask task, IReadOnlyList<Guid> childIds, CancellationToken cancellationToken);
+
+    /// <summary>Batch lookup of which children a set of tasks is assigned to —
+    /// GetHabitCategoriesQueryHandler's single query for an entire category
+    /// list's worth of tasks, avoiding an N+1. A task absent from the result has
+    /// no assignment rows at all — see HabitCategoryDto.FromDomainForChild for
+    /// why that's treated as "visible to every family child," not "to none."</summary>
+    Task<IReadOnlyDictionary<Guid, IReadOnlyList<Guid>>> GetAssignmentsForTasksAsync(
+        IReadOnlyList<Guid> taskIds, CancellationToken cancellationToken);
+
     Task<bool> TaskExistsAsync(Guid taskId, CancellationToken cancellationToken);
 
     /// <summary>The task itself (not just whether it exists) — CompleteHabitTaskCommand

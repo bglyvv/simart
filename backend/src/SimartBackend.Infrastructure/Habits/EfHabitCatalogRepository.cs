@@ -30,6 +30,27 @@ public sealed class EfHabitCatalogRepository(SimartDbContext db) : IHabitCatalog
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task AddFamilyTaskWithAssignmentsAsync(
+        HabitTask task, IReadOnlyList<Guid> childIds, CancellationToken cancellationToken)
+    {
+        db.HabitTasks.Add(task);
+        foreach (var childId in childIds)
+            db.HabitTaskAssignments.Add(new HabitTaskAssignment { TaskId = task.Id, ChildId = childId });
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, IReadOnlyList<Guid>>> GetAssignmentsForTasksAsync(
+        IReadOnlyList<Guid> taskIds, CancellationToken cancellationToken)
+    {
+        var rows = await db.HabitTaskAssignments
+            .Where(a => taskIds.Contains(a.TaskId))
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(a => a.TaskId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<Guid>)g.Select(a => a.ChildId).ToList());
+    }
+
     public Task<bool> TaskExistsAsync(Guid taskId, CancellationToken cancellationToken) =>
         db.HabitTasks.AnyAsync(t => t.Id == taskId, cancellationToken);
 

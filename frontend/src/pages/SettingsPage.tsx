@@ -1,20 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LogOut, Trash2, KeyRound, Plus, Sparkles, Check, X, Wallet } from 'lucide-react';
+import { LogOut, Trash2, KeyRound, Check, X, Wallet } from 'lucide-react';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { useAppStore, useActiveChild, type ChildProfile } from '../store/useAppStore';
 import { useActivityStore } from '../store/useActivityStore';
-import {
-  fetchHabitCategories,
-  createFamilyHabitTask,
-  MAX_FAMILY_TASKS,
-  MAX_TASK_XP,
-  type HabitCategory,
-} from '../lib/habitsService';
 import {
   fetchPendingRedemptions,
   approveRedemption,
@@ -99,12 +92,9 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-3 text-body-sm">
               <Row label="Valideyn" value={parent?.name ?? '—'} />
               <Row label="Əlaqə" value={parent?.email ?? '—'} />
-              <Row label="Uşaq" value={child ? `${child.avatar} ${child.name} · ${child.age} yaş` : '—'} />
               <Row label="Şəhər" value={child?.city ?? '—'} />
             </div>
           </Card>
-
-          {parent?.familyId && <CustomHabitsCard familyId={parent.familyId} token={parent.token} />}
 
           {parent?.familyId && <RewardApprovalsCard familyId={parent.familyId} token={parent.token} />}
 
@@ -169,165 +159,6 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-text-500">{label}</span>
       <span className="font-semibold text-text-900">{value}</span>
     </div>
-  );
-}
-
-/** Parent-only: "there should be places to add habits" for the family itself, not
- * just the admin catalog. Capped at MAX_FAMILY_TASKS/family and MAX_TASK_XP/task —
- * enforced again server-side (CreateFamilyHabitTaskCommand), this is just so the
- * form can disable itself instead of waiting on a 409/400 round trip to explain
- * the limit. A custom task shows up in HabitsPage's normal category list, tagged
- * "Ailənizin fərdi vərdişi" (HabitsPage reads HabitTaskDto.isCustom/note for that). */
-function CustomHabitsCard({ familyId, token }: { familyId: string; token: string }) {
-  const [categories, setCategories] = useState<HabitCategory[] | null>(null);
-  const [loadError, setLoadError] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [categoryId, setCategoryId] = useState('');
-  const [title, setTitle] = useState('');
-  const [note, setNote] = useState('');
-  const [xpValue, setXpValue] = useState('5');
-  const [submitting, setSubmitting] = useState(false);
-
-  function load() {
-    setLoadError(false);
-    fetchHabitCategories({ familyId, token })
-      .then((cats) => {
-        setCategories(cats);
-        setCategoryId((current) => current || cats[0]?.id || '');
-      })
-      .catch((err) => {
-        console.error('Vərdişlər yüklənmədi:', err);
-        setLoadError(true);
-      });
-  }
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(load, [familyId]);
-
-  const customTasks = (categories ?? []).flatMap((c) =>
-    c.tasks.filter((t) => t.isCustom).map((t) => ({ ...t, categoryTitle: c.title })),
-  );
-  const atLimit = customTasks.length >= MAX_FAMILY_TASKS;
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!categoryId) {
-      toast.error('Kateqoriya seçin.');
-      return;
-    }
-    if (!title.trim()) {
-      toast.error('Vərdişin başlığı tələb olunur.');
-      return;
-    }
-    const xp = Number(xpValue);
-    if (!Number.isFinite(xp) || xp <= 0 || xp > MAX_TASK_XP) {
-      toast.error(`XP 1 ilə ${MAX_TASK_XP} arasında olmalıdır.`);
-      return;
-    }
-    setSubmitting(true);
-    try {
-      await createFamilyHabitTask(familyId, { categoryId, title: title.trim(), note: note.trim() || undefined, xpValue: xp }, token);
-      toast.success(`"${title.trim()}" vərdişi əlavə edildi.`);
-      setTitle('');
-      setNote('');
-      setXpValue('5');
-      setOpen(false);
-      load();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Vərdiş əlavə edilə bilmədi.');
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <Card padding="lg">
-      <div className="mb-1 flex items-center justify-between">
-        <h3 className="font-display font-semibold text-text-900">Fərdi Vərdişlər</h3>
-        <span className="text-caption font-bold text-text-400">{customTasks.length} / {MAX_FAMILY_TASKS}</span>
-      </div>
-      <p className="mb-4 text-body-sm text-text-500">
-        Ailəniz üçün öz vərdişlərinizi yaradın — maksimum {MAX_FAMILY_TASKS} ədəd, hər biri ən çox {MAX_TASK_XP} XP.
-      </p>
-
-      {loadError && <p className="mb-3 text-body-sm text-error">Yüklənmədi — backend işə düşübmü?</p>}
-
-      {customTasks.length > 0 && (
-        <div className="mb-4 flex flex-col gap-2">
-          {customTasks.map((t) => (
-            <div key={t.id} className="flex items-center gap-3 rounded-xl bg-surface-alt px-4 py-3">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-body-sm font-bold text-text-900">{t.title}</p>
-                <p className="truncate text-caption text-text-400">{t.categoryTitle}</p>
-              </div>
-              <span className="shrink-0 rounded-full bg-sand-tint px-2.5 py-1 text-caption font-bold text-sand-text">
-                +{t.xpValue} XP
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {!open && (
-        <Button onClick={() => setOpen(true)} variant="secondary" size="sm" disabled={atLimit || !categories}>
-          <Plus size={15} /> {atLimit ? 'Limitə çatdınız' : 'Yeni Vərdiş'}
-        </Button>
-      )}
-
-      {open && (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <label>
-            <span className="mb-1.5 block text-caption font-bold text-text-700">KATEQORİYA</span>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
-            >
-              {(categories ?? []).map((c) => (
-                <option key={c.id} value={c.id}>{c.title}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span className="mb-1.5 block text-caption font-bold text-text-700">BAŞLIQ</span>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Otağı yığışdırmaq"
-              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
-            />
-          </label>
-          <label>
-            <span className="mb-1.5 block text-caption font-bold text-text-700">QEYD (OPSİONAL)</span>
-            <input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Qeyd"
-              className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
-            />
-          </label>
-          <label>
-            <span className="mb-1.5 block text-caption font-bold text-text-700">XP (maks. {MAX_TASK_XP})</span>
-            <input
-              value={xpValue}
-              onChange={(e) => setXpValue(e.target.value)}
-              type="number"
-              min={1}
-              max={MAX_TASK_XP}
-              className="h-11 w-28 rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
-            />
-          </label>
-          <div className="flex gap-2">
-            <Button type="submit" size="sm" variant="success" disabled={submitting}>
-              {submitting ? 'Yaradılır...' : <><Sparkles size={14} /> Yarat</>}
-            </Button>
-            <Button type="button" onClick={() => setOpen(false)} variant="ghost" size="sm">
-              Ləğv et
-            </Button>
-          </div>
-        </form>
-      )}
-    </Card>
   );
 }
 

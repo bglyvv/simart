@@ -17,6 +17,30 @@ public sealed record HabitCategoryDto(Guid Id, string Key, string Title, string 
             .Where(t => t.FamilyId is null || t.FamilyId == familyId)
             .Select(HabitTaskDto.FromDomain)
             .ToList());
+
+    /// <summary>Same as FromDomain, but also restricts a family's custom tasks to
+    /// only the ones assigned to childId — GetHabitCategoriesQueryHandler's
+    /// family+child view (HabitsPage.tsx, once it knows which child is active).
+    /// Admin-catalog tasks (FamilyId null) are always visible to every child. A
+    /// family task with no row at all in assignmentsByTaskId (nothing predating
+    /// this feature should ever hit this after the backfill migration, but stay
+    /// permissive rather than silently hiding a habit) is treated the same as
+    /// one explicitly assigned to everyone.</summary>
+    public static HabitCategoryDto FromDomainForChild(
+        HabitCategory category, Guid? familyId, Guid childId,
+        IReadOnlyDictionary<Guid, IReadOnlyList<Guid>> assignmentsByTaskId) => new(
+        category.Id,
+        category.Key,
+        category.Title,
+        category.Icon,
+        category.Tasks
+            .Where(t => t.FamilyId is null || t.FamilyId == familyId)
+            .Where(t => t.FamilyId is null
+                || !assignmentsByTaskId.TryGetValue(t.Id, out var assigned)
+                || assigned.Count == 0
+                || assigned.Contains(childId))
+            .Select(HabitTaskDto.FromDomain)
+            .ToList());
 }
 
 public sealed record HabitTaskDto(Guid Id, Guid CategoryId, string Title, string? Note, int XpValue, bool IsCustom)

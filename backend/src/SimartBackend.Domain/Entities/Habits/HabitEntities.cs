@@ -53,3 +53,21 @@ public class HabitCompletion
     public Child Child { get; set; } = null!;
     public HabitTask Task { get; set; } = null!;
 }
+
+/// <summary>Restricts a family-created HabitTask (FamilyId set) to specific
+/// children in that family — a parent picks exactly which of their children
+/// receive a new custom habit, rather than it silently going to all of them.
+/// Only ever written for family-created tasks; the shared admin catalog
+/// (FamilyId null) never has rows here and stays universally visible. A task
+/// with zero rows here (only possible for something that predates this table
+/// — see the AddFamilyIdToHabitTaskAssignments migration's backfill) is
+/// treated as "visible to every family child," not "visible to none" — see
+/// HabitCategoryDto.FromDomainForChild.</summary>
+public class HabitTaskAssignment
+{
+    public Guid TaskId { get; set; }
+    public Guid ChildId { get; set; }
+
+    public HabitTask Task { get; set; } = null!;
+    public Child Child { get; set; } = null!;
+}

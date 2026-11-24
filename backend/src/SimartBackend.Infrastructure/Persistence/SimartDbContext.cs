@@ -25,6 +25,7 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
     public DbSet<HabitCategory> HabitCategories => Set<HabitCategory>();
     public DbSet<HabitTask> HabitTasks => Set<HabitTask>();
     public DbSet<HabitCompletion> HabitCompletions => Set<HabitCompletion>();
+    public DbSet<HabitTaskAssignment> HabitTaskAssignments => Set<HabitTaskAssignment>();
 
     public DbSet<Playlist> Playlists => Set<Playlist>();
     public DbSet<Video> Videos => Set<Video>();
@@ -91,6 +92,22 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
             .HasOne(w => w.Parent)
             .WithMany()
             .HasForeignKey(w => w.ParentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // Composite key — one row per (task, child) pair, no surrogate id needed.
+        modelBuilder.Entity<HabitTaskAssignment>()
+            .HasKey(a => new { a.TaskId, a.ChildId });
+
+        modelBuilder.Entity<HabitTaskAssignment>()
+            .HasOne(a => a.Task)
+            .WithMany()
+            .HasForeignKey(a => a.TaskId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<HabitTaskAssignment>()
+            .HasOne(a => a.Child)
+            .WithMany()
+            .HasForeignKey(a => a.ChildId)
             .OnDelete(DeleteBehavior.Restrict);
 
         // social_comment references itself for threaded replies.

@@ -59,6 +59,9 @@ export interface CreateFamilyHabitTaskInput {
   title: string;
   note?: string;
   xpValue: number;
+  /** Which of the family's children receive this task — at least one
+   * required (400 otherwise). See HabitTaskAssignment in backend/README.md. */
+  childIds: string[];
 }
 
 export interface HabitCompletion {
@@ -115,8 +118,10 @@ async function requestVoid(path: string, init?: RequestInit): Promise<void> {
   }
 }
 
-export function fetchHabitCategories(opts?: { familyId: string; token: string }): Promise<HabitCategory[]> {
-  const path = opts ? `/api/habits/categories?familyId=${opts.familyId}` : '/api/habits/categories';
+export function fetchHabitCategories(opts?: { familyId: string; token: string; childId?: string }): Promise<HabitCategory[]> {
+  const path = opts
+    ? `/api/habits/categories?familyId=${opts.familyId}${opts.childId ? `&childId=${opts.childId}` : ''}`
+    : '/api/habits/categories';
   const headers = opts ? { Authorization: `Bearer ${opts.token}` } : undefined;
   return requestJson<HabitCategory[]>(path, { headers });
 }

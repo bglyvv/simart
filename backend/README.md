@@ -694,6 +694,12 @@ GET  /api/habits/categories?familyId={familyId}   [requires Authorization: Beare
   -> 200 as above, plus that family's own tasks (isCustom: true)
   -> 403 if the token's familyId doesn't match the query param
 
+GET  /api/habits/categories?familyId={familyId}&childId={childId}   [Bearer token]
+  -> 200 as above, but a family's own tasks are filtered to only those
+     assigned to childId (see HabitTaskAssignment below) — admin-catalog
+     tasks are never filtered, childId has no effect on them
+  -> 403 as above
+
 POST /api/habits/categories   [admin token]
   { key, title, icon }
   -> 201 { id, key, title, icon, tasks: [] }
@@ -706,11 +712,13 @@ POST /api/habits/categories/{categoryId}/tasks   [admin token]
   -> 404 if categoryId doesn't exist
 
 POST /api/habits/families/{familyId}/tasks   [requires Authorization: Bearer {token}]
-  { categoryId, title, note?, xpValue }
+  { categoryId, title, note?, xpValue, childIds }
   -> 201 { id, categoryId, title, note, xpValue, isCustom: true }
-  -> 400 if title/xpValue invalid, or xpValue > 10 (FamilyHabitLimits.MaxXpValue)
-  -> 403 if the token's familyId doesn't match the route
-  -> 404 if categoryId doesn't exist
+  -> 400 if title/xpValue invalid, xpValue > 10 (FamilyHabitLimits.MaxXpValue),
+     or childIds is empty (at least one child must be selected)
+  -> 403 if the token's familyId doesn't match the route, or any childId
+     belongs to a different family
+  -> 404 if categoryId doesn't exist, or any childId doesn't exist
   -> 409 if the family already has 5 custom tasks (FamilyHabitLimits.MaxTasksPerFamily)
 
 POST /api/habits/children/{childId}/completions   [requires Authorization: Bearer {token}]
@@ -781,6 +789,51 @@ fully open (no token); the family-scoped read, both family/admin writes, and
 all three completion endpoints require a bearer token — see "Admin auth"
 below for the admin ones, and the family-ownership pattern described
 throughout "Identity" for the rest.
+
+**Per-child task assignment** (migration `AddHabitTaskAssignments`): a new
+join table, `HabitTaskAssignment (TaskId, ChildId)` composite PK, lets a
+parent restrict a custom task to a subset of their children instead of it
+silently going to every child in the family. Only ever written for
+family-created tasks — `CreateFamilyHabitTaskCommand` now takes a required
+`ChildIds` (validated via the existing per-child
+`HabitChildOwnership.EnsureCallerOwnsChildAsync`, looped once per id; empty
+→ `NoChildrenSelectedException`, 400) and writes one assignment row per
+selected child alongside the task in `AddFamilyTaskWithAssignmentsAsync`.
+Admin-catalog tasks (`FamilyId` null) never get assignment rows and stay
+universally visible — this table has no meaning for them.
+`GetHabitCategoriesQuery` gained an optional `ChildId`: when present,
+`HabitCategoryDto.FromDomainForChild` keeps an admin task unconditionally
+and keeps a family task only if it has *no* assignment rows at all (treated
+as "visible to everyone," the safe default for anything created before this
+table existed) or has one for the given child. The migration backfills
+accordingly — every pre-existing family task gets one assignment row per
+child currently in its family, so nothing already-assigned silently
+disappears from a child who could already see it. Diagnosed and fixed one
+real backfill-adjacent issue while verifying this migration against the
+actual Neon data, not a bug in the backfill SQL itself: 4 leftover custom
+`habit_tasks` rows from an earlier verification round (the
+"Otaqı yığışdırmaq"/"Kitab oxumaq" tasks mentioned just below) had survived
+in the table even though the family and children that owned them had since
+been fully deleted — the backfill correctly produced zero assignment rows
+for them (zero live children to assign to), which is what surfaced them.
+Confirmed zero references anywhere (`habit_completions`, `xp_transactions`)
+before deleting those 4 orphaned rows directly; the family's own full
+deletion was already complete, this was only ever a stray `habit_tasks`
+leftover.
+
+Verified end-to-end via curl with two disposable test families (one
+creating a task assigned to 2 of its 3 children, confirmed visible to
+exactly those 2 via `GetHabitCategories?childId=` and invisible to the
+3rd, and still visible to all when `childId` is omitted; the second family's
+token correctly 403s both reading the first family's child-scoped
+categories and creating a task against the first family's child) — `dotnet
+build`/`dotnet test`: 44/44 passing throughout. Both test families deleted
+from Neon afterward.
+
+**Zero automated test coverage** on `AddFamilyTaskWithAssignmentsAsync`,
+`GetAssignmentsForTasksAsync`, or `HabitCategoryDto.FromDomainForChild` —
+same gap, same reason, as everything else flagged this way in this file.
+Test count is still 44.
 
 Verified end-to-end through the real UI (not just curl): signed up a test
 family, created a custom "Otaqı yığışdırmaq" task from `SettingsPage.tsx`,

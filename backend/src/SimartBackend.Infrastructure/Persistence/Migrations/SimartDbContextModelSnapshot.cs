@@ -752,6 +752,25 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                     b.ToTable("habit_tasks", (string)null);
                 });
 
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Habits.HabitTaskAssignment", b =>
+                {
+                    b.Property<Guid>("TaskId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("task_id");
+
+                    b.Property<Guid>("ChildId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("child_id");
+
+                    b.HasKey("TaskId", "ChildId")
+                        .HasName("pk_habit_task_assignments");
+
+                    b.HasIndex("ChildId")
+                        .HasDatabaseName("ix_habit_task_assignments_child_id");
+
+                    b.ToTable("habit_task_assignments", (string)null);
+                });
+
             modelBuilder.Entity("SimartBackend.Domain.Entities.Identity.Child", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1553,6 +1572,27 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_habit_tasks_admins_deleted_by");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Habits.HabitTaskAssignment", b =>
+                {
+                    b.HasOne("SimartBackend.Domain.Entities.Identity.Child", "Child")
+                        .WithMany()
+                        .HasForeignKey("ChildId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_habit_task_assignments_children_child_id");
+
+                    b.HasOne("SimartBackend.Domain.Entities.Habits.HabitTask", "Task")
+                        .WithMany()
+                        .HasForeignKey("TaskId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_habit_task_assignments_habit_tasks_task_id");
+
+                    b.Navigation("Child");
+
+                    b.Navigation("Task");
                 });
 
             modelBuilder.Entity("SimartBackend.Domain.Entities.Identity.Child", b =>

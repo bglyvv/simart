@@ -35,3 +35,10 @@ public sealed class HabitChildNotFoundException(Guid childId)
 /// instead of a familyId already in the route.</summary>
 public sealed class HabitAccessDeniedException()
     : Exception("This child does not belong to your family.");
+
+/// <summary>Thrown by CreateFamilyHabitTaskCommandHandler when no child was
+/// selected — mapped to 400. A custom habit must be assigned to at least one
+/// child; it no longer defaults to "every family child" on an empty
+/// selection.</summary>
+public sealed class NoChildrenSelectedException()
+    : Exception("At least one child must be selected.");

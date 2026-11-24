@@ -883,7 +883,7 @@ app.MapGet("/api/identity/families/{familyId:guid}/children", async (
 // token — same direct-claim-vs-param check as everywhere else, just conditional on
 // whether the caller is asking for their own family's tasks at all.
 app.MapGet("/api/habits/categories", async (
-    ISender sender, Guid? familyId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+    ISender sender, Guid? familyId, Guid? childId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
 {
     if (familyId is not null)
     {
@@ -892,7 +892,7 @@ app.MapGet("/api/habits/categories", async (
             return Results.Forbid();
     }
 
-    var categories = await sender.Send(new GetHabitCategoriesQuery(familyId), cancellationToken);
+    var categories = await sender.Send(new GetHabitCategoriesQuery(familyId, childId), cancellationToken);
     return Results.Ok(categories);
 })
 .WithName("GetHabitCategories");
@@ -967,7 +967,7 @@ app.MapPost("/api/habits/families/{familyId:guid}/tasks", async (
     try
     {
         var result = await sender.Send(
-            new CreateFamilyHabitTaskCommand(familyId, body.CategoryId, body.Title.Trim(), body.Note?.Trim(), body.XpValue),
+            new CreateFamilyHabitTaskCommand(familyId, body.CategoryId, body.Title.Trim(), body.Note?.Trim(), body.XpValue, body.ChildIds),
             cancellationToken);
         return Results.Created($"/api/habits/categories/{body.CategoryId}/tasks/{result.Id}", result);
     }
@@ -982,6 +982,18 @@ app.MapPost("/api/habits/families/{familyId:guid}/tasks", async (
     catch (TooManyFamilyHabitTasksException ex)
     {
         return Results.Json(new { error = ex.Message }, statusCode: StatusCodes.Status409Conflict);
+    }
+    catch (NoChildrenSelectedException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (HabitChildNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (HabitAccessDeniedException)
+    {
+        return Results.Forbid();
     }
 })
 .RequireAuthorization()

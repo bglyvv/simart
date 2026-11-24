@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Check, Bell, Settings as SettingsIcon } from 'lucide-react';
+import { Check, Bell, Settings as SettingsIcon, Plus, Sparkles, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton, XpPill, IconButton } from '../components/Topbar';
@@ -12,7 +12,7 @@ import XpBurst, { type XpBurstItem } from '../components/ui/XpBurst';
 import { Icon } from '../lib/icons';
 import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
 import { useActivityStore } from '../store/useActivityStore';
-import { celebrate, bigCelebrate } from '../lib/confetti';
+import { celebrate } from '../lib/confetti';
 import { todayIso } from '../lib/dob';
 import { fetchScreenTime } from '../lib/focusService';
 import {
@@ -21,6 +21,9 @@ import {
   fetchHabitStreak,
   completeHabitTask,
   uncompleteHabitTask,
+  createFamilyHabitTask,
+  MAX_FAMILY_TASKS,
+  MAX_TASK_XP,
   type HabitCategory as BackendHabitCategory,
   type HabitStreak,
 } from '../lib/habitsService';
@@ -43,6 +46,8 @@ function formatScreenTime(totalSeconds: number): string {
 const GROUP_TINTS = ['blue-100', 'purple-100', 'green-100', 'amber-100'];
 // Monday-first, matching GetHabitStreakQueryHandler's week ordering.
 const AZ_DAY_LABELS = ['B.e', 'Ç.a', 'Ç', 'C.a', 'C', 'Ş', 'B'];
+
+type HabitDayState = 'done' | 'today' | 'upcoming' | 'missed';
 
 interface HabitRow {
   id: string;
@@ -109,20 +114,11 @@ export default function HabitsPage() {
     setXpBursts((prev) => prev.filter((b) => b.id !== id));
   }
 
-  // The AI camera card is a flashy standalone demo (a fake progress timer, not
-  // real computer vision) — in the mock path it happens to double as the
-  // "Səhər/axşam diş fırçalamaq" row (same id, same habitDone entry); the real
-  // catalog has no guaranteed equivalent task to tie it to, so in that mode it
-  // just awards XP locally and doesn't persist across a reload.
-  const [cameraLocalDone, setCameraLocalDone] = useState(false);
-  const [cameraProgress, setCameraProgress] = useState(30);
-  const [cameraRunning, setCameraRunning] = useState(false);
-
   function loadFromBackend() {
     if (!parent?.familyId || !child?.childId) return;
     setLoadError(false);
     Promise.all([
-      fetchHabitCategories({ familyId: parent.familyId, token: parent.token }),
+      fetchHabitCategories({ familyId: parent.familyId, token: parent.token, childId: child.childId }),
       fetchHabitCompletions(child.childId, today, parent.token),
       fetchHabitStreak(child.childId, today, parent.token),
     ])
@@ -200,21 +196,21 @@ export default function HabitsPage() {
     }));
   }, [useBackend, categories, completedTaskIds, habitDone]);
 
-  // Real for backend-mode families once the first streak fetch resolves;
-  // "missed" (a past day with no completion — a case the old static mock
-  // never had to represent) renders identically to "upcoming", same plain
-  // gray circle, no new visual state needed for it.
+  // Real for backend-mode families once the first streak fetch resolves.
+  // "today" and "missed" now each get their own icon+treatment below instead
+  // of collapsing into a plain color-only circle — color alone isn't enough
+  // to tell a past miss apart from a day that simply hasn't happened yet.
   const weeklyStreakDisplay = useMemo(() => {
     if (useBackend && streak) {
       return {
         badgeDays: streak.consecutiveDays,
-        days: streak.week.map((d, i) => ({
-          label: AZ_DAY_LABELS[i],
-          state: d.state === 'missed' ? 'upcoming' : d.state,
-        })),
+        days: streak.week.map((d, i) => ({ label: AZ_DAY_LABELS[i], state: d.state })),
       };
     }
-    return { badgeDays: streakDays, days: habitsData.weeklyStreak.days };
+    return {
+      badgeDays: streakDays,
+      days: habitsData.weeklyStreak.days.map((d) => ({ ...d, state: d.state as HabitDayState })),
+    };
   }, [useBackend, streak, streakDays]);
 
   const { todayDone, todayTotal } = useMemo(() => {
@@ -230,33 +226,6 @@ export default function HabitsPage() {
   const currentTierIdx = LEAGUE_TIERS.findIndex((t) => t === nextTier);
   const prevThreshold = currentTierIdx > 0 ? LEAGUE_TIERS[currentTierIdx - 1].threshold : 0;
   const progressPercent = ((xp - prevThreshold) / (nextTier.threshold - prevThreshold)) * 100;
-
-  const cameraDone = useBackend ? cameraLocalDone : !!habitDone['physical-1'];
-
-  function runCamera() {
-    if (cameraRunning || cameraDone) return;
-    setCameraRunning(true);
-    const start = Date.now();
-    const timer = setInterval(() => {
-      const elapsed = (Date.now() - start) / 1000;
-      const pct = Math.min(60, 30 + elapsed * 6);
-      setCameraProgress(pct);
-      if (pct >= 60) {
-        clearInterval(timer);
-        setCameraRunning(false);
-        const xpAward = xpFromLabel(habitsData.categories[0].tasks[1].xp);
-        if (useBackend) {
-          setCameraLocalDone(true);
-          addXp(xpAward);
-        } else if (!habitDone['physical-1']) {
-          toggleHabit('physical-1', xpAward);
-        }
-        celebrate();
-        fireXpBurst(xpAward);
-        toast.success(`Diş fırçalama təsdiqləndi! +${xpAward} XP`);
-      }
-    }, 200);
-  }
 
   async function handleToggle(row: HabitRow) {
     if (useBackend) {
@@ -335,26 +304,27 @@ export default function HabitsPage() {
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
           <div className="flex flex-col gap-6">
             <Card className="bg-primary text-white" padding="lg">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-caption font-bold uppercase tracking-wide">
-                {cameraRunning ? 'AI Kamera İzləyir…' : 'AI Kamera Aktiv'}
-              </span>
-              <div className="mt-4 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border-2 border-dashed border-white/40">
-                  <Camera size={26} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-display text-h4 font-semibold">{habitsData.aiCameraTask.title}</h3>
-                  <p className="mt-1 text-body-sm text-white/80">{habitsData.aiCameraTask.description}</p>
-                </div>
-                <Button variant="white" size="sm" onClick={runCamera} disabled={cameraDone}>
-                  {cameraDone ? 'Təsdiqləndi ✓' : cameraRunning ? 'İzlənilir…' : 'Kameranı Aç'}
-                </Button>
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-h4 font-semibold">Bugünkü Tərəqqi</h3>
+                <span className="text-body-sm font-bold text-white/80">{todayDone} / {todayTotal}</span>
               </div>
               <div className="mt-4">
-                <ProgressBar percent={(cameraProgress / 60) * 100} tone="white-on-dark" trackClassName="bg-white/20" />
-                <p className="mt-2 text-body-sm text-white/70">{Math.round(cameraProgress)} / 60 saniyə</p>
+                <ProgressBar
+                  percent={todayTotal > 0 ? (todayDone / todayTotal) * 100 : 0}
+                  tone="white-on-dark"
+                  trackClassName="bg-white/20"
+                />
               </div>
             </Card>
+
+            {useBackend && parent?.familyId && child?.childId && (
+              <NewHabitCard
+                familyId={parent.familyId}
+                token={parent.token}
+                activeChildId={child.childId}
+                onCreated={loadFromBackend}
+              />
+            )}
 
             {useBackend && !categories && !loadError && (
               <Card padding="lg"><p className="text-body-sm text-text-400">Yüklənir...</p></Card>
@@ -433,10 +403,14 @@ export default function HabitsPage() {
                           ? 'bg-success text-white'
                           : d.state === 'today'
                             ? 'bg-primary text-white'
-                            : 'bg-border text-text-400'
+                            : d.state === 'missed'
+                              ? 'bg-error-tint text-error'
+                              : 'bg-border text-text-400'
                       }`}
                     >
                       {d.state === 'done' && <Icon name="check" size={13} />}
+                      {d.state === 'today' && <Clock size={13} />}
+                      {d.state === 'missed' && <X size={13} />}
                     </div>
                     <span className="text-[11px] text-text-400">{d.label}</span>
                   </div>
@@ -462,46 +436,206 @@ export default function HabitsPage() {
 
             <Card padding="lg">
               <h3 className="mb-4 font-display font-semibold text-text-900">Bugünkü Xülasə</h3>
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <IconTile icon={<Icon name="check-circle" size={20} />} tint="green-100" />
-                  <div>
-                    <p className="font-bold text-text-900">{todayDone} / {todayTotal}</p>
-                    <p className="text-caption text-text-500">Tamamlanan tapşırıq</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <IconTile icon={<Icon name="timer" size={20} />} tint="blue-100" />
-                  <div>
-                    <p className="font-bold text-text-900">
-                      {useBackend
-                        ? screenTimeSeconds !== null
-                          ? formatScreenTime(screenTimeSeconds)
-                          : '...'
-                        : habitsData.todayStats[1].value}
-                    </p>
-                    <p className="text-caption text-text-500">Bugünkü ekran vaxtı</p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <IconTile icon={<Icon name="timer" size={20} />} tint="blue-100" />
+                <div>
+                  <p className="font-bold text-text-900">
+                    {useBackend
+                      ? screenTimeSeconds !== null
+                        ? formatScreenTime(screenTimeSeconds)
+                        : '...'
+                      : habitsData.todayStats[1].value}
+                  </p>
+                  <p className="text-caption text-text-500">Bugünkü ekran vaxtı</p>
                 </div>
               </div>
-              {todayTotal > 0 && todayDone === todayTotal && (
-                <Button
-                  variant="success"
-                  full
-                  size="sm"
-                  className="mt-4"
-                  onClick={() => {
-                    bigCelebrate();
-                    toast.success('Bütün tapşırıqlar tamamlandı! Əla iş! 🎉');
-                  }}
-                >
-                  Hamısı tamam — kutlanılsın! 🎉
-                </Button>
-              )}
             </Card>
           </div>
         </div>
       </main>
     </AppShell>
+  );
+}
+
+/** Moved here from SettingsPage.tsx — "there should be places to add habits"
+ * for the family itself, now with a per-child assignment picker
+ * (HabitTaskAssignment, see backend/README.md) instead of silently going to
+ * every child in the family. Capped at MAX_FAMILY_TASKS/family and
+ * MAX_TASK_XP/task — enforced again server-side, this is just so the form
+ * can disable itself instead of waiting on a 409/400 round trip. */
+function NewHabitCard({
+  familyId,
+  token,
+  activeChildId,
+  onCreated,
+}: {
+  familyId: string;
+  token: string;
+  activeChildId: string;
+  onCreated: () => void;
+}) {
+  const allChildren = useAppStore((s) => s.children).filter((c) => !!c.childId);
+  const [categories, setCategories] = useState<BackendHabitCategory[] | null>(null);
+  const [customCount, setCustomCount] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [categoryId, setCategoryId] = useState('');
+  const [title, setTitle] = useState('');
+  const [note, setNote] = useState('');
+  const [xpValue, setXpValue] = useState('5');
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>(() => [activeChildId]);
+  const [submitting, setSubmitting] = useState(false);
+
+  function load() {
+    fetchHabitCategories({ familyId, token })
+      .then((cats) => {
+        setCategories(cats);
+        setCategoryId((current) => current || cats[0]?.id || '');
+        setCustomCount(cats.flatMap((c) => c.tasks.filter((t) => t.isCustom)).length);
+      })
+      .catch((err) => console.error('Vərdişlər yüklənmədi:', err));
+  }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, [familyId]);
+
+  const atLimit = customCount >= MAX_FAMILY_TASKS;
+
+  function toggleChild(childId: string) {
+    setSelectedChildIds((prev) =>
+      prev.includes(childId) ? prev.filter((id) => id !== childId) : [...prev, childId],
+    );
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (!categoryId) {
+      toast.error('Kateqoriya seçin.');
+      return;
+    }
+    if (!title.trim()) {
+      toast.error('Vərdişin başlığı tələb olunur.');
+      return;
+    }
+    const xp = Number(xpValue);
+    if (!Number.isFinite(xp) || xp <= 0 || xp > MAX_TASK_XP) {
+      toast.error(`XP 1 ilə ${MAX_TASK_XP} arasında olmalıdır.`);
+      return;
+    }
+    if (selectedChildIds.length === 0) {
+      toast.error('Ən azı bir uşaq seçin.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await createFamilyHabitTask(
+        familyId,
+        { categoryId, title: title.trim(), note: note.trim() || undefined, xpValue: xp, childIds: selectedChildIds },
+        token,
+      );
+      toast.success(`"${title.trim()}" vərdişi əlavə edildi.`);
+      setTitle('');
+      setNote('');
+      setXpValue('5');
+      setSelectedChildIds([activeChildId]);
+      setOpen(false);
+      load();
+      onCreated();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Vərdiş əlavə edilə bilmədi.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <Button onClick={() => setOpen(true)} variant="secondary" size="sm" disabled={atLimit || !categories}>
+        <Plus size={15} /> {atLimit ? `Limitə çatdınız (${customCount}/${MAX_FAMILY_TASKS})` : 'Yeni Vərdiş'}
+      </Button>
+    );
+  }
+
+  return (
+    <Card padding="lg">
+      <div className="mb-1 flex items-center justify-between">
+        <h3 className="font-display font-semibold text-text-900">Yeni Vərdiş</h3>
+        <span className="text-caption font-bold text-text-400">{customCount} / {MAX_FAMILY_TASKS}</span>
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+        <label>
+          <span className="mb-1.5 block text-caption font-bold text-text-700">KATEQORİYA</span>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="h-11 w-full rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
+          >
+            {(categories ?? []).map((c) => (
+              <option key={c.id} value={c.id}>{c.title}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="mb-1.5 block text-caption font-bold text-text-700">BAŞLIQ</span>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Otağı yığışdırmaq"
+            className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
+          />
+        </label>
+        <label>
+          <span className="mb-1.5 block text-caption font-bold text-text-700">QEYD (OPSİONAL)</span>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Qeyd"
+            className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
+          />
+        </label>
+        <label>
+          <span className="mb-1.5 block text-caption font-bold text-text-700">XP (maks. {MAX_TASK_XP})</span>
+          <input
+            value={xpValue}
+            onChange={(e) => setXpValue(e.target.value)}
+            type="number"
+            min={1}
+            max={MAX_TASK_XP}
+            className="h-11 w-28 rounded-xl border-2 border-border bg-surface px-3 text-body-sm text-text-900 outline-none focus:border-primary"
+          />
+        </label>
+        {allChildren.length > 1 && (
+          <fieldset>
+            <legend className="mb-1.5 block text-caption font-bold text-text-700">KİMƏ AİD OLSUN</legend>
+            <div className="flex flex-wrap gap-2">
+              {allChildren.map((c) => {
+                const selected = selectedChildIds.includes(c.childId!);
+                return (
+                  <button
+                    key={c.localId}
+                    type="button"
+                    onClick={() => toggleChild(c.childId!)}
+                    aria-pressed={selected}
+                    className={`flex items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-body-sm font-semibold transition-colors ${
+                      selected ? 'border-success bg-success-tint text-success' : 'border-border text-text-500'
+                    }`}
+                  >
+                    <span>{c.avatar}</span>
+                    <span>{c.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
+        <div className="flex gap-2">
+          <Button type="submit" size="sm" variant="success" disabled={submitting}>
+            {submitting ? 'Yaradılır...' : <><Sparkles size={14} /> Yarat</>}
+          </Button>
+          <Button type="button" onClick={() => setOpen(false)} variant="ghost" size="sm">
+            Ləğv et
+          </Button>
+        </div>
+      </form>
+    </Card>
   );
 }
