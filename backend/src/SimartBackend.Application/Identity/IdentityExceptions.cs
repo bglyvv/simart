@@ -64,3 +64,24 @@ public sealed class InvalidPinFormatException() : Exception("PIN must be exactly
 /// Named "ChildAccount", not "Child", for the same ambiguity reason
 /// ChildAccountNotFoundException already is.</summary>
 public sealed class ChildAccountAccessDeniedException() : Exception("This child does not belong to your family.");
+
+/// <summary>Thrown by RequestChildProfileChangeCommandHandler when the given
+/// name or avatar is blank after trimming — mapped to 400.</summary>
+public sealed class InvalidChildProfileChangeException() : Exception("Name and avatar are required.");
+
+/// <summary>Thrown by RequestChildProfileChangeCommandHandler when this child
+/// already has a request awaiting the parent's decision — mapped to 409. A
+/// child can't queue a second one until the first is resolved.</summary>
+public sealed class ProfileChangeRequestAlreadyPendingException()
+    : Exception("A profile change request is already pending for this child.");
+
+/// <summary>Thrown by Approve/RejectProfileChangeRequestCommandHandler when
+/// requestId doesn't exist — mapped to 404.</summary>
+public sealed class ProfileChangeRequestNotFoundException(Guid requestId)
+    : Exception($"Profile change request '{requestId}' was not found.");
+
+/// <summary>Thrown by Approve/RejectProfileChangeRequestCommandHandler when
+/// the request isn't still pending — mapped to 409, same "can't resolve
+/// twice" shape RedemptionAlreadyResolvedException already uses.</summary>
+public sealed class ProfileChangeRequestAlreadyResolvedException(Guid requestId)
+    : Exception($"Profile change request '{requestId}' has already been resolved.");

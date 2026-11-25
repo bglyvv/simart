@@ -23,3 +23,5 @@ public sealed record VerifyChildPinRequest(string Pin);
 /// <summary>NewPin null clears the child's PIN — see SetChildPinCommand's doc
 /// comment.</summary>
 public sealed record SetChildPinRequest(string? NewPin);
+
+public sealed record RequestChildProfileChangeRequest(string NewName, string NewAvatarEmoji);

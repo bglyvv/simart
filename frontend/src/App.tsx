@@ -73,7 +73,7 @@ export default function App() {
           <Route path="/bildirişlər" element={<RequireFamily><NotificationsPage /></RequireFamily>} />
 
           <Route path="/analitika" element={<RequireParentAuth><ParentDashboardPage /></RequireParentAuth>} />
-          <Route path="/tənzimləmələr" element={<RequireParentAuth><SettingsPage /></RequireParentAuth>} />
+          <Route path="/tənzimləmələr" element={<RequireFamily><SettingsPage /></RequireFamily>} />
 
           <Route path="/idareetme-giris" element={<AdminLoginPage />} />
           <Route path="/idareetme" element={<RequireAdminAuth><AdminDashboardPage /></RequireAdminAuth>} />

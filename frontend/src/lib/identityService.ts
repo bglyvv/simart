@@ -182,6 +182,88 @@ export function setChildPin(childId: string, newPin: string | null, token: strin
   return postVoid(`/api/identity/children/${childId}/set-pin`, { newPin }, token);
 }
 
+export interface ChildProfileChangeRequest {
+  id: string;
+  childId: string;
+  currentName: string;
+  newName: string;
+  newAvatarEmoji: string;
+  status: string;
+  requestedAt: string;
+}
+
+/** POST /api/identity/children/{childId}/profile-change-requests — a child
+ * proposing their own new name/avatar. Never applied immediately; held
+ * pending until a parent approves/rejects it via the two endpoints below.
+ * Throws (409) if that child already has one pending. */
+export function requestProfileChange(
+  childId: string,
+  newName: string,
+  newAvatarEmoji: string,
+  token: string,
+): Promise<ChildProfileChangeRequest> {
+  return postJson(`/api/identity/children/${childId}/profile-change-requests`, { newName, newAvatarEmoji }, token);
+}
+
+/** GET /api/identity/children/{childId}/profile-change-requests/pending — a
+ * child's own "is my request still pending" check. Resolves null (204) when
+ * there's nothing outstanding. */
+export async function fetchPendingProfileChangeRequest(
+  childId: string,
+  token: string,
+): Promise<ChildProfileChangeRequest | null> {
+  if (!API_BASE_URL) {
+    throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');
+  }
+
+  const response = await fetch(new URL(`/api/identity/children/${childId}/profile-change-requests/pending`, API_BASE_URL), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (response.status === 204) return null;
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(problem?.error ?? `GET pending profile change failed: ${response.status} ${response.statusText}`);
+  }
+
+  return (await response.json()) as ChildProfileChangeRequest;
+}
+
+/** GET /api/identity/families/{familyId}/profile-change-requests/pending —
+ * the parent's own review queue, every pending request across the family's
+ * children. */
+export async function fetchPendingProfileChangeRequests(
+  familyId: string,
+  token: string,
+): Promise<ChildProfileChangeRequest[]> {
+  if (!API_BASE_URL) {
+    throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');
+  }
+
+  const response = await fetch(new URL(`/api/identity/families/${familyId}/profile-change-requests/pending`, API_BASE_URL), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(problem?.error ?? `GET pending profile change requests failed: ${response.status} ${response.statusText}`);
+  }
+
+  return (await response.json()) as ChildProfileChangeRequest[];
+}
+
+/** POST /api/identity/profile-change-requests/{requestId}/approve — applies
+ * the request's new name/avatar to the child and marks it resolved. */
+export function approveProfileChangeRequest(requestId: string, token: string): Promise<void> {
+  return postVoid(`/api/identity/profile-change-requests/${requestId}/approve`, {}, token);
+}
+
+/** POST /api/identity/profile-change-requests/{requestId}/reject — marks
+ * the request resolved without changing the child. */
+export function rejectProfileChangeRequest(requestId: string, token: string): Promise<void> {
+  return postVoid(`/api/identity/profile-change-requests/${requestId}/reject`, {}, token);
+}
+
 export async function fetchFamilyChildren(familyId: string, token: string): Promise<ChildAccount[]> {
   if (!API_BASE_URL) {
     throw new Error('VITE_API_BASE_URL is not set — see frontend/.env.development.');

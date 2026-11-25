@@ -104,9 +104,45 @@ public interface IFamilyAccountRepository
     /// actual PinHash (null if none set) to compare against.</summary>
     Task<Child?> FindChildAsync(Guid childId, CancellationToken cancellationToken);
 
-    /// <summary>SetChildPinCommand's write — a parent setting (or, with
-    /// newPinHash null, clearing) their own child's PIN. Unlike
-    /// ChangeParentPinAsync this never checks a prior value first; the parent
-    /// administers it directly. False if childId doesn't exist.</summary>
+    /// <summary>SetChildPinCommand's write — either a parent setting (or,
+    /// with newPinHash null, clearing) a child's PIN, or a child changing
+    /// their own. Never checks a prior value first (unlike
+    /// ChangeParentPinAsync) — see Child.PinHash's own doc comment for why.
+    /// False if childId doesn't exist.</summary>
     Task<bool> SetChildPinAsync(Guid childId, string? newPinHash, CancellationToken cancellationToken);
+
+    /// <summary>RequestChildProfileChangeCommand's write.</summary>
+    Task AddProfileChangeRequestAsync(ChildProfileChangeRequest request, CancellationToken cancellationToken);
+
+    /// <summary>The one still-pending request for a child, if any — used both
+    /// to stop a child from queuing a second request while one is already
+    /// outstanding, and by the child's own Settings view to show its
+    /// status.</summary>
+    Task<ChildProfileChangeRequest?> FindPendingProfileChangeRequestForChildAsync(
+        Guid childId, CancellationToken cancellationToken);
+
+    /// <summary>Every pending request across the given children, each with
+    /// Child loaded (ApproveProfileChangeRequestCommandHandler/the parent's
+    /// own Settings view both need the child's current name to show
+    /// alongside the proposed one) — same two-step shape (resolve a family's
+    /// childIds first, then query by them) GetPendingRedemptionsQueryHandler
+    /// already uses.</summary>
+    Task<IReadOnlyList<ChildProfileChangeRequest>> GetPendingProfileChangeRequestsForChildrenAsync(
+        IReadOnlyList<Guid> childIds, CancellationToken cancellationToken);
+
+    /// <summary>By its own id, with Child loaded — Approve/
+    /// RejectProfileChangeRequestCommandHandler's ownership check needs the
+    /// request's ChildId resolved to a family before anything else.</summary>
+    Task<ChildProfileChangeRequest?> FindProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken);
+
+    /// <summary>Applies NewName/NewAvatarEmoji onto the real Child row and
+    /// marks the request approved, in one save — a redemption-approval-style
+    /// atomic pair, so a request can't end up "approved" without the child's
+    /// identity actually changing, or vice versa. False if requestId doesn't
+    /// exist.</summary>
+    Task<bool> ApproveProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken);
+
+    /// <summary>Marks the request rejected — the child's row is never
+    /// touched. False if requestId doesn't exist.</summary>
+    Task<bool> RejectProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken);
 }

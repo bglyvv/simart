@@ -1,10 +1,11 @@
 {
   "nav": [
     { "key": "home", "icon": "home", "label": "Ana Səhifə", "path": "/ana-sehife" },
-    { "key": "analytics", "icon": "chart-bar", "label": "Analitika Paneli", "path": "/analitika" },
-    { "key": "family", "icon": "family", "label": "Ailə Üzvləri", "path": "/ailə-üzvləri" },
+    { "key": "analytics", "icon": "chart-bar", "label": "Analitika Paneli", "path": "/analitika", "parentOnly": true },
+    { "key": "family", "icon": "family", "label": "Ailə Üzvləri", "path": "/ailə-üzvləri", "parentOnly": true },
     { "key": "habits", "icon": "check-square", "label": "Vərdişlər", "path": "/vərdişlər" },
     { "key": "animation", "icon": "play", "label": "Videolar", "path": "/animasiya" },
+    { "key": "games", "icon": "puzzle", "label": "Oyunlar", "path": "/oyunlar", "childOnly": true },
     { "key": "social", "icon": "users", "label": "Sosial", "path": "/sosial" },
     { "key": "leagues", "icon": "trophy", "label": "Liqalar", "path": "/liqalar" },
     { "key": "goals", "icon": "target", "label": "Məqsədlər", "path": "/məqsədlər" },

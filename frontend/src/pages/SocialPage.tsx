@@ -170,7 +170,7 @@ export default function SocialPage() {
       />
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
+        <div className={`mx-auto grid max-w-6xl gap-6 ${authedAsParent ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
           <div className="flex min-w-0 flex-col gap-6">
             {/* Posting is the child's own action — a parent who has unlocked
                 the dashboard this session shouldn't be able to compose a post
@@ -231,7 +231,7 @@ export default function SocialPage() {
               <p className="text-body-sm text-error">Sosial lenta yüklənmədi — backend işə düşübmü?</p>
             )}
 
-            {useBackend && posts !== null && (
+            {useBackend && authedAsParent && posts !== null && (
               <div className="flex gap-2">
                 {(Object.keys(STATUS_FILTER_LABEL) as StatusFilter[]).map((f) => (
                   <button
@@ -309,54 +309,58 @@ export default function SocialPage() {
                 })}
           </div>
 
-          <div className="flex min-w-0 flex-col gap-6">
-            {useBackend && posts !== null && (
-              <Card padding="lg">
-                <h3 className="font-display font-semibold text-text-900">Lenta Statistikası</h3>
-                <div className="mt-3 grid grid-cols-2 gap-3">
-                  <StatTile label="Təsdiqlənmiş" value={stats.approved} />
-                  <StatTile label="Gözləyən" value={stats.pending} />
-                  <StatTile label="Ümumi Bəyənmə" value={stats.totalLikes} />
-                  <StatTile label="Ümumi Şərh" value={stats.totalComments} />
-                </div>
-              </Card>
-            )}
-
-            <Card padding="lg">
-              <h3 className="font-display font-semibold text-text-900">{data.leaderboard.title}</h3>
-              <p className="mb-4 mt-1 text-caption text-text-400">{data.leaderboard.note}</p>
-              <div className="flex flex-col gap-3">
-                {(useBackend ? leaderboard ?? [] : null)?.map((row, i) => (
-                  <div key={row.childId} className="flex items-center gap-3">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xs font-bold text-text-500">
-                      {i + 1}
-                    </span>
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
-                      {row.avatarEmoji}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.handle}</span>
-                    <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.totalXp} XP</span>
+          {/* Moderation insight (stats, leaderboard) is a parent-oversight
+              concern — a child just browses/posts, with none of this chrome. */}
+          {authedAsParent && (
+            <div className="flex min-w-0 flex-col gap-6">
+              {useBackend && posts !== null && (
+                <Card padding="lg">
+                  <h3 className="font-display font-semibold text-text-900">Lenta Statistikası</h3>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <StatTile label="Təsdiqlənmiş" value={stats.approved} />
+                    <StatTile label="Gözləyən" value={stats.pending} />
+                    <StatTile label="Ümumi Bəyənmə" value={stats.totalLikes} />
+                    <StatTile label="Ümumi Şərh" value={stats.totalComments} />
                   </div>
-                ))}
-                {!useBackend &&
-                  data.leaderboard.rows.map((row) => (
-                    <div key={row.rank} className="flex items-center gap-3">
-                      <span
-                        style={{ color: row.rankColor }}
-                        className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xs font-bold"
-                      >
-                        {row.rank}
+                </Card>
+              )}
+
+              <Card padding="lg">
+                <h3 className="font-display font-semibold text-text-900">{data.leaderboard.title}</h3>
+                <p className="mb-4 mt-1 text-caption text-text-400">{data.leaderboard.note}</p>
+                <div className="flex flex-col gap-3">
+                  {(useBackend ? leaderboard ?? [] : null)?.map((row, i) => (
+                    <div key={row.childId} className="flex items-center gap-3">
+                      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xs font-bold text-text-500">
+                        {i + 1}
                       </span>
                       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
                         {row.avatarEmoji}
                       </span>
-                      <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.name}</span>
-                      <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.xp}</span>
+                      <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.handle}</span>
+                      <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.totalXp} XP</span>
                     </div>
                   ))}
-              </div>
-            </Card>
-          </div>
+                  {!useBackend &&
+                    data.leaderboard.rows.map((row) => (
+                      <div key={row.rank} className="flex items-center gap-3">
+                        <span
+                          style={{ color: row.rankColor }}
+                          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xs font-bold"
+                        >
+                          {row.rank}
+                        </span>
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
+                          {row.avatarEmoji}
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.name}</span>
+                        <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.xp}</span>
+                      </div>
+                    ))}
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </main>
     </AppShell>

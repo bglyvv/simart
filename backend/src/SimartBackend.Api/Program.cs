@@ -77,7 +77,12 @@ using SimartBackend.Application.Identity.Commands.UpdateParent;
 using SimartBackend.Application.Identity.Queries.GetChildren;
 using SimartBackend.Application.Identity.Queries.GetDeactivatedFamilies;
 using SimartBackend.Application.Identity.Queries.GetFamilies;
+using SimartBackend.Application.Identity.Commands.ApproveProfileChangeRequest;
+using SimartBackend.Application.Identity.Commands.RejectProfileChangeRequest;
+using SimartBackend.Application.Identity.Commands.RequestChildProfileChange;
 using SimartBackend.Application.Identity.Commands.SetChildPin;
+using SimartBackend.Application.Identity.Queries.GetPendingProfileChangeRequest;
+using SimartBackend.Application.Identity.Queries.GetPendingProfileChangeRequests;
 using SimartBackend.Application.Identity.Queries.VerifyChildPin;
 using SimartBackend.Application.Identity.Queries.VerifyPin;
 using SimartBackend.Application.Partners;
@@ -859,6 +864,144 @@ app.MapPost("/api/identity/children/{childId:guid}/set-pin", async (
 })
 .RequireAuthorization()
 .WithName("SetChildPin");
+
+// A child proposing their own new name/avatar — held pending until a parent
+// approves or rejects it (see ChildProfileChangeRequest's doc comment).
+// Unlike set-pin above, this is never applied immediately — identity-visible
+// changes always go through the queue.
+app.MapPost("/api/identity/children/{childId:guid}/profile-change-requests", async (
+    ISender sender, Guid childId, RequestChildProfileChangeRequest body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        var result = await sender.Send(
+            new RequestChildProfileChangeCommand(callerFamilyId, childId, body.NewName, body.NewAvatarEmoji), cancellationToken);
+        return Results.Created($"/api/identity/profile-change-requests/{result.Id}", result);
+    }
+    catch (ChildAccountNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+    catch (InvalidChildProfileChangeException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+    catch (ProfileChangeRequestAlreadyPendingException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("RequestChildProfileChange");
+
+// A child's own "is my request still pending" check — 204, not 404, when
+// there's nothing outstanding (routine, not missing — same shape Focus
+// Mode's active-lock read already uses).
+app.MapGet("/api/identity/children/{childId:guid}/profile-change-requests/pending", async (
+    ISender sender, Guid childId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        var result = await sender.Send(new GetPendingProfileChangeRequestQuery(callerFamilyId, childId), cancellationToken);
+        return result is null ? Results.NoContent() : Results.Ok(result);
+    }
+    catch (ChildAccountNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+})
+.RequireAuthorization()
+.WithName("GetPendingProfileChangeRequestForChild");
+
+// The parent's own review queue — every pending request across the family's
+// children, same shape the existing reward-approval queue already uses.
+app.MapGet("/api/identity/families/{familyId:guid}/profile-change-requests/pending", async (
+    ISender sender, Guid familyId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId) || callerFamilyId != familyId)
+        return Results.Forbid();
+
+    var result = await sender.Send(new GetPendingProfileChangeRequestsQuery(callerFamilyId), cancellationToken);
+    return Results.Ok(result);
+})
+.RequireAuthorization()
+.WithName("GetPendingProfileChangeRequests");
+
+app.MapPost("/api/identity/profile-change-requests/{requestId:guid}/approve", async (
+    ISender sender, Guid requestId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        await sender.Send(new ApproveProfileChangeRequestCommand(callerFamilyId, requestId), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (ProfileChangeRequestNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+    catch (ProfileChangeRequestAlreadyResolvedException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("ApproveProfileChangeRequest");
+
+app.MapPost("/api/identity/profile-change-requests/{requestId:guid}/reject", async (
+    ISender sender, Guid requestId, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        await sender.Send(new RejectProfileChangeRequestCommand(callerFamilyId, requestId), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (ProfileChangeRequestNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+    catch (ProfileChangeRequestAlreadyResolvedException ex)
+    {
+        return Results.Conflict(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("RejectProfileChangeRequest");
 
 // Always 204, whether or not the email matches a real account — same
 // anti-enumeration shape InvalidCredentialsException already uses for login, just

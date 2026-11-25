@@ -834,6 +834,49 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                     b.ToTable("children", (string)null);
                 });
 
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Identity.ChildProfileChangeRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("ChildId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("child_id");
+
+                    b.Property<string>("NewAvatarEmoji")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_avatar_emoji");
+
+                    b.Property<string>("NewName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("new_name");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("requested_at");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_child_profile_change_requests");
+
+                    b.HasIndex("ChildId")
+                        .HasDatabaseName("ix_child_profile_change_requests_child_id");
+
+                    b.ToTable("child_profile_change_requests", (string)null);
+                });
+
             modelBuilder.Entity("SimartBackend.Domain.Entities.Identity.Family", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1622,6 +1665,18 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_children_families_family_id");
 
                     b.Navigation("Family");
+                });
+
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Identity.ChildProfileChangeRequest", b =>
+                {
+                    b.HasOne("SimartBackend.Domain.Entities.Identity.Child", "Child")
+                        .WithMany()
+                        .HasForeignKey("ChildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_child_profile_change_requests_children_child_id");
+
+                    b.Navigation("Child");
                 });
 
             modelBuilder.Entity("SimartBackend.Domain.Entities.Identity.Family", b =>

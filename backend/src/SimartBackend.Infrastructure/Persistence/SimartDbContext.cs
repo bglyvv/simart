@@ -21,6 +21,7 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
     public DbSet<Parent> Parents => Set<Parent>();
     public DbSet<Child> Children => Set<Child>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<ChildProfileChangeRequest> ChildProfileChangeRequests => Set<ChildProfileChangeRequest>();
 
     public DbSet<HabitCategory> HabitCategories => Set<HabitCategory>();
     public DbSet<HabitTask> HabitTasks => Set<HabitTask>();

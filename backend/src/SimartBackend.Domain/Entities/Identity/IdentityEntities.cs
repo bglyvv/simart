@@ -62,12 +62,14 @@ public class Child : ISoftDeletable
     public DateOnly DateOfBirth { get; set; }
     public required string City { get; set; }
 
-    /// <summary>Null until a parent sets one (opt-in, not required for every
-    /// child) — gates one sibling switching into another's account from the
-    /// family gate or the in-app child switcher. Unlike Parent.PinHash, this
-    /// is set by the parent on the child's behalf, never self-service, and
-    /// there's no "change my own PIN" flow for a child — see
-    /// SetChildPinCommand/VerifyChildPinQuery.</summary>
+    /// <summary>Null until set (opt-in, not required for every child) — gates
+    /// one sibling switching into another's account from the family gate or
+    /// the in-app child switcher. Written by SetChildPinCommand either way —
+    /// a parent setting it on a child's behalf, or (unlike Parent.PinHash's
+    /// own change flow) a child changing their own without re-proving the
+    /// old one first, since the bearer token alone already proves "this is a
+    /// legitimate member of this family." See VerifyChildPinQuery for the
+    /// read side.</summary>
     public string? PinHash { get; set; }
 
     public bool IsDeleted { get; set; }
@@ -75,4 +77,22 @@ public class Child : ISoftDeletable
     public Guid? DeletedBy { get; set; }
 
     public Family Family { get; set; } = null!;
+}
+
+/// <summary>A child-submitted name/avatar change, held until a parent
+/// approves or rejects it — unlike the child's own PIN (set directly, no
+/// approval), identity-visible changes go through this queue first. Not
+/// soft-deletable — a disposable record once resolved, same shape as
+/// RewardRedemption/PasswordResetToken.</summary>
+public class ChildProfileChangeRequest
+{
+    public Guid Id { get; set; }
+    public Guid ChildId { get; set; }
+    public required string NewName { get; set; }
+    public required string NewAvatarEmoji { get; set; }
+    public required string Status { get; set; }
+    public DateTimeOffset RequestedAt { get; set; }
+    public DateTimeOffset? ResolvedAt { get; set; }
+
+    public Child Child { get; set; } = null!;
 }

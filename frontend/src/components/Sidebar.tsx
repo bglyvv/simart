@@ -23,10 +23,22 @@ function NavIcon({ icon }: { icon: string }) {
   );
 }
 
+/** `parentOnly` items (Analitika Paneli, Ailə Üzvləri) only make sense for a
+ * parent reviewing the family — a plain child session doesn't see them at
+ * all, not greyed out, same as every other parent-only control in this app.
+ * `childOnly` (Oyunlar) is the other direction — it's a kid's own feature,
+ * not something a parent reviewing data needs cluttering their nav. */
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const authedAsParent = useAppStore((s) => s.authedAsParent);
+  const items = navData.nav.filter((item) => {
+    if (item.parentOnly) return authedAsParent;
+    if (item.childOnly) return !authedAsParent;
+    return true;
+  });
+
   return (
     <nav className="flex flex-col gap-1">
-      {navData.nav.map((item) => (
+      {items.map((item) => (
         <NavLink
           key={item.key}
           to={item.path}

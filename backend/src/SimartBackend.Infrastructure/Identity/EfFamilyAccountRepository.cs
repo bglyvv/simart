@@ -223,4 +223,57 @@ public sealed class EfFamilyAccountRepository(SimartDbContext db) : IFamilyAccou
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task AddProfileChangeRequestAsync(ChildProfileChangeRequest request, CancellationToken cancellationToken)
+    {
+        db.ChildProfileChangeRequests.Add(request);
+        await db.SaveChangesAsync(cancellationToken);
+    }
+
+    public Task<ChildProfileChangeRequest?> FindPendingProfileChangeRequestForChildAsync(
+        Guid childId, CancellationToken cancellationToken) =>
+        db.ChildProfileChangeRequests
+            .Include(r => r.Child)
+            .FirstOrDefaultAsync(r => r.ChildId == childId && r.Status == "pending", cancellationToken);
+
+    public async Task<IReadOnlyList<ChildProfileChangeRequest>> GetPendingProfileChangeRequestsForChildrenAsync(
+        IReadOnlyList<Guid> childIds, CancellationToken cancellationToken) =>
+        await db.ChildProfileChangeRequests
+            .Include(r => r.Child)
+            .Where(r => childIds.Contains(r.ChildId) && r.Status == "pending")
+            .OrderBy(r => r.RequestedAt)
+            .ToListAsync(cancellationToken);
+
+    public Task<ChildProfileChangeRequest?> FindProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken) =>
+        db.ChildProfileChangeRequests.FirstOrDefaultAsync(r => r.Id == requestId, cancellationToken);
+
+    public async Task<bool> ApproveProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken)
+    {
+        var request = await db.ChildProfileChangeRequests.FirstOrDefaultAsync(r => r.Id == requestId, cancellationToken);
+        if (request is null)
+            return false;
+
+        var child = await db.Children.FirstOrDefaultAsync(c => c.Id == request.ChildId, cancellationToken);
+        if (child is null)
+            return false;
+
+        child.Name = request.NewName;
+        child.AvatarEmoji = request.NewAvatarEmoji;
+        request.Status = "approved";
+        request.ResolvedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> RejectProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken)
+    {
+        var request = await db.ChildProfileChangeRequests.FirstOrDefaultAsync(r => r.Id == requestId, cancellationToken);
+        if (request is null)
+            return false;
+
+        request.Status = "rejected";
+        request.ResolvedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

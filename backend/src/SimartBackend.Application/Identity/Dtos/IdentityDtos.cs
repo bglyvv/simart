@@ -50,3 +50,10 @@ public sealed record ChildSummaryDto(Guid ChildId, string Name, string Gender, D
     public static ChildSummaryDto FromDomain(Child child) => new(
         child.Id, child.Name, child.Gender, child.DateOfBirth, child.City);
 }
+
+public sealed record ChildProfileChangeRequestDto(
+    Guid Id, Guid ChildId, string CurrentName, string NewName, string NewAvatarEmoji, string Status, DateTimeOffset RequestedAt)
+{
+    public static ChildProfileChangeRequestDto FromDomain(ChildProfileChangeRequest r) => new(
+        r.Id, r.ChildId, r.Child.Name, r.NewName, r.NewAvatarEmoji, r.Status, r.RequestedAt);
+}

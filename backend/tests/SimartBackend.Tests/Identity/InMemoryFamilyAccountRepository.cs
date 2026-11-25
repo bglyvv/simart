@@ -205,4 +205,58 @@ public sealed class InMemoryFamilyAccountRepository : IFamilyAccountRepository
         child.PinHash = newPinHash;
         return Task.FromResult(true);
     }
+
+    private readonly List<ChildProfileChangeRequest> _profileChangeRequests = [];
+
+    public Task AddProfileChangeRequestAsync(ChildProfileChangeRequest request, CancellationToken cancellationToken)
+    {
+        _profileChangeRequests.Add(request);
+        return Task.CompletedTask;
+    }
+
+    public Task<ChildProfileChangeRequest?> FindPendingProfileChangeRequestForChildAsync(
+        Guid childId, CancellationToken cancellationToken) =>
+        Task.FromResult(_profileChangeRequests.FirstOrDefault(r => r.ChildId == childId && r.Status == "pending"));
+
+    public Task<IReadOnlyList<ChildProfileChangeRequest>> GetPendingProfileChangeRequestsForChildrenAsync(
+        IReadOnlyList<Guid> childIds, CancellationToken cancellationToken)
+    {
+        foreach (var r in _profileChangeRequests)
+            r.Child = _children.First(c => c.Id == r.ChildId);
+        return Task.FromResult((IReadOnlyList<ChildProfileChangeRequest>)_profileChangeRequests
+            .Where(r => childIds.Contains(r.ChildId) && r.Status == "pending")
+            .OrderBy(r => r.RequestedAt)
+            .ToList());
+    }
+
+    public Task<ChildProfileChangeRequest?> FindProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken) =>
+        Task.FromResult(_profileChangeRequests.FirstOrDefault(r => r.Id == requestId));
+
+    public Task<bool> ApproveProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken)
+    {
+        var request = _profileChangeRequests.FirstOrDefault(r => r.Id == requestId);
+        if (request is null)
+            return Task.FromResult(false);
+
+        var child = _children.FirstOrDefault(c => c.Id == request.ChildId);
+        if (child is null)
+            return Task.FromResult(false);
+
+        child.Name = request.NewName;
+        child.AvatarEmoji = request.NewAvatarEmoji;
+        request.Status = "approved";
+        request.ResolvedAt = DateTimeOffset.UtcNow;
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> RejectProfileChangeRequestAsync(Guid requestId, CancellationToken cancellationToken)
+    {
+        var request = _profileChangeRequests.FirstOrDefault(r => r.Id == requestId);
+        if (request is null)
+            return Task.FromResult(false);
+
+        request.Status = "rejected";
+        request.ResolvedAt = DateTimeOffset.UtcNow;
+        return Task.FromResult(true);
+    }
 }
