@@ -1,0 +1,9 @@
+{
+  "books": [
+    { "id": "kicik-astronavt", "title": "Kiçik Astronavt", "theme": "Kosmos və xəyallar" },
+    { "id": "tebiyatin-sirleri", "title": "Təbiətin Sirləri", "theme": "Təbiət və canlılar" },
+    { "id": "dostlugun-gucu", "title": "Dostluğun Gücü", "theme": "Dostluq və empatiya" },
+    { "id": "deniz-macerasi", "title": "Dəniz Macərası", "theme": "Dəniz və macəra" },
+    { "id": "agilli-kesflar", "title": "Ağıllı Kəşflər", "theme": "Elm və yaradıcılıq" }
+  ]
+}
