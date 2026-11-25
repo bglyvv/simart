@@ -44,6 +44,11 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const child = useActiveChild();
   const multiChild = useAppStore((s) => s.children.length > 1);
+  // Switching which child the app is acting as is a parent action — a plain
+  // child session (hasn't unlocked the Master PIN this session) never sees
+  // the option at all, not even disabled; they just see their own profile,
+  // same read-only card a single-child family always showed.
+  const authedAsParent = useAppStore((s) => s.authedAsParent);
   const xp = child?.xp ?? 0;
 
   return (
@@ -58,7 +63,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <NavLinks onNavigate={onNavigate} />
       </div>
 
-      {multiChild ? (
+      {multiChild && authedAsParent ? (
         <div className="mt-4">
           <ChildSwitcher />
         </div>

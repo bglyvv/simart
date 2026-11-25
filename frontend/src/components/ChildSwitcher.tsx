@@ -72,7 +72,10 @@ export default function ChildSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-sm border border-border bg-surface shadow-float">
+        // Opens upward (bottom-full), not downward — this switcher sits at
+        // the very bottom of the sidebar, so a downward-opening panel had no
+        // room to render and got clipped against the viewport edge.
+        <div className="absolute inset-x-0 bottom-full z-10 mb-1 overflow-hidden rounded-sm border border-border bg-surface shadow-float">
           {children.map((c) => (
             <button
               key={c.localId}
