@@ -31,4 +31,10 @@ export const THEME_OPTIONS: ThemeOption[] = [
   { id: 'sunset', label: 'Gün Batımı', swatch: ['#b5542e', '#e0956b', '#f3c178'] },
   { id: 'candy', label: 'Şəkər', swatch: ['#a3447a', '#c57fbd', '#f0a8c4'] },
   { id: 'lavender', label: 'Lavanda', swatch: ['#5d4e9c', '#a79be0', '#e0b8e8'] },
+  // Brighter and more saturated than the other six on purpose — revives the
+  // app's original pre-redesign "kid mode" palette (index.css's own LEGACY
+  // color block: purple/teal/amber) as an explicit, opt-in option rather
+  // than leaving those colors entirely unused now that the rest of the app
+  // has moved to the minimal neutral/sage/sand system.
+  { id: 'colorful', label: 'Rəngarəng', swatch: ['#8a4fff', '#2dd4bf', '#f5b83d'] },
 ];

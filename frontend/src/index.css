@@ -279,6 +279,25 @@
   --color-sand-text: #8a4e93;
 }
 
+/* "Rəngarəng" — the app's original, more saturated pre-redesign palette
+   (purple/teal/amber, straight from the LEGACY color block above),
+   deliberately brighter than the other six light-pastel themes. */
+:root[data-theme='colorful'] {
+  --color-primary: #8a4fff;
+  --color-bg: #f6f1ff;
+  --color-surface: #ffffff;
+  --color-surface-alt: #ede4ff;
+  --color-border: #ddc9ff;
+  --color-border-soft: #ede4ff;
+  --color-text-900: #241b5e;
+  --color-sage: #2dd4bf;
+  --color-sage-tint: #ccfbf1;
+  --color-sage-text: #0d9488;
+  --color-sand: #f5b83d;
+  --color-sand-tint: #fef4c8;
+  --color-sand-text: #92700c;
+}
+
 html,
 body,
 #root {
