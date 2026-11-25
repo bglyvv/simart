@@ -8,7 +8,12 @@ import playlistsData from '../data/playlists.json';
 import { formatAzDate } from '../lib/date';
 import { formatTime } from '../lib/formatTime';
 import type { Playlist } from '../lib/contentService';
-import { verifyPin as verifyPinApi, changePin as changePinApi } from '../lib/identityService';
+import {
+  verifyPin as verifyPinApi,
+  changePin as changePinApi,
+  verifyChildPin as verifyChildPinApi,
+  setChildPin as setChildPinApi,
+} from '../lib/identityService';
 
 /** The identity-only fields a caller (LoginPage/AddChildPage) provides when a
  *  child profile is created or refreshed — everything else (progress state)
@@ -29,6 +34,12 @@ export interface ChildProfileInput {
   dobYear: string;
   city: string;
   age: number;
+  /** Whether a parent has set this child's own PIN (see backend's
+   * Child.PinHash) — null/omitted for a local-only child (childId null),
+   * which has no backend account to carry one. Gates switching into this
+   * child's account from the family gate or the sidebar ChildSwitcher
+   * whenever the session isn't already authedAsParent. */
+  hasPin?: boolean;
 }
 
 export interface ParentProfile {
@@ -229,6 +240,18 @@ export interface AppState {
    * the same shape of error on a mismatch so both paths can be handled
    * identically by the caller. */
   changePinAsync: (currentPin: string, newPin: string) => Promise<void>;
+  /** POST /api/identity/children/{childId}/verify-pin — only meaningful for a
+   * backend-synced child (childId not null); callers should skip this
+   * entirely for a local-only child or one whose hasPin is false, same "no
+   * PIN set = open" rule the backend itself also applies as a fallback.
+   * Throws on a network/server error, same fail-closed contract as
+   * verifyPinAsync — never treat a thrown error as "PIN correct." */
+  verifyChildPinAsync: (childId: string, pin: string) => Promise<boolean>;
+  /** POST /api/identity/children/{childId}/set-pin — a parent setting (newPin
+   * a 4-digit string) or clearing (newPin null) one child's PIN. Updates the
+   * matching child's local hasPin on success so the UI reflects it without a
+   * full re-fetch. */
+  setChildPinAsync: (childId: string, newPin: string | null) => Promise<void>;
   logoutParent: () => void;
   resetAll: () => void;
 
@@ -329,6 +352,21 @@ export const useAppStore = create<AppState>()(
           throw new Error('Incorrect current PIN.');
         }
         get().setPin(newPin);
+      },
+
+      verifyChildPinAsync: async (childId, pin) => {
+        const { parent } = get();
+        if (!parent?.token) return true;
+        return verifyChildPinApi(childId, pin, parent.token);
+      },
+
+      setChildPinAsync: async (childId, newPin) => {
+        const { parent } = get();
+        if (!parent?.token) return;
+        await setChildPinApi(childId, newPin, parent.token);
+        set((s) => ({
+          children: s.children.map((c) => (c.childId === childId ? { ...c, hasPin: newPin !== null } : c)),
+        }));
       },
 
       logoutParent: () => set({ authedAsParent: false }),

@@ -83,6 +83,12 @@ export default function HabitsPage() {
   // edə bilərsən" path has neither, and keeps the exact old mock-JSON
   // behavior below, same split AddChildPage already made for signup itself.
   const useBackend = !!(parent?.familyId && child?.childId);
+  // Creating/configuring a habit (title, XP value, which sibling it goes to)
+  // is a parent action — this page itself isn't PIN-gated (a child uses it
+  // every day), so the create-habit entry point only renders once the parent
+  // has actually unlocked the dashboard this session, same session flag
+  // Liqalar's redeem lock already uses in the other direction.
+  const authedAsParent = useAppStore((s) => s.authedAsParent);
   const today = todayIso();
 
   const [categories, setCategories] = useState<BackendHabitCategory[] | null>(null);
@@ -317,7 +323,7 @@ export default function HabitsPage() {
               </div>
             </Card>
 
-            {useBackend && parent?.familyId && child?.childId && (
+            {useBackend && authedAsParent && parent?.familyId && child?.childId && (
               <NewHabitCard
                 familyId={parent.familyId}
                 token={parent.token}

@@ -192,4 +192,17 @@ public sealed class InMemoryFamilyAccountRepository : IFamilyAccountRepository
         parent.PinHash = newPinHash;
         return Task.FromResult(true);
     }
+
+    public Task<Child?> FindChildAsync(Guid childId, CancellationToken cancellationToken) =>
+        Task.FromResult(_children.FirstOrDefault(c => c.Id == childId));
+
+    public Task<bool> SetChildPinAsync(Guid childId, string? newPinHash, CancellationToken cancellationToken)
+    {
+        var child = _children.FirstOrDefault(c => c.Id == childId);
+        if (child is null)
+            return Task.FromResult(false);
+
+        child.PinHash = newPinHash;
+        return Task.FromResult(true);
+    }
 }

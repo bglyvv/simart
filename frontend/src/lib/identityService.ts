@@ -63,6 +63,10 @@ export interface ChildAccount {
   gender: string;
   dateOfBirth: string;
   city: string;
+  /** Whether a parent has set a PIN for this child — never the PIN itself.
+   * Gates one sibling switching into another's account; see
+   * verifyChildPin/setChildPin below. */
+  hasPin: boolean;
 }
 
 async function postJson<TResult>(path: string, body: unknown, token?: string): Promise<TResult> {
@@ -156,6 +160,26 @@ export async function verifyPin(pin: string, token: string): Promise<boolean> {
  * pattern as every other backend error surfaced in this app's UI. */
 export function changePin(currentPin: string, newPin: string, token: string): Promise<void> {
   return postVoid('/api/identity/change-pin', { currentPin, newPin }, token);
+}
+
+/** POST /api/identity/children/{childId}/verify-pin — checks a child's own,
+ * optional PIN (gates one sibling switching into another's account; see
+ * Child.PinHash's doc comment in the backend). A plain true/false answer,
+ * same posture as verifyPin above — this isn't itself a 401/403 boundary,
+ * the bearer token (any family member's session) already proves "this is a
+ * legitimate attempt to use this family's app." Resolves true when the
+ * target child has no PIN set at all. */
+export async function verifyChildPin(childId: string, pin: string, token: string): Promise<boolean> {
+  const result = await postJson<{ valid: boolean }>(`/api/identity/children/${childId}/verify-pin`, { pin }, token);
+  return result.valid;
+}
+
+/** POST /api/identity/children/{childId}/set-pin — a parent setting (or,
+ * with newPin null, clearing) their own child's PIN directly; unlike
+ * changePin there's no "current PIN" to prove first, since the parent
+ * administers this on the child's behalf. */
+export function setChildPin(childId: string, newPin: string | null, token: string): Promise<void> {
+  return postVoid(`/api/identity/children/${childId}/set-pin`, { newPin }, token);
 }
 
 export async function fetchFamilyChildren(familyId: string, token: string): Promise<ChildAccount[]> {

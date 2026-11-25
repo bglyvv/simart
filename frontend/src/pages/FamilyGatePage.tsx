@@ -13,14 +13,16 @@ export default function FamilyGatePage() {
   const children = useAppStore((s) => s.children);
   const setActiveChildId = useAppStore((s) => s.setActiveChildId);
   const verifyPinAsync = useAppStore((s) => s.verifyPinAsync);
+  const verifyChildPinAsync = useAppStore((s) => s.verifyChildPinAsync);
   const logoutParent = useAppStore((s) => s.logoutParent);
   const [usePassword, setUsePassword] = useState(false);
   const [pwValue, setPwValue] = useState('');
-  // The PIN panel only appears once the parent profile is explicitly
-  // selected — previously it rendered unconditionally alongside the member
-  // list, showing the Master PIN gate (and, until now, the PIN value itself)
-  // before anyone had asked to act as the parent at all.
-  const [gateOpen, setGateOpen] = useState(false);
+  // Which panel is open on the right — the parent's Master PIN gate, or a
+  // specific child's own PIN (see Child.PinHash). Previously this only ever
+  // tracked the parent card (`gateOpen`); a child card used to enter
+  // straight away with no check at all, which let any sibling open any
+  // other sibling's account from this screen with zero protection.
+  const [selected, setSelected] = useState<{ kind: 'parent' } | { kind: 'child'; localId: string } | null>(null);
 
   // Explicitly picking a child profile from this gate means the device is
   // being handed back to that child — clears a parent's still-unlocked
@@ -33,6 +35,18 @@ export default function FamilyGatePage() {
     setActiveChildId(localId);
     logoutParent();
     navigate('/ana-sehife');
+  }
+
+  // A child with no PIN set (or no backend account at all) still enters
+  // immediately, same zero-friction behavior as before this feature
+  // existed — the PIN is opt-in per child, set by a parent in Settings.
+  function handleChildCardClick(localId: string) {
+    const child = children.find((c) => c.localId === localId);
+    if (child?.childId && child.hasPin) {
+      setSelected({ kind: 'child', localId });
+    } else {
+      enterAsChild(localId);
+    }
   }
 
   // Backend-verified now (see useAppStore.verifyPinAsync) — a thrown error
@@ -71,6 +85,26 @@ export default function FamilyGatePage() {
     }
   }
 
+  // Same fail-closed posture as the parent's own handlePinComplete above —
+  // a network error never counts as "correct."
+  async function handleChildPinComplete(localId: string, childId: string, value: string) {
+    try {
+      const ok = await verifyChildPinAsync(childId, value);
+      if (ok) {
+        enterAsChild(localId);
+      } else {
+        toast.error('PIN yanlışdır, yenidən cəhd edin.');
+      }
+      return ok;
+    } catch {
+      toast.error('Serverə qoşulmaq mümkün olmadı. Yenidən cəhd edin.');
+      return undefined;
+    }
+  }
+
+  const gateOpen = selected !== null;
+  const selectedChild = selected?.kind === 'child' ? children.find((c) => c.localId === selected.localId) : undefined;
+
   return (
     <div className="flex min-h-screen w-full items-center justify-center bg-bg px-4 py-12 sm:px-8">
       <div className="flex w-full max-w-5xl flex-col items-center">
@@ -94,28 +128,37 @@ export default function FamilyGatePage() {
         <div className={gateOpen ? 'grid w-full gap-6 lg:grid-cols-[1fr_1.1fr]' : 'w-full max-w-xl'}>
           {/* Member list */}
           <motion.div initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-            {children.map((c) => (
-              <button
-                key={c.localId}
-                onClick={() => enterAsChild(c.localId)}
-                className="mb-4 flex w-full items-center gap-4 rounded-md border border-border bg-surface px-6 py-5 text-left transition-colors hover:bg-surface-alt"
-              >
-                <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-2xl">
-                  {c.avatar}
-                </div>
-                <div className="flex-1">
-                  <p className="text-body-lg font-bold text-text-900">{c.name} (Uşaq Profili)</p>
-                  <p className="mt-0.5 text-body-sm text-text-500">{c.age} yaş · Balaca Kəşfiyyatçı</p>
-                </div>
-                <ArrowRight size={18} className="text-text-400" />
-              </button>
-            ))}
+            {children.map((c) => {
+              const isSelected = selected?.kind === 'child' && selected.localId === c.localId;
+              return (
+                <button
+                  key={c.localId}
+                  onClick={() => handleChildCardClick(c.localId)}
+                  className={`mb-4 flex w-full items-center gap-4 rounded-md border px-6 py-5 text-left transition-colors ${
+                    isSelected ? 'border-primary bg-surface-alt' : 'border-border bg-surface hover:bg-surface-alt'
+                  }`}
+                >
+                  <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary text-2xl">
+                    {c.avatar}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-body-lg font-bold text-text-900">{c.name} (Uşaq Profili)</p>
+                    <p className="mt-0.5 text-body-sm text-text-500">{c.age} yaş · Balaca Kəşfiyyatçı</p>
+                  </div>
+                  {c.childId && c.hasPin ? (
+                    <Lock size={16} className="text-text-400" />
+                  ) : (
+                    <ArrowRight size={18} className="text-text-400" />
+                  )}
+                </button>
+              );
+            })}
 
             {parent && (
               <button
-                onClick={() => setGateOpen(true)}
+                onClick={() => setSelected({ kind: 'parent' })}
                 className={`flex w-full items-center gap-4 rounded-md border px-6 py-5 text-left transition-colors ${
-                  gateOpen ? 'border-primary bg-surface-alt' : 'border-border bg-surface hover:bg-surface-alt'
+                  selected?.kind === 'parent' ? 'border-primary bg-surface-alt' : 'border-border bg-surface hover:bg-surface-alt'
                 }`}
               >
                 <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xl text-text-700">
@@ -131,7 +174,7 @@ export default function FamilyGatePage() {
           </motion.div>
 
           {/* Parental gate — only once the parent profile above is selected */}
-          {gateOpen && (
+          {selected?.kind === 'parent' && (
             <motion.div
               initial={{ opacity: 0, x: 14 }}
               animate={{ opacity: 1, x: 0 }}
@@ -172,6 +215,32 @@ export default function FamilyGatePage() {
               >
                 {usePassword ? 'PIN Pedi ilə Davam Et' : 'Şifrə ilə Davam Et'}
               </button>
+            </motion.div>
+          )}
+
+          {/* A child's own PIN gate — only when that child has one set (see
+              Child.PinHash's doc comment) — prevents one sibling opening
+              another's account from this screen. */}
+          {selected?.kind === 'child' && selectedChild?.childId && (
+            <motion.div
+              key={selectedChild.localId}
+              initial={{ opacity: 0, x: 14 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.18 }}
+              className="rounded-md border border-border bg-surface p-6 text-center sm:p-8"
+            >
+              <div className="mx-auto mb-5 flex size-16 items-center justify-center rounded-full bg-primary text-2xl">
+                {selectedChild.avatar}
+              </div>
+              <h2 className="font-display text-h4 font-semibold text-text-900">{selectedChild.name} üçün PIN</h2>
+              <p className="mb-6 mt-3 text-body-sm leading-relaxed text-text-500">
+                Davam etmək üçün öz PIN-inizi daxil edin.
+              </p>
+              <PinPad
+                length={4}
+                dark={false}
+                onComplete={(value) => handleChildPinComplete(selectedChild.localId, selectedChild.childId!, value)}
+              />
             </motion.div>
           )}
         </div>

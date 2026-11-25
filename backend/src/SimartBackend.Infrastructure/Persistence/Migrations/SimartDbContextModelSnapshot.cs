@@ -818,6 +818,10 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("name");
 
+                    b.Property<string>("PinHash")
+                        .HasColumnType("text")
+                        .HasColumnName("pin_hash");
+
                     b.HasKey("Id")
                         .HasName("pk_children");
 

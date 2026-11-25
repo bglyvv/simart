@@ -14,7 +14,12 @@ public sealed record ChildDto(
     string AvatarEmoji,
     string Gender,
     DateOnly DateOfBirth,
-    string City);
+    string City,
+    /// <summary>Whether a parent has set a PIN for this child (see
+    /// Child.PinHash) — never the hash itself. Lets the frontend decide
+    /// whether switching into this child needs a PIN prompt at all, without
+    /// a separate round trip.</summary>
+    bool HasPin = false);
 
 /// <summary>Admin-only account directory row — GET /api/admin/families (DeactivatedAt
 /// null there) and GET /api/admin/families/deactivated (always set there).

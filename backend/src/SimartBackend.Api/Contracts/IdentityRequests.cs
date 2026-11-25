@@ -17,3 +17,9 @@ public sealed record UpdateChildRequest(string Name, string City);
 public sealed record VerifyPinRequest(string Pin);
 
 public sealed record ChangePinRequest(string CurrentPin, string NewPin);
+
+public sealed record VerifyChildPinRequest(string Pin);
+
+/// <summary>NewPin null clears the child's PIN — see SetChildPinCommand's doc
+/// comment.</summary>
+public sealed record SetChildPinRequest(string? NewPin);

@@ -99,4 +99,14 @@ public interface IFamilyAccountRepository
     /// caller's current PIN — sets the new hash only, same shape as
     /// UpdateParentNameAsync. False if parentId doesn't exist.</summary>
     Task<bool> ChangeParentPinAsync(Guid parentId, string newPinHash, CancellationToken cancellationToken);
+
+    /// <summary>By the child's own id — VerifyChildPinQuery's read, needs the
+    /// actual PinHash (null if none set) to compare against.</summary>
+    Task<Child?> FindChildAsync(Guid childId, CancellationToken cancellationToken);
+
+    /// <summary>SetChildPinCommand's write — a parent setting (or, with
+    /// newPinHash null, clearing) their own child's PIN. Unlike
+    /// ChangeParentPinAsync this never checks a prior value first; the parent
+    /// administers it directly. False if childId doesn't exist.</summary>
+    Task<bool> SetChildPinAsync(Guid childId, string? newPinHash, CancellationToken cancellationToken);
 }

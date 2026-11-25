@@ -63,6 +63,7 @@ export default function LoginPage() {
               dobYear: year,
               city: c.city,
               age: ageFromYear(year),
+              hasPin: c.hasPin,
             };
           }),
         );

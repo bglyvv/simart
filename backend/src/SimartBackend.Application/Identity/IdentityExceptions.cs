@@ -58,3 +58,9 @@ public sealed class IncorrectPinException() : Exception("Incorrect current PIN."
 /// server-side (it just hashed whatever string arrived); this is the first
 /// place the 4-digit rule is actually checked on the backend.</summary>
 public sealed class InvalidPinFormatException() : Exception("PIN must be exactly 4 digits.");
+
+/// <summary>Thrown by VerifyChildPinQueryHandler/SetChildPinCommandHandler when
+/// the caller's own family doesn't own the given childId — mapped to 403.
+/// Named "ChildAccount", not "Child", for the same ambiguity reason
+/// ChildAccountNotFoundException already is.</summary>
+public sealed class ChildAccountAccessDeniedException() : Exception("This child does not belong to your family.");

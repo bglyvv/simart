@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LogOut, Trash2, KeyRound, Check, X, Wallet } from 'lucide-react';
+import { LogOut, Trash2, KeyRound, Check, X, Wallet, Lock, Unlock } from 'lucide-react';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
@@ -101,6 +101,8 @@ export default function SettingsPage() {
           {parent?.familyId && backendChildren.length > 0 && (
             <AllowanceCard childOptions={backendChildren} token={parent.token} />
           )}
+
+          {backendChildren.length > 0 && <ChildPinsCard childOptions={backendChildren} />}
 
           <Card padding="lg">
             <h3 className="mb-1 font-display font-semibold text-text-900">Master PIN</h3>
@@ -340,6 +342,138 @@ function AllowanceCard({ childOptions, token }: { childOptions: ChildProfile[]; 
           </Button>
         </div>
       </form>
+    </Card>
+  );
+}
+
+/** Parent-only: lets a parent set (or clear) each of their backend-synced
+ * children's own, optional PIN (see Child.PinHash's doc comment in the
+ * backend) — gates one sibling opening another's account from the family
+ * gate or the sidebar ChildSwitcher. Never shows the PIN itself once set,
+ * same "write-only, never read back" posture the Master PIN card already
+ * has above. */
+function ChildPinsCard({ childOptions }: { childOptions: ChildProfile[] }) {
+  const setChildPinAsync = useAppStore((s) => s.setChildPinAsync);
+  const [editingLocalId, setEditingLocalId] = useState<string | null>(null);
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [busyLocalId, setBusyLocalId] = useState<string | null>(null);
+
+  function startEditing(localId: string) {
+    setEditingLocalId(localId);
+    setNewPin('');
+    setConfirmPin('');
+  }
+
+  async function save(child: ChildProfile) {
+    if (!/^\d{4}$/.test(newPin)) {
+      toast.error('PIN 4 rəqəmdən ibarət olmalıdır.');
+      return;
+    }
+    if (newPin !== confirmPin) {
+      toast.error('PIN təsdiqi uyğun gəlmir.');
+      return;
+    }
+    if (!child.childId) return;
+    setBusyLocalId(child.localId);
+    try {
+      await setChildPinAsync(child.childId, newPin);
+      toast.success(`${child.name} üçün PIN quruldu.`);
+      setEditingLocalId(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'PIN quraşdırıla bilmədi.');
+    } finally {
+      setBusyLocalId(null);
+    }
+  }
+
+  async function clear(child: ChildProfile) {
+    if (!child.childId) return;
+    setBusyLocalId(child.localId);
+    try {
+      await setChildPinAsync(child.childId, null);
+      toast.success(`${child.name} üçün PIN silindi.`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'PIN silinə bilmədi.');
+    } finally {
+      setBusyLocalId(null);
+    }
+  }
+
+  return (
+    <Card padding="lg">
+      <h3 className="mb-1 font-display font-semibold text-text-900">Uşaq PIN-ləri</h3>
+      <p className="mb-4 text-body-sm text-text-500">
+        Hər uşağa öz PIN-ini təyin edin — qardaş-bacılar bir-birinin profilinə PIN olmadan keçə bilməyəcək.
+      </p>
+      <div className="flex flex-col gap-2">
+        {childOptions.map((c) => (
+          <div key={c.localId} className="rounded-xl bg-surface-alt px-4 py-3">
+            <div className="flex items-center gap-3">
+              <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface text-base">
+                {c.avatar}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-body-sm font-bold text-text-900">{c.name}</p>
+                <p className="flex items-center gap-1 text-caption text-text-400">
+                  {c.hasPin ? <><Lock size={11} /> PIN qoyulub</> : <><Unlock size={11} /> PIN yoxdur</>}
+                </p>
+              </div>
+              {editingLocalId !== c.localId && (
+                <div className="flex shrink-0 gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busyLocalId === c.localId}
+                    onClick={() => startEditing(c.localId)}
+                  >
+                    {c.hasPin ? 'Dəyiş' : 'Təyin et'}
+                  </Button>
+                  {c.hasPin && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={busyLocalId === c.localId}
+                      onClick={() => clear(c)}
+                    >
+                      Sil
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {editingLocalId === c.localId && (
+              <div className="mt-3 flex flex-col gap-2">
+                <input
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  type="password"
+                  inputMode="numeric"
+                  placeholder="Yeni PIN"
+                  className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
+                />
+                <input
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  type="password"
+                  inputMode="numeric"
+                  placeholder="Yeni PIN-i təsdiqlə"
+                  className="h-11 w-full rounded-xl border-2 border-border bg-surface px-4 text-body-sm text-text-900 outline-none focus:border-primary"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" variant="success" disabled={busyLocalId === c.localId} onClick={() => save(c)}>
+                    {busyLocalId === c.localId ? 'Yadda saxlanılır...' : 'Yadda Saxla'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingLocalId(null)}>
+                    Ləğv et
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

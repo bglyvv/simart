@@ -209,4 +209,18 @@ public sealed class EfFamilyAccountRepository(SimartDbContext db) : IFamilyAccou
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public Task<Child?> FindChildAsync(Guid childId, CancellationToken cancellationToken) =>
+        db.Children.FirstOrDefaultAsync(c => c.Id == childId, cancellationToken);
+
+    public async Task<bool> SetChildPinAsync(Guid childId, string? newPinHash, CancellationToken cancellationToken)
+    {
+        var child = await db.Children.FirstOrDefaultAsync(c => c.Id == childId, cancellationToken);
+        if (child is null)
+            return false;
+
+        child.PinHash = newPinHash;
+        await db.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 }

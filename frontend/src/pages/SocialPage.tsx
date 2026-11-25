@@ -44,6 +44,11 @@ export default function SocialPage() {
   const toggleLike = useAppStore((s) => s.toggleLike);
   const useBackend = !!(parent?.familyId && child?.childId);
   const allChildren = useAppStore((s) => s.children);
+  // Approving is a parent action — Sosial itself isn't PIN-gated (a child
+  // browses it every day), so the real "Təsdiqlə" control only ever renders
+  // once the parent has unlocked the dashboard this session, same session
+  // flag HabitsPage's create-habit card and Liqalar's redeem lock both use.
+  const authedAsParent = useAppStore((s) => s.authedAsParent);
   // Only this family's own children's posts can actually be approved here —
   // the backend enforces this too (SocialChildOwnership), this just avoids
   // showing a "Təsdiqlə" action that would 403 on click for someone else's post.
@@ -167,7 +172,12 @@ export default function SocialPage() {
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
           <div className="flex min-w-0 flex-col gap-6">
-            {useBackend && (
+            {/* Posting is the child's own action — a parent who has unlocked
+                the dashboard this session shouldn't be able to compose a post
+                "as" whichever child happens to be active, same reasoning as
+                HabitsPage's create-habit card and Sosial's own approve action
+                going the other way. */}
+            {useBackend && !authedAsParent && (
               <Card padding="lg">
                 {!composing ? (
                   <Button variant="secondary" size="sm" onClick={() => setComposing(true)}>
@@ -243,7 +253,7 @@ export default function SocialPage() {
                     key={post.id}
                     post={post}
                     index={i}
-                    canApprove={ownChildIds.has(post.childId)}
+                    canApprove={authedAsParent && ownChildIds.has(post.childId)}
                     onToggleLike={() => handleToggleLike(post)}
                     onApprove={() => handleApprove(post)}
                     onCommentAdded={() =>

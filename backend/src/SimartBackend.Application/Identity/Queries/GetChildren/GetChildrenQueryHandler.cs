@@ -11,7 +11,7 @@ public sealed class GetChildrenQueryHandler(IFamilyAccountRepository repository)
     {
         var children = await repository.GetChildrenAsync(request.FamilyId, cancellationToken);
         return children
-            .Select(c => new ChildDto(c.Id, c.FamilyId, c.Name, c.AvatarEmoji, c.Gender, c.DateOfBirth, c.City))
+            .Select(c => new ChildDto(c.Id, c.FamilyId, c.Name, c.AvatarEmoji, c.Gender, c.DateOfBirth, c.City, c.PinHash != null))
             .ToList();
     }
 }

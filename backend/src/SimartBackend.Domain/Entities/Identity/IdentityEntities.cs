@@ -62,6 +62,14 @@ public class Child : ISoftDeletable
     public DateOnly DateOfBirth { get; set; }
     public required string City { get; set; }
 
+    /// <summary>Null until a parent sets one (opt-in, not required for every
+    /// child) — gates one sibling switching into another's account from the
+    /// family gate or the in-app child switcher. Unlike Parent.PinHash, this
+    /// is set by the parent on the child's behalf, never self-service, and
+    /// there's no "change my own PIN" flow for a child — see
+    /// SetChildPinCommand/VerifyChildPinQuery.</summary>
+    public string? PinHash { get; set; }
+
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public Guid? DeletedBy { get; set; }

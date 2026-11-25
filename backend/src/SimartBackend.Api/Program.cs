@@ -77,6 +77,8 @@ using SimartBackend.Application.Identity.Commands.UpdateParent;
 using SimartBackend.Application.Identity.Queries.GetChildren;
 using SimartBackend.Application.Identity.Queries.GetDeactivatedFamilies;
 using SimartBackend.Application.Identity.Queries.GetFamilies;
+using SimartBackend.Application.Identity.Commands.SetChildPin;
+using SimartBackend.Application.Identity.Queries.VerifyChildPin;
 using SimartBackend.Application.Identity.Queries.VerifyPin;
 using SimartBackend.Application.Partners;
 using SimartBackend.Application.Partners.Commands.AdminAcceptRewardProposal;
@@ -795,6 +797,68 @@ app.MapPost("/api/identity/change-pin", async (ISender sender, ChangePinRequest 
 })
 .RequireAuthorization()
 .WithName("ChangePin");
+
+// A child's own, optional PIN — gates one sibling switching into another's
+// account from the family gate or the in-app ChildSwitcher (see Child.PinHash's
+// doc comment). Keyed by childId, not "my own" like the parent PIN endpoints
+// above — any family member's session can call verify-pin (that's exactly
+// who's using it: a sibling picking a profile), but only the family's own
+// bearer token can call either at all, and CallerFamilyId still has to match
+// the child's actual family inside the handler.
+app.MapPost("/api/identity/children/{childId:guid}/verify-pin", async (
+    ISender sender, Guid childId, VerifyChildPinRequest body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        var valid = await sender.Send(new VerifyChildPinQuery(callerFamilyId, childId, body.Pin), cancellationToken);
+        return Results.Ok(new { valid });
+    }
+    catch (ChildAccountNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+})
+.RequireAuthorization()
+.WithName("VerifyChildPin");
+
+// Parent-only in practice (the frontend only ever calls this from the
+// PIN-gated Settings page), but enforced here the same way every other
+// family-owned write is — by CallerFamilyId matching the child's own
+// FamilyId, not by checking "is this session currently authedAsParent"
+// (that's a frontend-only session flag, not something the backend can see).
+app.MapPost("/api/identity/children/{childId:guid}/set-pin", async (
+    ISender sender, Guid childId, SetChildPinRequest body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.FamilyIdClaimType), out var callerFamilyId))
+        return Results.Forbid();
+
+    try
+    {
+        await sender.Send(new SetChildPinCommand(callerFamilyId, childId, body.NewPin), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (ChildAccountNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (ChildAccountAccessDeniedException)
+    {
+        return Results.Forbid();
+    }
+    catch (InvalidPinFormatException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("SetChildPin");
 
 // Always 204, whether or not the email matches a real account — same
 // anti-enumeration shape InvalidCredentialsException already uses for login, just
