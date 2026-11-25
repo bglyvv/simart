@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, Play } from 'lucide-react';
+import { Check, ChevronDown, Play, Settings as SettingsIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
-import Topbar, { XpPill, IconButton } from '../components/Topbar';
+import Topbar, { XpPill, IconButton, NotificationBell, AvatarButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import YoutubePlayer, { type YoutubePlayerHandle } from '../components/YoutubePlayer';
 import { useAppStore, useActiveChild, getActiveChild, EMPTY_RECORD } from '../store/useAppStore';
@@ -253,7 +253,9 @@ export default function AnimationsPage() {
         actions={
           <>
             <XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill>
-            <IconButton>🔔</IconButton>
+            <NotificationBell />
+            <IconButton onClick={() => navigate('/tənzimləmələr')}><SettingsIcon size={17} /></IconButton>
+            <AvatarButton />
           </>
         }
       />

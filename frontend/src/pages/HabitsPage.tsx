@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Bell, Settings as SettingsIcon, Plus, Sparkles, Clock, X } from 'lucide-react';
+import { Check, Settings as SettingsIcon, Plus, Sparkles, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
-import Topbar, { AvatarButton, XpPill, IconButton } from '../components/Topbar';
+import Topbar, { AvatarButton, XpPill, IconButton, NotificationBell } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
 import IconTile from '../components/ui/IconTile';
 import Button from '../components/ui/Button';
 import XpBurst, { type XpBurstItem } from '../components/ui/XpBurst';
 import { Icon } from '../lib/icons';
+import { KidWithClipboard } from '../components/illustrations/Illustrations';
 import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
 import { useActivityStore } from '../store/useActivityStore';
 import { celebrate } from '../lib/confetti';
@@ -299,7 +300,7 @@ export default function HabitsPage() {
         actions={
           <>
             <XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill>
-            <IconButton onClick={() => navigate('/bildirişlər')}><Bell size={17} /></IconButton>
+            <NotificationBell />
             <IconButton onClick={() => navigate('/tənzimləmələr')}><SettingsIcon size={17} /></IconButton>
             <AvatarButton initials={child?.name?.slice(0, 2).toUpperCase() ?? 'KB'} />
           </>
@@ -307,7 +308,18 @@ export default function HabitsPage() {
       />
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
-        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6">
+          <Card variant="soft" padding="lg" className="flex items-center justify-between gap-6 overflow-hidden">
+            <div>
+              <h2 className="font-display text-h3 font-semibold text-text-900">Gündəlik Vərdişlər</h2>
+              <p className="mt-1 text-body-sm text-text-500">
+                {child?.name ?? 'Uşaq'} üçün bugünkü tapşırıq matrisini tamamla!
+              </p>
+            </div>
+            <KidWithClipboard className="hidden h-24 w-auto shrink-0 sm:block" />
+          </Card>
+
+          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="flex flex-col gap-6">
             <Card className="bg-primary text-white" padding="lg">
               <div className="flex items-center justify-between">
@@ -322,6 +334,13 @@ export default function HabitsPage() {
                 />
               </div>
             </Card>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatTile icon="star" tint="purple-100" value={xp.toLocaleString('az-AZ')} label="Ümumi xal" />
+              <StatTile icon="target" tint="blue-100" value={todayTotal} label="Aktiv vərdiş" />
+              <StatTile icon="check" tint="green-100" value={todayDone} label="Tamamlanan" />
+              <StatTile icon="flame" tint="amber-100" value={`${weeklyStreakDisplay.badgeDays} gün`} label="Ardıcıl seriya" />
+            </div>
 
             {useBackend && authedAsParent && parent?.familyId && child?.childId && (
               <NewHabitCard
@@ -457,9 +476,26 @@ export default function HabitsPage() {
               </div>
             </Card>
           </div>
+          </div>
         </div>
       </main>
     </AppShell>
+  );
+}
+
+/** A small colorful stat tile — the "Ümumi xal / Aktiv vərdiş / Tamamlanan /
+ * Ardıcıl seriya" row the PDF's primary Habits mockup shows under "Bugünkü
+ * Tərəqqi", built entirely from values this page already computes (no new
+ * data fetch). */
+function StatTile({ icon, tint, value, label }: { icon: string; tint: string; value: string | number; label: string }) {
+  return (
+    <Card padding="sm" className="flex flex-col gap-2">
+      <IconTile icon={<Icon name={icon} size={16} />} tint={tint} size="sm" />
+      <div>
+        <p className="font-display text-h4 font-semibold text-text-900">{value}</p>
+        <p className="text-caption text-text-500">{label}</p>
+      </div>
+    </Card>
   );
 }
 

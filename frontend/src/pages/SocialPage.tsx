@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { Heart, MessageCircle, ChevronDown, Send, Plus, Check } from 'lucide-react';
+import { Heart, MessageCircle, ChevronDown, Send, Plus, Check, Settings as SettingsIcon } from 'lucide-react';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
-import Topbar, { AvatarButton } from '../components/Topbar';
+import Topbar, { AvatarButton, XpPill, NotificationBell, IconButton } from '../components/Topbar';
 import Badge from '../components/ui/Badge';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { TwoKidsChat } from '../components/illustrations/Illustrations';
 import { useAppStore, useActiveChild, EMPTY_RECORD } from '../store/useAppStore';
 import {
   fetchPosts,
@@ -38,8 +40,10 @@ const MEDIA_EMOJI_OPTIONS = ['📖', '🧩', '🏃', '🎨', '⚽', '🎵', '�
 
 export default function SocialPage() {
   const openMenu = useOpenMobileMenu();
+  const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
   const child = useActiveChild();
+  const xp = child?.xp ?? 0;
   const likedPosts = child?.likedPosts ?? EMPTY_RECORD;
   const toggleLike = useAppStore((s) => s.toggleLike);
   const useBackend = !!(parent?.familyId && child?.childId);
@@ -166,11 +170,29 @@ export default function SocialPage() {
         title={data.topbar.title}
         subtitle={data.topbar.subtitle}
         onMenuClick={openMenu}
-        actions={<AvatarButton />}
+        actions={
+          <>
+            <XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill>
+            <NotificationBell />
+            <IconButton onClick={() => navigate('/tənzimləmələr')}><SettingsIcon size={17} /></IconButton>
+            <AvatarButton />
+          </>
+        }
       />
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
-        <div className={`mx-auto grid max-w-6xl gap-6 ${authedAsParent ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
+        <div className="mx-auto max-w-6xl">
+          <Card variant="soft" padding="lg" className="mb-6 flex items-center justify-between gap-6 overflow-hidden">
+            <div>
+              <h2 className="font-display text-h3 font-semibold text-text-900">Ailə Sosial Məkanı</h2>
+              <p className="mt-1 text-body-sm text-text-500">
+                Uşaqlarınız burada təhlükəsiz şəkildə paylaşım edə, yaradıcılıqlarını göstərə bilərlər.
+              </p>
+            </div>
+            <TwoKidsChat className="hidden h-24 w-auto shrink-0 sm:block" />
+          </Card>
+
+          <div className={`grid gap-6 ${authedAsParent ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
           <div className="flex min-w-0 flex-col gap-6">
             {/* Posting is the child's own action — a parent who has unlocked
                 the dashboard this session shouldn't be able to compose a post
@@ -361,6 +383,7 @@ export default function SocialPage() {
               </Card>
             </div>
           )}
+          </div>
         </div>
       </main>
     </AppShell>

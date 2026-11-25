@@ -40,6 +40,7 @@ import {
   Target,
   Bell,
   HelpCircle,
+  Flame,
 } from 'lucide-react';
 
 /** Central registry mapping a semantic slug (stored in the mock-data JSON) to a
@@ -79,6 +80,7 @@ export const ICONS: Record<string, LucideIcon> = {
   timer: Timer,
   check: Check,
   star: Star,
+  flame: Flame,
 
   // rewards / wallet
   books: BookOpen,

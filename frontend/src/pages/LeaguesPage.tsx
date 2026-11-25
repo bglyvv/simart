@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Check, Clock, Info } from 'lucide-react';
+import { Lock, Check, Clock, Info, Settings as SettingsIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
-import Topbar, { AvatarButton, XpPill } from '../components/Topbar';
+import Topbar, { AvatarButton, XpPill, NotificationBell, IconButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
 import Button from '../components/ui/Button';
@@ -12,6 +13,14 @@ import VoucherQrModal from '../components/ui/VoucherQrModal';
 import IconTile from '../components/ui/IconTile';
 import Tooltip from '../components/ui/Tooltip';
 import { Icon } from '../lib/icons';
+import { TrophyCup, IceCreamArt, BooksArt, ControllerArt, ParkArt } from '../components/illustrations/Illustrations';
+
+const REWARD_ILLUSTRATIONS: Record<string, (props: { className?: string }) => React.JSX.Element> = {
+  'ice-cream': IceCreamArt,
+  books: BooksArt,
+  gift: ControllerArt,
+  ticket: ParkArt,
+};
 import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
 import { useActivityStore } from '../store/useActivityStore';
 import { bigCelebrate } from '../lib/confetti';
@@ -52,6 +61,7 @@ function azerbaijaniRedeemError(err: unknown): string {
 
 export default function LeaguesPage() {
   const openMenu = useOpenMobileMenu();
+  const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
   const child = useActiveChild();
   const xp = child?.xp ?? 0;
@@ -158,13 +168,21 @@ export default function LeaguesPage() {
         title={data.topbar.title}
         subtitle={data.topbar.subtitle}
         onMenuClick={openMenu}
-        actions={<><XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill><AvatarButton /></>}
+        actions={
+          <>
+            <XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill>
+            <NotificationBell />
+            <IconButton onClick={() => navigate('/tənzimləmələr')}><SettingsIcon size={17} /></IconButton>
+            <AvatarButton />
+          </>
+        }
       />
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <Card className="bg-primary text-white" padding="lg">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+          <Card className="relative overflow-hidden bg-primary text-white" padding="lg">
+            <TrophyCup className="pointer-events-none absolute -right-4 -top-4 hidden h-40 w-auto opacity-90 sm:block" />
+            <div className="relative flex flex-wrap items-center justify-between gap-3 sm:pr-32">
               <div>
                 <h2 className="flex items-center gap-2 font-display text-h3 font-semibold">
                   Cari Status:
@@ -178,7 +196,7 @@ export default function LeaguesPage() {
               </span>
             </div>
 
-            <div className="mt-6 flex flex-wrap justify-between gap-4">
+            <div className="relative mt-6 flex flex-wrap justify-between gap-4 sm:pr-32">
               {LEAGUE_TIERS.map((t, i) => {
                 const tierColor = ['text-text-500', 'text-text-400', 'text-sand-text', 'text-primary'][i] ?? 'text-text-500';
                 return (
@@ -191,7 +209,7 @@ export default function LeaguesPage() {
                 );
               })}
             </div>
-            <div className="mt-5">
+            <div className="relative mt-5">
               <ProgressBar percent={progressPercent} tone="white-on-dark" trackClassName="bg-white/20" />
             </div>
           </Card>
@@ -243,10 +261,17 @@ export default function LeaguesPage() {
                     : <><Lock size={14} /> Valideyn Təsdiqi ilə</>}
                 </Button>
               );
+              const RewardIllustration = REWARD_ILLUSTRATIONS[reward.icon];
               return (
                 <motion.div key={reward.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                   <Card interactive padding="lg" className="flex h-full flex-col">
-                    <IconTile icon={<Icon name={reward.icon} size={24} />} tint={reward.iconBg} size="lg" rounded="md" />
+                    {RewardIllustration ? (
+                      <div className="-mx-6 -mt-6 flex h-28 items-center justify-center overflow-hidden rounded-t-md bg-surface-alt sm:-mx-8 sm:-mt-8">
+                        <RewardIllustration className="h-20 w-auto" />
+                      </div>
+                    ) : (
+                      <IconTile icon={<Icon name={reward.icon} size={24} />} tint={reward.iconBg} size="lg" rounded="md" />
+                    )}
                     <h3 className="mt-3 font-display font-semibold text-text-900">{reward.title}</h3>
                     <p className="mt-1 flex-1 text-body-sm text-text-500">{reward.description}</p>
                     <p className="mt-3 text-body-sm font-bold text-sand-text">⭐ {reward.costXp} XP</p>

@@ -21,7 +21,7 @@ const PRIMARY_ITEMS = [
 // clipped by the viewport rather than fully visible.
 const itemClass = (isActive: boolean) =>
   `flex flex-1 flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary ${
-    isActive ? 'text-text-900' : 'text-text-400'
+    isActive ? 'text-primary' : 'text-text-400'
   }`;
 
 /** Mobile-only fixed bottom tab bar — the phone-native counterpart to the
@@ -39,7 +39,7 @@ export default function BottomNav() {
         <NavLink key={item.key} to={item.path} className={({ isActive }) => itemClass(isActive)}>
           {({ isActive }) => (
             <>
-              <Icon name={item.icon} size={21} className={isActive ? 'text-text-900' : 'text-text-400'} />
+              <Icon name={item.icon} size={21} className={isActive ? 'text-primary' : 'text-text-400'} />
               <span>{item.label}</span>
             </>
           )}

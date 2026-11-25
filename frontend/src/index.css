@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   SİMART — DESIGN TOKENS (v3 — premium minimal redesign, in progress)
+   SİMART — DESIGN TOKENS (v4 — "SaaS + gamification" redesign, 25 Nov 2026)
 
-   One voice everywhere: minimal, neutral-first, Apple/Linear/Things-3
-   inspired. Sage and sand are supporting accents, not dominant backgrounds.
-   See new_design/DESIGN_SYSTEM.md for the source spec.
+   Vivid purple/gold/navy on a pale lavender canvas — see
+   SIMART_UI_UX_Implementation_Guide.pdf page 2 ("GLOBAL REQUIREMENTS /
+   Shared design system") for the source spec. This deliberately moves back
+   from the previous "premium minimal" neutral/sage/sand palette (kept below
+   as LEGACY, same role it already had) toward a more playful, gamified
+   look — the app's own "Rəngarəng" child theme (see the data-theme='colorful'
+   block further down) got here first, as an optional per-child palette; this
+   pass makes a close variant of it the app-wide default.
 
-   MIGRATION NOTE: the redesign is being rolled out page-by-page (see the
-   approved implementation plan at the time of this comment). The brand
-   color ramps and gradient/colored-shadow tokens in the "LEGACY" block below
-   are the OLD system, kept only so pages not yet migrated keep rendering
-   correctly — nothing new should reference them. The neutral/typography/
-   radius/spacing tokens, by contrast, have already been updated to their
-   final new-system values below, since every page already consumes those
-   same token *names* (bg-bg, text-text-900, font-display, rounded-md, …) —
-   updating their values here is itself how those pages get the new look,
-   with no per-page edits required. Delete the LEGACY block once every page
-   has migrated off it (tracked as the final QA phase cleanup step).
+   Token *names* are unchanged from the prior redesign (bg-bg, text-text-900,
+   font-display, rounded-md, …) — every page/component already consumes
+   these same names, so updating their values here is itself how the whole
+   app gets the new look, with no per-component edits required beyond the
+   couple of hardcoded "neutral highlight" spots called out at their own
+   definitions (Sidebar's active nav item, BottomNav's active tab).
    ========================================================================== */
 @theme {
   /* ==================== LEGACY (pre-redesign, deprecated) ==================== */
@@ -83,36 +83,44 @@
 
   /* ==================== NEW SYSTEM (neutral/sage/sand premium) ==================== */
 
-  /* ---- Foundation neutrals ---- */
-  --color-primary: #4a3353;
-  --color-bg: #f5f5f7;
+  /* ---- Foundation: vivid purple/navy on a pale lavender canvas ---- */
+  --color-primary: #6d35ed;
+  --color-bg: #f5f7fc;
   --color-surface: #ffffff;
-  --color-surface-alt: #fafafa;
-  --color-border: #eaeaea;
-  --color-border-soft: #f0f0f0;
-  --color-text-900: #171717;
-  --color-text-700: #3d3d3d;
-  /* #707070, not the slightly lighter #777777 this was before — the lighter
-     value measured ~4.48:1 against white, just under WCAG AA's 4.5:1 for
-     normal text, and this token is used for real caption/label copy
-     throughout the app, not purely decorative text (Phase 9 contrast pass). */
-  --color-text-500: #707070;
-  --color-text-400: #a3a3a3;
+  /* Doubles as the "Selected" tint (nav-active, hover rows, selected pills) —
+     see the PDF's own naming for this exact swatch. */
+  --color-surface-alt: #ede7ff;
+  --color-border: #e1dbf7;
+  --color-border-soft: #ece8fa;
+  --color-text-900: #192544;
+  --color-text-700: #38415f;
+  /* Re-checked against both white and the new --color-bg for the redesign:
+     5.9:1, comfortably over WCAG AA's 4.5:1 for normal text (this token is
+     used for real caption/label copy throughout the app, not purely
+     decorative text). */
+  --color-text-500: #5b6482;
+  --color-text-400: #9199b8;
   /* Still used by the (not-yet-restyled) dark admin/partner login screens. */
   --color-text-on-dark: #f5f5f5;
   --color-text-on-dark-muted: #b3b3b3;
 
-  /* ---- Accents: supporting, not dominant ---- */
-  --color-sage: #a7b8a0;
-  --color-sage-tint: #eef2ec;
-  --color-sage-text: #51604b;
-  --color-sand: #d8c9b5;
-  --color-sand-tint: #faf3ea;
-  --color-sand-text: #8a6f4e;
-  --color-success: #668060;
-  --color-success-tint: #eaf0e8;
-  --color-error: #c45b5b;
-  --color-error-tint: #fbebeb;
+  /* ---- Accents ---- */
+  --color-sage: #1d9a8c;
+  --color-sage-tint: #e1f5f2;
+  --color-sage-text: #146f65;
+  /* The app's "XP"/streak/reward-cost accent — every ⭐/🔥 pill resolves
+     against this pair, matching the PDF's "XP" gold swatch. */
+  --color-sand: #f5a742;
+  --color-sand-tint: #fdf0dc;
+  --color-sand-text: #92600a;
+  /* #0a7f55, not the PDF's literal #20b981 — that exact value only clears
+     ~2.5:1 against white/success-tint when used as text (it's used as both
+     fill and text via this one token), so it's darkened just enough to pass
+     WCAG AA for text while still reading as a clear, vivid green. */
+  --color-success: #0a7f55;
+  --color-success-tint: #e3f7ee;
+  --color-error: #c8423f;
+  --color-error-tint: #fbeaea;
 
   /* ---- Typography: Inter everywhere, one voice ---- */
   --font-display: 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', sans-serif;
@@ -173,10 +181,26 @@
   border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
-/* New system: the sidebar/nav "active item" treatment — subtle neutral
-   background, not a gradient (DESIGN_SYSTEM.md §5 Navigation). */
+/* New system: the sidebar/nav "active item" treatment — a solid primary
+   pill (see Sidebar.tsx's navItemActive), matching the PDF's mockups. */
 @utility bg-nav-active {
-  background-color: var(--color-surface-alt);
+  background-color: var(--color-primary);
+}
+
+/* Icon-tile hues with no existing token pairing (see colors.ts) — every
+   other hue bucket there reuses an existing accent (surface-alt/primary,
+   success, sand, sage, error) directly. */
+@utility bg-tile-blue {
+  background-color: #e3eeff;
+}
+@utility text-tile-blue {
+  color: #2e5fd9;
+}
+@utility bg-tile-coral {
+  background-color: #fde8ec;
+}
+@utility text-tile-coral {
+  color: #c23a5e;
 }
 
 @utility scrollbar-thin {

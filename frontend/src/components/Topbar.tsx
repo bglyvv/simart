@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { Menu } from 'lucide-react';
+import { Menu, Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useActivityStore } from '../store/useActivityStore';
 
 export default function Topbar({
   title,
@@ -49,6 +51,24 @@ export function IconButton({ children, onClick }: { children: ReactNode; onClick
       className="flex size-11 items-center justify-center rounded-full border border-border bg-bg text-base transition-colors hover:bg-border-soft"
     >
       {children}
+    </button>
+  );
+}
+
+/** The shared bell button every reference mockup's topbar carries, with a
+ * real unread indicator (not decorative) — see useActivityStore's own
+ * lastSeenAt/entries, the same data NotificationsPage itself reads. */
+export function NotificationBell() {
+  const navigate = useNavigate();
+  const hasUnread = useActivityStore((s) => s.entries.some((e) => e.timestamp > s.lastSeenAt));
+  return (
+    <button
+      onClick={() => navigate('/bildirişlər')}
+      aria-label="Bildirişlər"
+      className="relative flex size-11 items-center justify-center rounded-full border border-border bg-bg text-base transition-colors hover:bg-border-soft"
+    >
+      <Bell size={17} />
+      {hasUnread && <span className="absolute right-2.5 top-2.5 size-2.5 rounded-full border-2 border-surface bg-error" aria-label="Oxunmamış bildiriş var" />}
     </button>
   );
 }

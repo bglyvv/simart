@@ -6,18 +6,18 @@ import navData from '../data/sidebarNav.json';
 import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { Icon } from '../lib/icons';
 
-// Premium redesign: a plain neutral nav item, "active" reads via a subtle
-// background rather than a brand gradient — DESIGN_SYSTEM.md §5 Navigation
-// ("active item uses subtle neutral background, simple Lucide icons"). The
-// previous per-item rainbow icon-chip system (one hue per nav item) is
-// retired along with the rest of the colorful "kid mode" voice.
+// "SaaS + gamification" redesign: the active nav item is a solid primary
+// pill with a white icon/label, matching every desktop mockup in the PDF —
+// reversing the prior "premium minimal" pass's neutral-highlight treatment.
 const navItemBase =
   'flex items-center gap-3 rounded-sm px-3 py-2.5 text-body font-medium text-text-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
-const navItemActive = 'bg-nav-active text-text-900 font-semibold';
+const navItemActive = 'bg-nav-active text-white font-semibold';
 
-function NavIcon({ icon }: { icon: string }) {
+function NavIcon({ icon, isActive = false }: { icon: string; isActive?: boolean }) {
   return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-surface-alt text-text-700">
+    <span
+      className={`flex size-8 shrink-0 items-center justify-center rounded-sm ${isActive ? 'bg-transparent text-white' : 'bg-surface-alt text-text-700'}`}
+    >
       <Icon name={icon} size={17} />
     </span>
   );
@@ -45,8 +45,12 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           onClick={onNavigate}
           className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
         >
-          <NavIcon icon={item.icon} />
-          <span>{item.label}</span>
+          {({ isActive }) => (
+            <>
+              <NavIcon icon={item.icon} isActive={isActive} />
+              <span>{item.label}</span>
+            </>
+          )}
         </NavLink>
       ))}
     </nav>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Gift, XCircle, Wallet } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CheckCircle2, Gift, XCircle, Wallet, Settings as SettingsIcon, Bell } from 'lucide-react';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
-import Topbar, { AvatarButton } from '../components/Topbar';
+import Topbar, { AvatarButton, IconButton, XpPill } from '../components/Topbar';
 import Card from '../components/ui/Card';
+import { useActiveChild } from '../store/useAppStore';
 import { useActivityStore, type ActivityType, type ActivityEntry } from '../store/useActivityStore';
 import { formatAzDate, formatAzTime } from '../lib/date';
 
@@ -21,6 +23,9 @@ const TYPE_META: Record<ActivityType, { icon: typeof CheckCircle2; bg: string; t
  *  is no backend notifications table, see root CLAUDE.md's Phase 7 note. */
 export default function NotificationsPage() {
   const openMenu = useOpenMobileMenu();
+  const navigate = useNavigate();
+  const child = useActiveChild();
+  const xp = child?.xp ?? 0;
   const entries = useActivityStore((s) => s.entries);
   const lastSeenAt = useActivityStore((s) => s.lastSeenAt);
   const markAllSeen = useActivityStore((s) => s.markAllSeen);
@@ -36,10 +41,34 @@ export default function NotificationsPage() {
 
   return (
     <AppShell>
-      <Topbar title="Bildirişlər" subtitle="Bu cihazdakı son fəaliyyət" onMenuClick={openMenu} actions={<AvatarButton />} />
+      <Topbar
+        title="Bildirişlər"
+        subtitle="Bu cihazdakı son fəaliyyət"
+        onMenuClick={openMenu}
+        actions={
+          <>
+            <XpPill>⭐ {xp.toLocaleString('az-AZ')} XP</XpPill>
+            <IconButton onClick={() => navigate('/bildirişlər')}><Bell size={17} /></IconButton>
+            <IconButton onClick={() => navigate('/tənzimləmələr')}><SettingsIcon size={17} /></IconButton>
+            <AvatarButton />
+          </>
+        }
+      />
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-2xl">
+          <Card variant="soft" padding="lg" className="mb-6 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-display text-h3 font-semibold text-text-900">Bildirişləriniz</h2>
+              <p className="mt-1 text-body-sm text-text-500">
+                Vərdişlər, mükafatlar və digər vacib yeniliklər barədə məlumat alın.
+              </p>
+            </div>
+            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-sand-tint text-sand-text">
+              <Bell size={26} />
+            </span>
+          </Card>
+
           {entries.length === 0 ? (
             <Card padding="lg">
               <p className="text-body-sm text-text-500">Hələ heç bir fəaliyyət yoxdur.</p>
