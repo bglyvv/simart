@@ -189,6 +189,96 @@
   --topbar-h: 76px;
 }
 
+/* ==========================================================================
+   CHILD THEME PALETTES — see src/lib/themes.ts for the picker's own list.
+   Each block overrides only the tokens that actually carry a theme's
+   identity (primary, the sage/sand accent pair, and the neutrals they sit
+   on) — success/error stay untouched everywhere (see themes.ts's doc
+   comment). Applied via document.documentElement.dataset.theme
+   (ThemeFab.tsx) — every bg-primary/bg-sage-tint/etc. utility already
+   resolves against these same var() names, so no per-component work is
+   needed to "transform" the app.
+   ========================================================================== */
+:root[data-theme='ocean'] {
+  --color-primary: #2c5f8a;
+  --color-bg: #f3f7fb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eef5fb;
+  --color-border: #dce8f3;
+  --color-border-soft: #e8f0f8;
+  --color-text-900: #16222e;
+  --color-sage: #7fa8c9;
+  --color-sage-tint: #e8f1f8;
+  --color-sage-text: #2c5f7a;
+  --color-sand: #f0c987;
+  --color-sand-tint: #fdf6e8;
+  --color-sand-text: #8a6a2c;
+}
+
+:root[data-theme='forest'] {
+  --color-primary: #2f6e4f;
+  --color-bg: #f3f8f4;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eef6f0;
+  --color-border: #dcebe1;
+  --color-border-soft: #e8f3ec;
+  --color-text-900: #16291f;
+  --color-sage: #7fb894;
+  --color-sage-tint: #e7f5ec;
+  --color-sage-text: #2f6e4f;
+  --color-sand: #d9b97a;
+  --color-sand-tint: #faf2e3;
+  --color-sand-text: #8a6a2c;
+}
+
+:root[data-theme='sunset'] {
+  --color-primary: #b5542e;
+  --color-bg: #fbf4f1;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8ece6;
+  --color-border: #f0d9cd;
+  --color-border-soft: #f5e5db;
+  --color-text-900: #2e1c14;
+  --color-sage: #e0956b;
+  --color-sage-tint: #fbeee3;
+  --color-sage-text: #a85b2e;
+  --color-sand: #f3c178;
+  --color-sand-tint: #fdf4e3;
+  --color-sand-text: #8a5a1f;
+}
+
+:root[data-theme='candy'] {
+  --color-primary: #a3447a;
+  --color-bg: #fbf2f8;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8e9f3;
+  --color-border: #f0d3e4;
+  --color-border-soft: #f5e1ec;
+  --color-text-900: #2e1724;
+  --color-sage: #c57fbd;
+  --color-sage-tint: #f6e9f3;
+  --color-sage-text: #8a3d78;
+  --color-sand: #f0a8c4;
+  --color-sand-tint: #fcebf1;
+  --color-sand-text: #99355c;
+}
+
+:root[data-theme='lavender'] {
+  --color-primary: #5d4e9c;
+  --color-bg: #f5f3fb;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f0edf8;
+  --color-border: #e1dcf2;
+  --color-border-soft: #e9e5f5;
+  --color-text-900: #201c33;
+  --color-sage: #a79be0;
+  --color-sage-tint: #efecfa;
+  --color-sage-text: #5d4e9c;
+  --color-sand: #e0b8e8;
+  --color-sand-tint: #faf0fb;
+  --color-sand-text: #8a4e93;
+}
+
 html,
 body,
 #root {

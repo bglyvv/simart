@@ -8,6 +8,7 @@ import playlistsData from '../data/playlists.json';
 import { formatAzDate } from '../lib/date';
 import { formatTime } from '../lib/formatTime';
 import type { Playlist } from '../lib/contentService';
+import { DEFAULT_THEME } from '../lib/themes';
 import {
   verifyPin as verifyPinApi,
   changePin as changePinApi,
@@ -114,6 +115,17 @@ export interface ChildProfile extends ChildProfileInput {
 
   balance: number;
   transactions: WalletTx[];
+
+  /** This child's own chosen color theme (see index.css's `[data-theme]`
+   * blocks) — a purely cosmetic, local-only preference (no backend concept),
+   * unique per child the same way habitDone/watchedPct/etc. already are.
+   * Optional so an already-persisted child predating this feature reads as
+   * undefined rather than crashing — callers fall back to DEFAULT_THEME. */
+  theme?: string;
+  /** Whether this child has hidden the floating theme button (still
+   * reachable as a small tab in that state — see ThemeFab.tsx — never a
+   * true dead end). Optional for the same reason as `theme` above. */
+  themeButtonHidden?: boolean;
 }
 
 const initialHabitDone: Record<string, boolean> = {};
@@ -180,6 +192,8 @@ function createChildProfile(input: ChildProfileInput): ChildProfile {
     focusMinutes: 15,
     balance: 15.5,
     transactions: [...initialTx],
+    theme: DEFAULT_THEME,
+    themeButtonHidden: false,
   };
 }
 
@@ -280,6 +294,10 @@ export interface AppState {
   syncFocusLockUntil: (until: number | null) => void;
   clearFocusLock: () => void;
   donate: (label: string, xpCost: number, aznAmount: number) => boolean;
+  /** Sets the active child's own chosen color theme — see src/lib/themes.ts.
+   * Local-only, no backend call. */
+  setChildTheme: (themeId: string) => void;
+  setThemeButtonHidden: (hidden: boolean) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -426,6 +444,9 @@ export const useAppStore = create<AppState>()(
 
       toggleLike: (postId) =>
         set((s) => withActiveChild(s, (c) => ({ likedPosts: { ...c.likedPosts, [postId]: !c.likedPosts[postId] } }))),
+
+      setChildTheme: (themeId) => set((s) => withActiveChild(s, () => ({ theme: themeId }))),
+      setThemeButtonHidden: (hidden) => set((s) => withActiveChild(s, () => ({ themeButtonHidden: hidden }))),
 
       redeemReward: (id, costXp) => {
         const s = get();

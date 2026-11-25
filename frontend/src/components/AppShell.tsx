@@ -1,9 +1,28 @@
 import { useEffect, type ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
+import ThemeFab from './ThemeFab';
 import { useUiStore } from '../store/useUiStore';
 import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { fetchChildXp } from '../lib/habitsService';
+import { DEFAULT_THEME } from '../lib/themes';
+
+/** Applies the active child's own chosen color theme (see src/lib/themes.ts
+ * and index.css's [data-theme] blocks) to the whole document — every page
+ * routes through AppShell, so this is the one place that needs to know
+ * about theming at all. Forced back to DEFAULT_THEME while authedAsParent
+ * is true, regardless of what the child has chosen — a parent always sees
+ * the app's normal look (see ThemeFab's own doc comment for why this is a
+ * child-only preference). */
+function useApplyChildTheme() {
+  const authedAsParent = useAppStore((s) => s.authedAsParent);
+  const child = useActiveChild();
+  const theme = authedAsParent ? DEFAULT_THEME : (child?.theme ?? DEFAULT_THEME);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
+}
 
 /** Pages call this to wire Topbar's hamburger button to the mobile drawer.
  *  Backed by a plain external store (not React context) so it works no matter
@@ -47,12 +66,14 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const mobileOpen = useUiStore((s) => s.mobileMenuOpen);
   const closeMobileMenu = useUiStore((s) => s.closeMobileMenu);
   useSyncXp();
+  useApplyChildTheme();
 
   return (
     <div className="flex min-h-screen w-full bg-bg md:h-screen md:overflow-hidden">
       <Sidebar mobileOpen={mobileOpen} onMobileClose={closeMobileMenu} />
       <div className="flex min-w-0 flex-1 flex-col bg-bg pb-16 md:h-screen md:overflow-y-auto md:pb-0">{children}</div>
       <BottomNav />
+      <ThemeFab />
     </div>
   );
 }
