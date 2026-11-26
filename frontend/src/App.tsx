@@ -1,4 +1,4 @@
-import { HashRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sonner';
 import { RequireFamily, RequireParentAuth, RequireAdminAuth, RequirePartnerAuth, RequireNotFocusLocked, RootRedirect } from './routes/Guards';
@@ -27,6 +27,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminHabitsPage from './pages/AdminHabitsPage';
 import AdminAccountsPage from './pages/AdminAccountsPage';
 import AdminRewardProposalsPage from './pages/AdminRewardProposalsPage';
+import AdminBooksPage from './pages/AdminBooksPage';
 import PartnerLoginPage from './pages/PartnerLoginPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 
@@ -39,7 +40,7 @@ export default function App() {
     // transforms/layout animations collapse to instant while opacity fades
     // still play.
     <MotionConfig reducedMotion="user">
-      <HashRouter>
+      <BrowserRouter>
         <Toaster position="top-center" richColors closeButton theme="light" />
         <Routes>
           <Route path="/" element={<RootRedirect />} />
@@ -75,18 +76,19 @@ export default function App() {
           <Route path="/analitika" element={<RequireParentAuth><ParentDashboardPage /></RequireParentAuth>} />
           <Route path="/tənzimləmələr" element={<RequireFamily><SettingsPage /></RequireFamily>} />
 
-          <Route path="/idareetme-giris" element={<AdminLoginPage />} />
-          <Route path="/idareetme" element={<RequireAdminAuth><AdminDashboardPage /></RequireAdminAuth>} />
-          <Route path="/idareetme-vərdişlər" element={<RequireAdminAuth><AdminHabitsPage /></RequireAdminAuth>} />
-          <Route path="/idareetme-hesablar" element={<RequireAdminAuth><AdminAccountsPage /></RequireAdminAuth>} />
-          <Route path="/idareetme-tekliflər" element={<RequireAdminAuth><AdminRewardProposalsPage /></RequireAdminAuth>} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<RequireAdminAuth><AdminDashboardPage /></RequireAdminAuth>} />
+          <Route path="/admin/habits" element={<RequireAdminAuth><AdminHabitsPage /></RequireAdminAuth>} />
+          <Route path="/admin/accounts" element={<RequireAdminAuth><AdminAccountsPage /></RequireAdminAuth>} />
+          <Route path="/admin/proposals" element={<RequireAdminAuth><AdminRewardProposalsPage /></RequireAdminAuth>} />
+          <Route path="/admin/books" element={<RequireAdminAuth><AdminBooksPage /></RequireAdminAuth>} />
 
-          <Route path="/tərəfdaş-giris" element={<PartnerLoginPage />} />
-          <Route path="/tərəfdaş" element={<RequirePartnerAuth><PartnerDashboardPage /></RequirePartnerAuth>} />
+          <Route path="/partners/login" element={<PartnerLoginPage />} />
+          <Route path="/partners" element={<RequirePartnerAuth><PartnerDashboardPage /></RequirePartnerAuth>} />
 
           <Route path="*" element={<RootRedirect />} />
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </MotionConfig>
   );
 }

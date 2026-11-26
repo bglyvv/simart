@@ -4,6 +4,8 @@ import { CheckCircle2, Gift, XCircle, Wallet, Settings as SettingsIcon, Bell } f
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton, IconButton, XpPill } from '../components/Topbar';
 import Card from '../components/ui/Card';
+import ThemeArt from '../components/illustrations/ThemeArt';
+import { useIsIllustratedTheme } from '../lib/useActiveTheme';
 import { useActiveChild } from '../store/useAppStore';
 import { useActivityStore, type ActivityType, type ActivityEntry } from '../store/useActivityStore';
 import { formatAzDate, formatAzTime } from '../lib/date';
@@ -22,6 +24,7 @@ const TYPE_META: Record<ActivityType, { icon: typeof CheckCircle2; bg: string; t
  *  a this-device log, not a synced cross-device notification system — there
  *  is no backend notifications table, see root CLAUDE.md's Phase 7 note. */
 export default function NotificationsPage() {
+  const illustrated = useIsIllustratedTheme();
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const child = useActiveChild();
@@ -57,16 +60,20 @@ export default function NotificationsPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-2xl">
-          <Card variant="soft" padding="lg" className="mb-6 flex items-center justify-between gap-4">
-            <div>
-              <h2 className="font-display text-h3 font-semibold text-text-900">Bildirişləriniz</h2>
-              <p className="mt-1 text-body-sm text-text-500">
+          <Card variant="soft" padding="lg" className="th-hero mb-6 flex items-center justify-between gap-4 overflow-hidden">
+            <div className="relative">
+              <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Bildirişləriniz</h2>
+              <p className="th-hero-text mt-1 text-body-sm text-text-500">
                 Vərdişlər, mükafatlar və digər vacib yeniliklər barədə məlumat alın.
               </p>
             </div>
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-sand-tint text-sand-text">
-              <Bell size={26} />
-            </span>
+            {illustrated ? (
+              <ThemeArt name="bell" className="h-20 w-auto shrink-0 sm:h-24" />
+            ) : (
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-sand-tint text-sand-text">
+                <Bell size={26} />
+              </span>
+            )}
           </Card>
 
           {entries.length === 0 ? (

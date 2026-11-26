@@ -7,11 +7,14 @@ export default function Modal({
   onClose,
   title,
   children,
+  size = 'md',
 }: {
   open: boolean;
   onClose: () => void;
   title?: string;
   children: ReactNode;
+  /** "lg" is wider and scrolls inside the viewport — for long forms. */
+  size?: 'md' | 'lg';
 }) {
   return (
     <AnimatePresence>
@@ -24,7 +27,9 @@ export default function Modal({
           onClick={onClose}
         >
           <motion.div
-            className="relative w-full max-w-md rounded-2xl bg-surface p-6 shadow-float sm:p-8"
+            className={`relative w-full rounded-2xl bg-surface p-6 shadow-float sm:p-8 ${
+              size === 'lg' ? 'scrollbar-thin max-h-[90vh] max-w-3xl overflow-y-auto' : 'max-w-md'
+            }`}
             initial={{ opacity: 0, scale: 0.92, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 12 }}

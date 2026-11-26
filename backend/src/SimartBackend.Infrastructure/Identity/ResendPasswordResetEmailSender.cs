@@ -30,7 +30,7 @@ public sealed class ResendPasswordResetEmailSender(IHttpClientFactory httpClient
                 "email with no domain verification, for local testing.");
         var frontendBaseUrl = (configuration["Frontend:BaseUrl"] ?? "http://localhost:5173").TrimEnd('/');
 
-        var resetLink = $"{frontendBaseUrl}/#/sifre-sifirla?token={Uri.EscapeDataString(rawToken)}";
+        var resetLink = $"{frontendBaseUrl}/sifre-sifirla?token={Uri.EscapeDataString(rawToken)}";
         var html = $"""
             <p>Salam {fullName},</p>
             <p>SİMART hesabınız üçün şifrə sıfırlama tələbi aldıq. Aşağıdakı linkə klikləyərək yeni

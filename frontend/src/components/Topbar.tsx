@@ -15,7 +15,7 @@ export default function Topbar({
   onMenuClick?: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-20 flex min-h-[76px] shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur sm:px-8">
+    <header className="th-topbar sticky top-0 z-20 flex min-h-[76px] shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border bg-surface/90 px-4 py-3 backdrop-blur sm:px-8">
       <div className="flex min-w-0 items-center gap-3">
         {onMenuClick && (
           <button
@@ -27,7 +27,7 @@ export default function Topbar({
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="truncate font-display text-h3 font-semibold text-text-900">{title}</h1>
+          <h1 className="th-topbar-title truncate font-display text-h3 font-semibold text-text-900">{title}</h1>
           <p className="truncate text-body-sm text-text-500">{subtitle}</p>
         </div>
       </div>

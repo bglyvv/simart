@@ -17,6 +17,12 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.3.0" />
   </ItemGroup>
 
+  <!-- Cover images for the five landing-page books seeded on first startup
+       (see the book seed block in Program.cs). -->
+  <ItemGroup>
+    <EmbeddedResource Include="SeedData\Books\*.jpg" LogicalName="SeedBooks.%(Filename)%(Extension)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SimartBackend.Application\SimartBackend.Application.csproj" />
     <ProjectReference Include="..\SimartBackend.Infrastructure\SimartBackend.Infrastructure.csproj" />

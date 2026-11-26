@@ -6,11 +6,13 @@ export default function IconTile({
   tint,
   size = 'md',
   rounded = 'md',
+  className = '',
 }: {
   icon: ReactNode;
   tint: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   rounded?: 'sm' | 'md' | 'full';
+  className?: string;
 }) {
   const sizeClass = {
     sm: 'size-9 text-base',
@@ -30,7 +32,7 @@ export default function IconTile({
 
   return (
     <div
-      className={`flex shrink-0 items-center justify-center ${sizeClass} ${roundedClass} ${bg} ${text}`}
+      className={`flex shrink-0 items-center justify-center ${sizeClass} ${roundedClass} ${bg} ${text} ${className}`}
     >
       {icon}
     </div>

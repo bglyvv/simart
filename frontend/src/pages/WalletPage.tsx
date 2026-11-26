@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { AvatarButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
+import ThemeArt from '../components/illustrations/ThemeArt';
+import { useIsIllustratedTheme } from '../lib/useActiveTheme';
 import ProgressBar from '../components/ui/ProgressBar';
 import Button from '../components/ui/Button';
 import IconTile from '../components/ui/IconTile';
@@ -33,6 +35,7 @@ function azerbaijaniDonateError(err: unknown): string {
 }
 
 export default function WalletPage() {
+  const illustrated = useIsIllustratedTheme();
   const openMenu = useOpenMobileMenu();
   const parent = useAppStore((s) => s.parent);
   const child = useActiveChild();
@@ -135,10 +138,17 @@ export default function WalletPage() {
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[1fr_340px]">
           <div className="flex min-w-0 flex-col gap-6">
-            <Card className="relative overflow-hidden bg-primary text-white" padding="lg">
-              <div className="absolute -right-8 -top-8 flex size-32 items-center justify-center rounded-full border border-white/20 text-5xl">
-                {child?.avatar ?? '🐰'}
-              </div>
+            <Card className="th-dark-card relative overflow-hidden bg-primary text-white" padding="lg">
+              {illustrated ? (
+                <div className="pointer-events-none absolute bottom-3 right-4 flex items-end">
+                  <ThemeArt name="wallet" className="h-24 w-auto drop-shadow-lg sm:h-28" />
+                  <ThemeArt name="coins" className="-ml-6 h-12 w-auto drop-shadow-lg sm:h-14" />
+                </div>
+              ) : (
+                <div className="absolute -right-8 -top-8 flex size-32 items-center justify-center rounded-full border border-white/20 text-5xl">
+                  {child?.avatar ?? '🐰'}
+                </div>
+              )}
               <p className="text-body-sm font-bold uppercase tracking-wide text-white/70">{data.balanceHero.label}</p>
               <p className="mt-2 font-display text-[clamp(32px,5vw,44px)] font-semibold">{balance.toFixed(2)} AZN</p>
               <span className="mt-3 inline-flex rounded-full bg-white/15 px-3 py-1.5 text-body-sm font-bold">
@@ -163,8 +173,18 @@ export default function WalletPage() {
                     <h4 className="font-bold text-text-900">{c.title}</h4>
                     <p className="text-caption text-text-400">{c.sponsor}</p>
                   </div>
-                  <Button variant={i % 2 === 0 ? 'success' : 'outline'} size="sm" onClick={() => handleDonate(c)}>
-                    {c.xpCost} XP İanə Et ({c.aznAmount} AZN Real Pul Köçürüləcək)
+                  {/* The label is long, so it wraps (two lines) instead of the
+                      Button's default single line, which overflowed the card
+                      on phones. Full width on phones, capped beside the text
+                      on wider screens. */}
+                  <Button
+                    variant={i % 2 === 0 ? 'success' : 'outline'}
+                    size="sm"
+                    onClick={() => handleDonate(c)}
+                    className="h-auto! min-h-11 w-full flex-col gap-0! py-2 text-center whitespace-normal! sm:w-auto sm:max-w-60 sm:shrink-0"
+                  >
+                    <span>{c.xpCost} XP İanə Et</span>
+                    <span className="text-xs font-medium opacity-80">({c.aznAmount} AZN Real Pul Köçürüləcək)</span>
                   </Button>
                 </Card>
               ))}

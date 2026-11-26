@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
 
   function handleLogout() {
     logoutAdmin();
-    navigate('/idareetme-giris');
+    navigate('/admin/login');
   }
 
   const totalVideos = playlists?.reduce((sum, p) => sum + p.videos.length, 0) ?? 0;

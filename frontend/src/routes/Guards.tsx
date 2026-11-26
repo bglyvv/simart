@@ -78,7 +78,7 @@ export function RequireNotFocusLocked({ children }: { children: ReactNode }) {
  *  useAdminStore's doc comment: local-only demo auth, no backend admin login yet). */
 export function RequireAdminAuth({ children }: { children: ReactNode }) {
   const authedAsAdmin = useAdminStore((s) => s.authedAsAdmin);
-  if (!authedAsAdmin) return <Navigate to="/idareetme-giris" replace />;
+  if (!authedAsAdmin) return <Navigate to="/admin/login" replace />;
   return <>{children}</>;
 }
 
@@ -86,7 +86,7 @@ export function RequireAdminAuth({ children }: { children: ReactNode }) {
  *  and admin sides (see usePartnerStore). */
 export function RequirePartnerAuth({ children }: { children: ReactNode }) {
   const authedAsPartner = usePartnerStore((s) => s.authedAsPartner);
-  if (!authedAsPartner) return <Navigate to="/tərəfdaş-giris" replace />;
+  if (!authedAsPartner) return <Navigate to="/partners/login" replace />;
   return <>{children}</>;
 }
 

@@ -58,8 +58,11 @@ UI text in Azerbaijani unless told otherwise.
 - Vite 8 + React 19 + TypeScript 6, `@vitejs/plugin-react`
 - Tailwind CSS v4 via `@tailwindcss/vite` (no `tailwind.config.js` — v4 is
   CSS-driven; check `src/index.css` for theme tokens)
-- `react-router-dom` v7 with `HashRouter` (routes are Azerbaijani paths, e.g.
-  `/ana-sehife`, `/vərdişlər`, `/animasiya`)
+- `react-router-dom` v7 with `BrowserRouter` — clean URLs, no `#` (family
+  routes are Azerbaijani paths, e.g. `/ana-sehife`, `/vərdişlər`,
+  `/animasiya`; admin is under `/admin`, partners under `/partners`). Deep
+  links on Netlify rely on `frontend/public/_redirects`; `main.tsx` rewrites
+  old `/#/...` links to the real path on load.
 - `zustand` v5 with `persist` middleware — `src/store/useAppStore.ts`,
   localStorage key `simart-app-state`, currently at persist `version: 5`
 - `framer-motion`, `sonner` (toasts), `canvas-confetti` (via `src/lib/confetti.ts`)
@@ -278,7 +281,7 @@ and audience themselves.
   and a family parent's bearer token gets 403 on both endpoints. One video
   of each kind (with-playlist, no-playlist) was actually confirmed during
   this verification — the other 110 are a real, live admin task waiting in
-  `/idareetme`, not something auto-approved.
+  `/admin`, not something auto-approved.
 - **Deliberately not built**: *automatic* discovery of a new playlist during
   sync — `GetNewContentQuery`'s scan only covers playlists already in the
   database, so a channel-side new playlist's videos still show up as
@@ -628,10 +631,12 @@ anywhere in the family-facing UI — reachable only by navigating to the URL
 directly, same as a real internal tool wouldn't be advertised to end users.
 
 **Routes** (all but login gated by `RequireAdminAuth` in `Guards.tsx`):
-- `/idareetme-giris` — `AdminLoginPage.tsx`
-- `/idareetme` — `AdminDashboardPage.tsx` (content: playlists + sync)
-- `/idareetme-vərdişlər` — `AdminHabitsPage.tsx` (habit catalog: categories + tasks)
-- `/idareetme-hesablar` — `AdminAccountsPage.tsx` (account directory, read-only)
+- `/admin/login` — `AdminLoginPage.tsx`
+- `/admin` — `AdminDashboardPage.tsx` (content: playlists + sync)
+- `/admin/habits` — `AdminHabitsPage.tsx` (habit catalog: categories + tasks)
+- `/admin/accounts` — `AdminAccountsPage.tsx` (account directory, read-only)
+- `/admin/proposals` — `AdminRewardProposalsPage.tsx` (partner reward proposals)
+- `/admin/books` — `AdminBooksPage.tsx` (landing-page books — see "Landing-page books" below)
 
 **What's real vs. placeholder, don't conflate them:**
 - **Real**: every page's data comes from a real backend call, verified live
@@ -946,8 +951,7 @@ password" flow a user could actually receive.
   submitting always shows the same generic "check your email" success
   state, matching the backend's own silence about whether the account
   exists. **`src/pages/ResetPasswordPage.tsx`** (new, `/sifre-sifirla`) —
-  reads `?token=` via `useSearchParams` (works fine under `HashRouter`,
-  since the query string is relative to the route after the `#`), shows a
+  reads `?token=` via `useSearchParams`, shows a
   clear "link is invalid" state up front if there's no token at all, and a
   new-password + confirm form otherwise; a 400 from the backend (expired/
   used/bogus token) maps to the same Azerbaijani message either way, same
@@ -1729,7 +1733,7 @@ here), not a real admin-managed CRUD.
   calls the fulfill endpoint. New `usePartnerStore.ts` (a third persisted
   Zustand store, parallel to `useAppStore`/`useAdminStore`) and a new
   `RequirePartnerAuth` guard, same shape as `RequireAdminAuth`. New
-  routes: `/tərəfdaş-giris`, `/tərəfdaş`.
+  routes: `/partners/login`, `/partners`.
 - **Verified live through the real running frontend** (the first round
   able to do this since "Admin accounts" — see "The Node 18 vs. rolldown
   blocker is resolved" above): signed up a disposable test family through
@@ -1792,7 +1796,7 @@ rather than closing the proposal outright.
   section — a submission form plus the partner's own proposal list, with
   Approve/Reject buttons appearing only while a proposal is waiting on
   them, and an expandable history per proposal. New
-  **`src/pages/AdminRewardProposalsPage.tsx`** (`/idareetme-tekliflər`,
+  **`src/pages/AdminRewardProposalsPage.tsx`** (`/admin/proposals`,
   linked from `AdminSidebar.tsx`) is the admin's review queue —
   Accept/Edit/Decline, Edit opens a modal pre-filled with the current
   terms, Decline goes through a real confirm `Modal` with an optional
@@ -1800,7 +1804,7 @@ rather than closing the proposal outright.
 - **Verified live through the real running frontend** (the second round
   able to do this, after "Vouchers and partners" — see "The Node 18 vs.
   rolldown blocker is resolved" above): submitted a real proposal from
-  `/tərəfdaş`, watched it appear in the real admin queue, edited it from
+  `/partners`, watched it appear in the real admin queue, edited it from
   the real admin UI (confirmed the diff note rendered correctly), approved
   it from the real partner UI and watched the status flip to "Təsdiqləndi
   · Yayımlandı" with the full real 4-event history displayed, and
@@ -1816,13 +1820,139 @@ rather than closing the proposal outright.
   handler and `EfRewardProposalRepository`) — same gap, same reason, as
   everything else flagged this way in this file. Test count is still 44.
 
+## Landing-page books — admin-managed ("Kitablar")
+
+Requested explicitly: an admin menu to add, edit and soft-delete the books on
+the public landing page's book arch. Each book has a cover, a back cover, the
+author's name, a short bio, an author photo (with a gender-based placeholder
+when none is uploaded) and the book's info. Three decisions were made with
+the user up front:
+- **Images are stored in Postgres**, because Render's disk is wiped on every
+  redeploy.
+- **A "Silinmiş" tab with "Bərpa et"**, the same pattern as the content page.
+- **Store links are per book.**
+
+- **Backend**: a new `Books` slice — `Book` (`ISoftDeletable`),
+  `BookStoreLink`, `BookImage` (bytea), migration `AddBooks` (already applied
+  to Neon). Full endpoint list, upload limits and the seed are in "Books
+  (landing page catalog)" in `backend/README.md`. Short version: `GET
+  /api/books` and `GET /api/books/images/{id}` are open (the landing page
+  reads them); create/update/delete/restore/upload are admin-gated.
+  - **Uploads:** JPEG/PNG/WebP up to 5 MB, identified from the file's own
+    bytes, never the declared type, and served with `nosniff`.
+  - **Validation messages are already in Azerbaijani**, so
+    `AdminBooksPage.tsx` shows them directly instead of mapping English
+    substrings like other pages do.
+  - **Seed:** on first start the five original books are inserted with their
+    real covers. The cover JPGs are embedded in the API assembly
+    (`SeedData/Books/`). The seed is gated on `IgnoreQueryFilters().AnyAsync()`,
+    so soft-deleting every book never brings them back.
+- **`src/pages/AdminBooksPage.tsx`** (`/admin/books`, "Kitablar" in
+  `AdminSidebar.tsx`):
+  - a list plus a "Silinmiş" tab;
+  - a large form modal (`Modal.tsx` gained an optional `size="lg"`, wider
+    and scrolling; the default size is unchanged for every existing modal);
+  - a confirm popup before delete; restore fires on click.
+  - Each image field uploads the moment a file is picked; the form keeps only
+    the returned id.
+  - The author-photo field previews the exact placeholder the landing page
+    will draw for the selected gender. `avatar` was moved out of
+    `initBookJourney` to module level in `landing/bookJourney.ts` so it can
+    be imported for this.
+- **`LandingPage.tsx`** now loads `GET /api/books`.
+  `src/pages/landing/engineBooks.ts` maps an API book onto the engine's
+  object shape:
+  - female authors get the long-hair avatar, male the short-hair one;
+  - the accent colour comes from the back-cover scene;
+  - the five originals keep their hand-tuned cover crops, matched by ISBN;
+  - known store names keep their brand colours.
+  - **Fallback:** if the API fails, returns no books, or takes over 5 s (a
+    cold Render start), the bundled `src/data/landingBooks.json` books are
+    shown instead. So `landingBooks.json` and the bundled covers in
+    `src/assets/books/` are still needed. The trade-off: during a cold start
+    a visitor may briefly see the original five rather than the latest
+    edits.
+- **Order is drag and drop** (requested right after the first version, which
+  had a "Sıra" number field in the form; the field is gone now). The active
+  list is a framer-motion `Reorder.Group`. Dragging starts only from each
+  row's grip handle (`useDragControls`, `dragListener={false}`), so the
+  row's buttons stay clickable. Arrow keys on a focused handle move the book
+  too, as the keyboard alternative. Each drop saves the whole order via
+  `PUT /api/books/order`; a failed save snaps the list back to the last
+  saved order. New and restored books go to the end. Verified with a real
+  mouse drag and the arrow keys, both persisted to the backend, plus the
+  stale-list 400 and the no-token 401.
+- **Not built:** cleanup of
+  images uploaded to a form that was then cancelled, and real store links on
+  the five seeded books (the originals only ever had `#` placeholders; a
+  book with no links shows the default store list).
+- **Verified** live through the real admin UI and the landing page (see
+  `backend/README.md` for the full list): create with all three images and
+  two store links, edit, both gender placeholders, the generated back scene,
+  soft delete and restore, the Azerbaijani 400s, 401/403 on every admin
+  endpoint, and the fallback with the backend stopped. Test rows were
+  hard-deleted from Neon afterward. The five seeded books are untouched.
+- **Zero automated test coverage**, same gap and same reason as everything
+  else flagged this way. Test count is still 44.
+
+## "İllüstrasiyalı" child theme — the UI/UX PDF's real artwork
+
+Requested explicitly: an additional child theme that looks like
+`SIMART_UI_UX_Implementation_Guide.pdf` (illustrations included), keeping
+every existing theme. The app-wide default already uses the PDF's palette
+with simplified hand-drawn SVGs (`components/illustrations/Illustrations.tsx`);
+this theme swaps in the mockups' actual artwork.
+
+- **Theme id `illustrated`** (`ILLUSTRATED_THEME` in `src/lib/themes.ts`),
+  picked like any other theme from `ThemeFab`/Settings. Child-only, same as
+  the rest (a parent always sees the default).
+- **Artwork** lives in `src/assets/theme-illustrated/*.webp`. It is cut from
+  the designer's illustration sheet, which has a transparent background, and
+  replaces the earlier crops from the PDF mockups.
+  - Each piece was upscaled 4x locally with Real-ESRGAN
+    (`realesrgan-x4plus-anime`, the ncnn-vulkan Windows build from the
+    official xinntao/Real-ESRGAN release; nothing was uploaded).
+  - Files are stored at 2x as WebP, about 535 KB total.
+  - Registry: `components/illustrations/themeArtAssets.ts` (`THEME_ART`,
+    `TIER_ART`, `REWARD_ART` with each reward's pastel tile colour,
+    `AVATAR_ART`).
+  - `ThemeArt.tsx` renders a named piece only under this theme.
+  - `ThemeAvatar.tsx` swaps 🦁🦊🐰🐻 for the illustrated animals (any other
+    emoji stays an emoji).
+  - Pages check `useIsIllustratedTheme()` (`src/lib/useActiveTheme.ts`).
+  - Unused sheet pieces (popcorn, laptop, plant, books with plant, open book,
+    video girl, shield) were left out on purpose. The sheet is the source if
+    they are wanted later.
+- **Styling** is all in `index.css`'s `[data-theme='illustrated']` section,
+  hung off `th-*` marker classes added to Topbar, Sidebar, the page hero
+  cards, stat tiles and the purple cards. Without this theme those classes
+  do nothing, so every other theme renders exactly as before (verified:
+  "Defolt" shows the same SVG art, Inter at 600 and the solid nav pill).
+  Headings use Plus Jakarta Sans (added to `index.html`'s Google Fonts link)
+  only under this theme.
+- **Pages touched**:
+  - Habits: kid, XP star, calendar, XP star/flame stat icons, stacked hero on
+    phones.
+  - Leagues: trophy, ribbon tier badges, reward pictures on pastel tiles,
+    gift heading.
+  - Social: two kids, animal avatars on posts, comments and leaderboard.
+  - Notifications: bell.
+  - Home: reading kids, flame.
+  - Wallet: wallet and coins.
+  - Videos: video kid in the library header.
+  - Sidebar: animal avatar.
+  - Hero banners use the sheet's wave image as their background.
+- **Sizing**: every image's natural size is about twice its CSS size, so it
+  stays sharp up to 200% screen scaling. Pages size images by CSS height, so
+  swapping files never changes layout.
+
 ## Open items / natural next steps
 
 1. ~~Fill in the real "Tədbirlər" video list (14 of 15 are missing
    titles/IDs)~~ — effectively done. The real YouTube Data API sync (item 3)
    found all 14 and correctly suggests them into "Tədbirlər" in the admin
    review queue; one was confirmed during that feature's own verification,
-   the other 13 are a real admin task waiting in `/idareetme`, not a data
+   the other 13 are a real admin task waiting in `/admin`, not a data
    gap needing a fix. See "YouTube content sync" above.
 2. ~~Point `fetchPlaylists` at the real backend~~ — done; it's a real `fetch`
    gated behind `VITE_API_BASE_URL`.
@@ -1941,3 +2071,7 @@ rather than closing the proposal outright.
     accept/edit/approve/reject state machine, `IRewardRepository
     .AddRewardAsync` as the catalog's first non-seed write path, and the
     second round verified through the real running frontend.
+18. The landing page's books are admin-managed — done. See "Landing-page
+    books" above: a `Books` slice with images stored in Postgres,
+    `/admin/books` with a "Silinmiş" tab, gender-based author placeholders,
+    and a bundled-books fallback on `/` when the API is slow or down.

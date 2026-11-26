@@ -1,9 +1,197 @@
 {
+  "stores": [
+    {
+      "name": "BakuBook",
+      "url": "#",
+      "color": "#5b2a7e"
+    },
+    {
+      "name": "Libraff",
+      "url": "#",
+      "color": "#e2312d",
+      "text": "#d42a26"
+    },
+    {
+      "name": "Ali & Nino",
+      "url": "#",
+      "color": "#ea7f22"
+    }
+  ],
   "books": [
-    { "id": "kicik-astronavt", "title": "Kiçik Astronavt", "theme": "Kosmos və xəyallar" },
-    { "id": "tebiyatin-sirleri", "title": "Təbiətin Sirləri", "theme": "Təbiət və canlılar" },
-    { "id": "dostlugun-gucu", "title": "Dostluğun Gücü", "theme": "Dostluq və empatiya" },
-    { "id": "deniz-macerasi", "title": "Dəniz Macərası", "theme": "Dəniz və macəra" },
-    { "id": "agilli-kesflar", "title": "Ağıllı Kəşflər", "theme": "Elm və yaradıcılıq" }
+    {
+      "id": "kicik-astronavt",
+      "title": "Kiçik Astronavt",
+      "scene": "space",
+      "accent": "91,58,158",
+      "category": "Kosmos",
+      "age": "5 – 9",
+      "pages": 48,
+      "price": "11,90 ₼",
+      "author": {
+        "name": "Nərmin Əliyeva",
+        "look": {
+          "hair": "#2c1f30",
+          "skin": "#f2c7a5",
+          "shirt": "#7c5cc8",
+          "bg": "#ddd1f5",
+          "style": "long"
+        },
+        "bio": "Uşaqlar üçün elmi-fantastik hekayələr yazır. Kosmos, ulduzlar və böyük arzular haqqında kitabların müəllifidir."
+      },
+      "about": "“Kiçik Astronavt” ulduzlara çatmaq arzusu ilə yaşayan balaca Elinin maraqlı səyahətindən bəhs edir. Hekayə cəsarəti, maraq hissini və arzuların gücünü öyrədir.",
+      "quote": "Ən böyük səyahət kiçik bir arzu ilə başlayır.",
+      "code": "9789952412014",
+      "art": [
+        {
+          "size": "170%",
+          "pos": "50% 100%"
+        },
+        {
+          "size": "235%",
+          "pos": "40% 98%",
+          "flip": true
+        }
+      ]
+    },
+    {
+      "id": "tebiyatin-sirleri",
+      "title": "Təbiətin Sirləri",
+      "scene": "forest",
+      "accent": "64,128,60",
+      "category": "Təbiət",
+      "age": "6 – 10",
+      "pages": 64,
+      "price": "13,90 ₼",
+      "author": {
+        "name": "Rəşad Məmmədov",
+        "look": {
+          "hair": "#3b2a20",
+          "skin": "#e9b993",
+          "shirt": "#4f8f4a",
+          "bg": "#d6ead0",
+          "style": "short"
+        },
+        "bio": "Təbiətşünas və uşaq yazıçısı. Meşələr, heyvanlar və təbiəti qorumaq mövzusunda kitablar yazır."
+      },
+      "about": "“Təbiətin Sirləri” meşənin gizli dünyasına səyahətdir. Balaca oxucular heyvanların həyatını, bitkilərin sirrini və təbiətə qayğının vacibliyini kəşf edirlər.",
+      "quote": "Təbiət ona qulaq asanlara öz sirlərini açır.",
+      "code": "9789952412021",
+      "art": [
+        {
+          "size": "165%",
+          "pos": "55% 100%"
+        },
+        {
+          "size": "230%",
+          "pos": "45% 92%",
+          "flip": true
+        }
+      ]
+    },
+    {
+      "id": "dostlugun-gucu",
+      "title": "Dostluğun Gücü",
+      "scene": "meadow",
+      "accent": "196,104,52",
+      "category": "Dostluq",
+      "age": "6 – 10",
+      "pages": 96,
+      "price": "12,90 ₼",
+      "author": {
+        "name": "Aysel Qəmbərli",
+        "look": {
+          "hair": "#6b3a1f",
+          "skin": "#f5cdb0",
+          "shirt": "#f0a35c",
+          "bg": "#fbe0c8",
+          "style": "long"
+        },
+        "bio": "Uşaq ədəbiyyatı sahəsində bir çox sevilən əsərin müəllifi. Dostluq, empatiya və dəyərlər mövzusunda kitablar yazır."
+      },
+      "about": "“Dostluğun Gücü” — həqiqi dostluğun dəyərini, bir-birinə dəstək olmağın və çətinlikləri birlikdə dəf etməyin əhəmiyyətini göstərən maraqlı bir hekayədir.",
+      "quote": "Həqiqi dostluq — hər zaman yanındadır.",
+      "code": "9789952412038",
+      "art": [
+        {
+          "size": "165%",
+          "pos": "50% 100%"
+        },
+        {
+          "size": "225%",
+          "pos": "72% 96%",
+          "flip": true
+        }
+      ]
+    },
+    {
+      "id": "deniz-macerasi",
+      "title": "Dəniz Macərası",
+      "scene": "sea",
+      "accent": "46,110,170",
+      "category": "Macəra",
+      "age": "7 – 11",
+      "pages": 80,
+      "price": "14,50 ₼",
+      "author": {
+        "name": "Tural Həsənov",
+        "look": {
+          "hair": "#1f1a1c",
+          "skin": "#e7b48c",
+          "shirt": "#2f6eaa",
+          "bg": "#d3e6f5",
+          "style": "short"
+        },
+        "bio": "Dəniz və səyahət hekayələri ilə tanınan müəllif. Kitablarında cəsarəti, komanda ruhunu və kəşf sevgisini təbliğ edir."
+      },
+      "about": "“Dəniz Macərası” kiçik yelkənli qayıqla uzaq adalara üzən iki dostun hekayəsidir. Dalğalar, küləklər və gözlənilməz kəşflərlə dolu bir səyahət.",
+      "quote": "Üfüq həmişə yeni bir macəra vəd edir.",
+      "code": "9789952412045",
+      "art": [
+        {
+          "size": "160%",
+          "pos": "50% 100%"
+        },
+        {
+          "size": "215%",
+          "pos": "50% 88%",
+          "flip": true
+        }
+      ]
+    },
+    {
+      "id": "agilli-kesflar",
+      "title": "Ağıllı Kəşflər",
+      "scene": "sunny",
+      "accent": "214,120,40",
+      "category": "Elm",
+      "age": "7 – 12",
+      "pages": 72,
+      "price": "15,90 ₼",
+      "author": {
+        "name": "Leyla Quliyeva",
+        "look": {
+          "hair": "#2a1c18",
+          "skin": "#f0c39f",
+          "shirt": "#e8873a",
+          "bg": "#fde3c4",
+          "style": "bob"
+        },
+        "bio": "Mühəndis və uşaq yazıçısı. Elm, texnologiya və yaradıcılığı sadə dillə uşaqlara sevdirir."
+      },
+      "about": "“Ağıllı Kəşflər” balaca robot Bitin köməyi ilə elmin maraqlı dünyasını kəşf edən uşaqlar haqqındadır. Hər fəsil yeni bir sual və sadə bir təcrübə ilə bitir.",
+      "quote": "Hər böyük kəşf bir sualla başlayır.",
+      "code": "9789952412052",
+      "art": [
+        {
+          "size": "165%",
+          "pos": "45% 100%"
+        },
+        {
+          "size": "230%",
+          "pos": "40% 90%",
+          "flip": true
+        }
+      ]
+    }
   ]
 }

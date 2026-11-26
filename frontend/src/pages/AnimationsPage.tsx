@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 import AppShell, { useOpenMobileMenu } from '../components/AppShell';
 import Topbar, { XpPill, IconButton, NotificationBell, AvatarButton } from '../components/Topbar';
 import Card from '../components/ui/Card';
+import ThemeArt from '../components/illustrations/ThemeArt';
+import { useIsIllustratedTheme } from '../lib/useActiveTheme';
 import YoutubePlayer, { type YoutubePlayerHandle } from '../components/YoutubePlayer';
 import { useAppStore, useActiveChild, getActiveChild, EMPTY_RECORD } from '../store/useAppStore';
 import { celebrate } from '../lib/confetti';
@@ -22,6 +24,7 @@ const VIDEOS_PER_LOCK = 2;
 const LOCK_MINUTES = 15;
 
 export default function AnimationsPage() {
+  const illustrated = useIsIllustratedTheme();
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
@@ -362,7 +365,14 @@ export default function AnimationsPage() {
           </div>
 
           <Card padding="lg" className="h-fit min-w-0">
-            <h3 className="mb-4 font-display font-semibold text-text-900">Animasiya Kitabxanası</h3>
+            {illustrated ? (
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <h3 className="font-display font-semibold text-text-900">Animasiya Kitabxanası</h3>
+                <ThemeArt name="videoBoy" className="-my-2 h-12 w-auto shrink-0" />
+              </div>
+            ) : (
+              <h3 className="mb-4 font-display font-semibold text-text-900">Animasiya Kitabxanası</h3>
+            )}
             <div className="flex flex-col gap-2">
               {playlists.length === 0 && !loadError && (
                 <p className="text-body-sm text-text-400">Yüklənir...</p>

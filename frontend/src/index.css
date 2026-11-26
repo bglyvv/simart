@@ -322,6 +322,139 @@
   --color-sand-text: #92700c;
 }
 
+/* ==========================================================================
+   "İllüstrasiyalı" — SIMART_UI_UX_Implementation_Guide.pdf, as drawn.
+   Besides the PDF's own swatches (page 2) this theme carries the mockups'
+   decorative details: soft wave banners, tinted stat tiles, a gradient
+   league hero, outline sidebar icons on a lavender active pill, hills at
+   the foot of the sidebar and Plus Jakarta Sans headings. Every rule hangs
+   off a `th-*` marker class that pages add, so the other themes never see
+   any of it. The artwork itself is swapped in by ThemeArt.tsx.
+   ========================================================================== */
+:root[data-theme='illustrated'] {
+  --color-primary: #6d35ed;
+  --color-bg: #f5f7fc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #ede7ff;
+  --color-border: #e7e2f8;
+  --color-border-soft: #efebfb;
+  --color-text-900: #192544;
+  --color-text-700: #38415f;
+  --color-sand: #f5a742;
+  --color-sand-tint: #fff1dc;
+  --color-sand-text: #8f5a06;
+  --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --shadow-soft: 0 1px 2px rgba(56, 34, 140, 0.04), 0 4px 14px -6px rgba(56, 34, 140, 0.1);
+}
+
+:root[data-theme='illustrated'] body {
+  background-color: var(--color-bg);
+}
+
+/* Headings in the mockups are heavier than the app's 600 default. */
+:root[data-theme='illustrated'] h1,
+:root[data-theme='illustrated'] h2,
+:root[data-theme='illustrated'] h3 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Topbar: big page title like every desktop mockup ---- */
+:root[data-theme='illustrated'] .th-topbar {
+  background-color: rgb(245 247 252 / 0.85);
+  border-bottom-color: transparent;
+}
+@media (min-width: 640px) {
+  :root[data-theme='illustrated'] .th-topbar-title {
+    font-size: 26px;
+  }
+}
+
+/* ---- Sidebar: outline icons, lavender active pill, hills at the foot ---- */
+:root[data-theme='illustrated'] .th-sidebar {
+  position: relative;
+  overflow: hidden;
+}
+:root[data-theme='illustrated'] .th-sidebar::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 210px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 210' preserveAspectRatio='none'%3E%3Cpath d='M0 120C40 70 95 60 140 92s100 30 140-12v130H0z' fill='%23ede7ff' opacity='.55'/%3E%3Cpath d='M0 150c55-40 110-40 160-8s85 26 120 4v64H0z' fill='%23e3dafd' opacity='.7'/%3E%3C/svg%3E")
+    bottom / 100% 100% no-repeat;
+}
+:root[data-theme='illustrated'] .th-sidebar > * {
+  position: relative;
+  z-index: 1;
+}
+:root[data-theme='illustrated'] .th-nav-item.bg-nav-active {
+  background-color: #ede7ff;
+  color: var(--color-primary);
+}
+:root[data-theme='illustrated'] .th-nav-icon {
+  background-color: transparent;
+  color: inherit;
+}
+:root[data-theme='illustrated'] .th-profile-card {
+  background-color: rgb(255 255 255 / 0.9);
+  border-color: transparent;
+  box-shadow: 0 8px 24px -12px rgba(56, 34, 140, 0.25);
+}
+
+/* ---- Hero banners: lavender with soft waves, art anchored bottom-right ---- */
+:root[data-theme='illustrated'] .th-hero {
+  position: relative;
+  border: 0;
+  background:
+    url('./assets/theme-illustrated/wave.webp') right bottom / auto 72% no-repeat,
+    linear-gradient(100deg, #f1ecff 0%, #e8e0ff 100%);
+  min-height: 132px;
+  align-items: center;
+}
+/* Phones: a wide illustration would squeeze the copy into a sliver, so the
+   copy goes on top and the art sits underneath on the right. */
+@media (max-width: 639px) {
+  :root[data-theme='illustrated'] .th-hero--stack {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+}
+:root[data-theme='illustrated'] .th-hero-title {
+  font-size: clamp(22px, 2.6vw, 30px);
+}
+:root[data-theme='illustrated'] .th-hero-text {
+  color: var(--color-text-700);
+  font-size: 15px;
+}
+
+/* ---- Dark purple cards (progress, XP, league status) ---- */
+:root[data-theme='illustrated'] .th-dark-card {
+  background: linear-gradient(120deg, #7a45f6 0%, #6d35ed 45%, #5a28d6 100%);
+  border: 0;
+  box-shadow: 0 14px 30px -14px rgba(109, 53, 237, 0.55);
+}
+:root[data-theme='illustrated'] .th-league-hero {
+  background:
+    radial-gradient(circle at 85% 20%, rgb(255 255 255 / 0.14), transparent 40%),
+    linear-gradient(115deg, #7b48f2 0%, #6331e0 55%, #4e22c4 100%);
+}
+
+/* ---- Stat tiles: pastel fills instead of white cards ---- */
+:root[data-theme='illustrated'] .th-stat {
+  border: 0;
+  box-shadow: none;
+}
+:root[data-theme='illustrated'] .th-stat--purple { background-color: #efe9ff; }
+:root[data-theme='illustrated'] .th-stat--blue { background-color: #e6f1ff; }
+:root[data-theme='illustrated'] .th-stat--green { background-color: #e3f7ee; }
+:root[data-theme='illustrated'] .th-stat--amber { background-color: #fff2df; }
+:root[data-theme='illustrated'] .th-stat .th-stat-icon {
+  background-color: rgb(255 255 255 / 0.85);
+}
+
 html,
 body,
 #root {

@@ -5,18 +5,19 @@ import ChildSwitcher from './ChildSwitcher';
 import navData from '../data/sidebarNav.json';
 import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { Icon } from '../lib/icons';
+import ThemeAvatar from './illustrations/ThemeAvatar';
 
 // "SaaS + gamification" redesign: the active nav item is a solid primary
 // pill with a white icon/label, matching every desktop mockup in the PDF —
 // reversing the prior "premium minimal" pass's neutral-highlight treatment.
 const navItemBase =
-  'flex items-center gap-3 rounded-sm px-3 py-2.5 text-body font-medium text-text-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
+  'th-nav-item flex items-center gap-3 rounded-sm px-3 py-2.5 text-body font-medium text-text-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
 const navItemActive = 'bg-nav-active text-white font-semibold';
 
 function NavIcon({ icon, isActive = false }: { icon: string; isActive?: boolean }) {
   return (
     <span
-      className={`flex size-8 shrink-0 items-center justify-center rounded-sm ${isActive ? 'bg-transparent text-white' : 'bg-surface-alt text-text-700'}`}
+      className={`th-nav-icon flex size-8 shrink-0 items-center justify-center rounded-sm ${isActive ? 'bg-transparent text-white' : 'bg-surface-alt text-text-700'}`}
     >
       <Icon name={icon} size={17} />
     </span>
@@ -68,7 +69,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const xp = child?.xp ?? 0;
 
   return (
-    <div className="flex h-full flex-col border-r border-border bg-surface px-5 py-6">
+    <div className="th-sidebar flex h-full flex-col border-r border-border bg-surface px-5 py-6">
       <div className="flex items-center px-3">
         <LogoMark height={28} />
       </div>
@@ -84,9 +85,9 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           <ChildSwitcher />
         </div>
       ) : (
-        <div className="mt-4 flex items-center gap-3 rounded-md border border-border bg-surface-alt p-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-xl">
-            {child?.avatar ?? '🐰'}
+        <div className="th-profile-card mt-4 flex items-center gap-3 rounded-md border border-border bg-surface-alt p-4">
+          <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-xl">
+            <ThemeAvatar emoji={child?.avatar ?? '🐰'} />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-text-900">{child?.name ?? navData.activeChild.name}</p>

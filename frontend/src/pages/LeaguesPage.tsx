@@ -14,6 +14,9 @@ import IconTile from '../components/ui/IconTile';
 import Tooltip from '../components/ui/Tooltip';
 import { Icon } from '../lib/icons';
 import { TrophyCup, IceCreamArt, BooksArt, ControllerArt, ParkArt } from '../components/illustrations/Illustrations';
+import ThemeArt from '../components/illustrations/ThemeArt';
+import { REWARD_ART, TIER_ART } from '../components/illustrations/themeArtAssets';
+import { useIsIllustratedTheme } from '../lib/useActiveTheme';
 
 const REWARD_ILLUSTRATIONS: Record<string, (props: { className?: string }) => React.JSX.Element> = {
   'ice-cream': IceCreamArt,
@@ -60,6 +63,7 @@ function azerbaijaniRedeemError(err: unknown): string {
 }
 
 export default function LeaguesPage() {
+  const illustrated = useIsIllustratedTheme();
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
@@ -180,9 +184,13 @@ export default function LeaguesPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <Card className="relative overflow-hidden bg-primary text-white" padding="lg">
-            <TrophyCup className="pointer-events-none absolute -right-4 -top-4 hidden h-40 w-auto opacity-90 sm:block" />
-            <div className="relative flex flex-wrap items-center justify-between gap-3 sm:pr-32">
+          <Card className="th-dark-card th-league-hero relative overflow-hidden bg-primary text-white" padding="lg">
+            {illustrated ? (
+              <ThemeArt name="trophy" className="pointer-events-none absolute bottom-4 right-4 hidden h-40 w-auto lg:block" />
+            ) : (
+              <TrophyCup className="pointer-events-none absolute -right-4 -top-4 hidden h-40 w-auto opacity-90 sm:block" />
+            )}
+            <div className={`relative flex flex-wrap items-center justify-between gap-3 ${illustrated ? 'lg:pr-60' : 'sm:pr-32'}`}>
               <div>
                 <h2 className="flex items-center gap-2 font-display text-h3 font-semibold">
                   Cari Status:
@@ -196,26 +204,30 @@ export default function LeaguesPage() {
               </span>
             </div>
 
-            <div className="relative mt-6 flex flex-wrap justify-between gap-4 sm:pr-32">
+            <div className={`relative mt-6 flex flex-wrap justify-between gap-4 ${illustrated ? 'lg:pr-60' : 'sm:pr-32'}`}>
               {LEAGUE_TIERS.map((t, i) => {
                 const tierColor = ['text-text-500', 'text-text-400', 'text-sand-text', 'text-primary'][i] ?? 'text-text-500';
                 return (
                   <div key={t.label} className={`flex items-center gap-2 ${i <= currentIdx ? 'opacity-100' : 'opacity-50'}`}>
-                    <span className={`flex size-10 items-center justify-center rounded-full bg-white ${tierColor}`}>
-                      <Icon name={t.icon} size={18} />
-                    </span>
+                    {illustrated && TIER_ART[i] ? (
+                      <img src={TIER_ART[i]} alt="" aria-hidden="true" className="h-12 w-auto drop-shadow" />
+                    ) : (
+                      <span className={`flex size-10 items-center justify-center rounded-full bg-white ${tierColor}`}>
+                        <Icon name={t.icon} size={18} />
+                      </span>
+                    )}
                     <span className="text-body-sm font-semibold">{t.label}</span>
                   </div>
                 );
               })}
             </div>
-            <div className="relative mt-5">
+            <div className={`relative mt-5 ${illustrated ? 'lg:pr-60' : ''}`}>
               <ProgressBar percent={progressPercent} tone="white-on-dark" trackClassName="bg-white/20" />
             </div>
           </Card>
 
           <p className="mb-4 mt-8 flex items-center gap-2 font-display text-h4 font-semibold text-text-900">
-            🎁 Mükafat Mağazası
+            {illustrated ? <ThemeArt name="giftBig" className="h-8 w-auto" /> : '🎁'} Mükafat Mağazası
             <Tooltip label={data.note}>
               <button
                 type="button"
@@ -265,7 +277,14 @@ export default function LeaguesPage() {
               return (
                 <motion.div key={reward.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                   <Card interactive padding="lg" className="flex h-full flex-col">
-                    {RewardIllustration ? (
+                    {illustrated && REWARD_ART[reward.icon] ? (
+                      <div
+                        className="-mx-2 -mt-2 flex h-32 items-center justify-center rounded-xl sm:-mx-4 sm:-mt-4"
+                        style={{ backgroundColor: REWARD_ART[reward.icon].tile }}
+                      >
+                        <img src={REWARD_ART[reward.icon].src} alt="" aria-hidden="true" className="h-24 w-auto drop-shadow-md" />
+                      </div>
+                    ) : RewardIllustration ? (
                       <div className="-mx-6 -mt-6 flex h-28 items-center justify-center overflow-hidden rounded-t-md bg-surface-alt sm:-mx-8 sm:-mt-8">
                         <RewardIllustration className="h-20 w-auto" />
                       </div>

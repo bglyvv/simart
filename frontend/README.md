@@ -6,7 +6,7 @@ React implementation of all 11 SİMART screens, built from the finalized Figma d
 
 - Vite + React + TypeScript
 - Tailwind CSS v4 (CSS-first theme in `src/index.css`, ported 1:1 from the Figma design tokens)
-- React Router (`HashRouter`) for client-side navigation between screens
+- React Router (`BrowserRouter`, clean URLs) for client-side navigation between screens
 
 ## Getting started
 
@@ -71,8 +71,15 @@ via `VITE_API_BASE_URL` in `.env.development` (defaults to
 Everything else in the family-facing app (wallet, leagues, games, social,
 focus mode) is still local-only (Zustand + localStorage).
 
-- **Admin panel** (`/idareetme-giris`, `/idareetme`,
-  `/idareetme-vərdişlər`, `/idareetme-hesablar` — not linked from anywhere
+- **Landing page books**: `/` (`LandingPage.tsx`) reads its book arch from
+  `GET /api/books` (`src/lib/bookService.ts`), managed at `/admin/books`
+  (`AdminBooksPage.tsx`). If the backend is down or slower than 5 s, it falls
+  back to the bundled `src/data/landingBooks.json` books, so `/` is never
+  empty. See "Landing-page books" in root `CLAUDE.md`.
+
+- **Admin panel** (`/admin/login`, `/admin`,
+  `/admin/habits`, `/admin/accounts`, `/admin/proposals`,
+  `/admin/books` — not linked from anywhere
   in the family-facing UI, own sidebar via `AdminShell`/`AdminSidebar`):
   every page's data is real, verified live — `fetchPlaylists()`/
   `discoverNewContent(token)`/`assignVideo(input, token)` (content — a real

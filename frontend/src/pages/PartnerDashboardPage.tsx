@@ -78,7 +78,7 @@ export default function PartnerDashboardPage() {
 
   function handleLogout() {
     logoutPartner();
-    navigate('/tərəfdaş-giris');
+    navigate('/partners/login');
   }
 
   async function lookup(rawCode: string) {

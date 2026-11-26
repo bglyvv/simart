@@ -643,7 +643,7 @@ layering `IContentCatalogRepository`/`IPlaylistCatalog` already use.
 implementation: a single `POST https://api.resend.com/emails` (a plain
 `HttpClient` call, no SDK — Resend's API is simple enough not to need one),
 builds the actual reset link here
-(`{Frontend:BaseUrl}/#/sifre-sifirla?token={rawToken}`, defaulting to
+(`{Frontend:BaseUrl}/sifre-sifirla?token={rawToken}`, defaulting to
 `http://localhost:5173`) since this is the one place that needs to know the
 frontend's real deployed URL, and composes the Azerbaijani email body.
 
@@ -1725,7 +1725,7 @@ POST /api/partners/vouchers/{code}/fulfill   [Bearer partner token]
   `src/components/ui/VoucherQrModal.tsx` (shared by `LeaguesPage.tsx`'s
   `confirmRedeem` and `WalletPage.tsx`'s `handleDonate` — renders the real
   `voucherCode` via `qrcode.react`'s `QRCodeSVG`). New routes
-  `/tərəfdaş-giris`/`/tərəfdaş`, gated by a new `RequirePartnerAuth` in
+  `/partners/login`/`/partners`, gated by a new `RequirePartnerAuth` in
   `Guards.tsx`, same shape as `RequireAdminAuth`.
 - **The QR encodes the bare code, not a URL** — there's no stable deployed
   origin for this app yet (see root `CLAUDE.md`'s "Deployment history"
@@ -1749,7 +1749,7 @@ POST /api/partners/vouchers/{code}/fulfill   [Bearer partner token]
   actual signup form, added a child, earned real XP via `Games` (curl, for
   speed — a real backend call either way), redeemed "Bambini Dondurma"
   through the real `/liqalar` UI and watched the real `VoucherQrModal`
-  render a scannable QR with a real code; opened `/tərəfdaş-giris` in a
+  render a scannable QR with a real code; opened `/partners/login` in a
   second tab, logged in as that reward's real seeded partner, looked the
   code up by typing it in, confirmed fulfillment correctly 409s with the
   not-yet-approved message; switched to the first tab, approved the
@@ -1876,7 +1876,7 @@ endpoint.
   own proposal list, with Approve/Reject buttons appearing only while a
   proposal is `admin_edited_pending_partner`, and an expandable history per
   proposal). New `src/pages/AdminRewardProposalsPage.tsx`
-  (`/idareetme-tekliflər`, linked from `AdminSidebar.tsx`) is the review
+  (`/admin/proposals`, linked from `AdminSidebar.tsx`) is the review
   queue — Accept/Edit/Decline per proposal, Edit opens a modal pre-filled
   with the current terms, Decline goes through a real confirm `Modal` with
   an optional reason textarea (never the browser's native `confirm()`,
@@ -1897,8 +1897,8 @@ endpoint.
   **Then verified live through the real running frontend** (this and
   "Vouchers and partners" above are the only two rounds able to do this so
   far — see "The Node 18 vs. rolldown blocker is resolved" in root
-  `CLAUDE.md`): submitted a real proposal from `/tərəfdaş`, watched it
-  appear in `/idareetme-tekliflər`'s real queue, edited it from the real
+  `CLAUDE.md`): submitted a real proposal from `/partners`, watched it
+  appear in `/admin/proposals`'s real queue, edited it from the real
   admin UI (XP 450→380) and confirmed the diff note rendered, approved it
   from the real partner UI and watched the status flip to "Təsdiqləndi ·
   Yayımlandı" with the full real history displayed, and separately
@@ -2094,6 +2094,114 @@ zero automated test coverage** — built and verified by hand (curl + the
 live admin UI), at the same explicit user direction to deprioritize more
 test-writing that the Habits slice, `GET /api/admin/families`, and
 `GetChildren` already had. Test count is still 44.
+
+### Books (landing page catalog)
+
+The public landing page's book arch (`/`, `LandingPage.tsx`) used to read
+five hard-coded books from `frontend/src/data/landingBooks.json`. They now
+come from this slice, managed from the admin panel's "Kitablar" page
+(`/admin/books`).
+
+```
+GET    /api/books                      open — active books, ordered by sortOrder then createdAt
+GET    /api/books/deleted              admin — soft-deleted books, newest deletion first
+POST   /api/books                      admin — { title, category, ageRange, pageCount, priceAzn,
+                                         about, quote, isbn?, backScene, authorName,
+                                         authorBio, authorGender, coverImageId, backCoverImageId?,
+                                         authorPhotoImageId?, storeLinks: [{ name, url }] } -> 201
+PUT    /api/books/{id}                 admin — same body, full replace (store links included) -> 200
+PUT    /api/books/order                admin — { ids: [...] } every active book, first to last -> 204
+                                         (400 if the list is stale: missing, extra or duplicate ids)
+DELETE /api/books/{id}                 admin — soft delete -> 204
+POST   /api/books/{id}/restore         admin — undo the soft delete -> 204
+POST   /api/books/images               admin — multipart, one file in field "file" -> 201 { id }
+GET    /api/books/images/{id}          open — the image bytes
+```
+
+401 without a token, 403 with a family/partner token (same `adminId` claim
+check as every other admin endpoint), 404 for an unknown id, 400 for
+invalid input. **Validation messages are already in Azerbaijani** (thrown as
+`InvalidBookException` from `BookCatalog.ApplyAsync`), so the admin page shows
+them as-is: title, author name and cover are required; `pageCount > 0`;
+`priceAzn >= 0`; `backScene` is one of `meadow|forest|space|sea|sunny`;
+`authorGender` is `male|female`; at most 8 store links, each needing a name and
+an `http(s)://` URL; every referenced image id must exist.
+
+**Order.** `sortOrder` isn't in the create/update body. A new book goes to
+the end (highest existing `sortOrder` + 1, deleted books included). A
+restored book also goes to the end, since its old position may have been
+reused. The admin list changes the order by drag and drop, saving the whole
+list through `PUT /api/books/order` (`ReorderBooksCommand`). That command
+rejects a list that doesn't contain exactly the active books, each once — for
+example when another tab deleted a book meanwhile — instead of half-applying
+it.
+
+**Shape.** `Book` (`ISoftDeletable`, so the global `!IsDeleted` filter is what
+hides a deleted book from `GET /api/books`), `BookStoreLink` (cascades with
+its book) and `BookImage` (migration `AddBooks`). The DTO returns image *ids*,
+not URLs — the frontend builds `/api/books/images/{id}` itself, so the backend
+never needs to know its own public address. `backScene` only matters when
+there's no back-cover image (the landing page then draws a generated
+landscape); `authorGender` picks the placeholder avatar when there's no author
+photo (female = long hair, male = short hair).
+
+**Images live in Postgres** (`book_images.data`, bytea), not on disk — Render's
+free instance loses its disk on every redeploy, and this needs no extra
+storage account. Kept in their own table so listing books never loads image
+bytes. Images are immutable: replacing a cover uploads a new image and points
+the book at the new id, which is why `GET /api/books/images/{id}` can send
+`Cache-Control: public, max-age=31536000, immutable`. Book→image columns are
+real FKs (Restrict).
+
+**Upload safety.** Max 5 MB. Only JPEG, PNG or WebP, identified from the
+file's own first bytes (`BookCatalog.DetectImageType`), never the declared
+content type; the stored content type is the detected one and the image GET
+sends `X-Content-Type-Options: nosniff`. So an upload can only ever be
+served as an image — no SVG or HTML that could run script from the API's
+origin. The upload endpoint has `.DisableAntiforgery()`: this is a bearer-token
+API with no cookies, so there's nothing for a cross-site form post to use.
+Not handled: images uploaded but never saved onto a book (a cancelled form)
+stay in the table — small and harmless; a cleanup job could be added later.
+
+**Seed.** On startup, if the `books` table has no rows at all — checked with
+`IgnoreQueryFilters()`, so soft-deleting every book doesn't bring the
+originals back on the next restart — the five original books are inserted with
+their real covers. The cover JPGs are embedded in the API assembly
+(`SimartBackend.Api/SeedData/Books/*.jpg`, `EmbeddedResource` with
+`LogicalName="SeedBooks.<file>"` in the csproj). The seed adds no store links,
+author photos or back covers; the landing page falls back to its default store
+list, the gender avatar and the generated scene for those.
+
+**Landing page fallback.** `LandingPage.tsx` waits at most 5 s for
+`GET /api/books`. If the request fails, returns no books, or is slower than
+that (a cold Render start takes 20–30 s), it shows the bundled
+`landingBooks.json` books instead, so `/` never sits empty. The trade-off: during a
+cold start a visitor may briefly see the original five rather than the admin's
+latest edits. `frontend/src/pages/landing/engineBooks.ts` maps an API book onto
+the animation engine's object shape. Books whose ISBN matches one of the
+originals keep their hand-tuned cover crops; new ones get a default crop and
+an accent colour picked from `backScene`.
+
+**Verified** via curl and live through the real admin UI, test rows hard-deleted
+from Neon afterward (the 5 seeded books and their images untouched):
+- curl: 401 with no token and 403 with a family token on every admin
+  endpoint; 404 for an unknown book or image.
+- The seed loaded 5 books with correct diacritics, and each cover is served
+  byte-identical to the bundled JPG with the cache and nosniff headers.
+- In the UI: created a book with cover, back cover, author photo and two store
+  links, and it showed on `/` with all of them. Edited it to remove both
+  images and switch the gender: the form preview and the landing author page
+  both switched to the male avatar, and the back cover fell back to the
+  generated scene.
+- Soft delete → gone from `GET /api/books` and listed under "Silinmiş";
+  "Bərpa et" → back.
+- 400s with their Azerbaijani messages: missing cover, a text file renamed
+  `.jpg`, an `ftp://` store URL, an unknown `backScene`, a missing image id.
+- With the backend stopped, `/` showed the bundled books.
+
+**Zero automated test coverage** on any of this (`BookCatalog`, the
+book command/query handlers, `EfBookRepository`) — same gap, same reason,
+as everything else flagged this way in this doc. Test count is still 44.
 
 ## Layout
 

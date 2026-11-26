@@ -9,6 +9,9 @@ import Badge from '../components/ui/Badge';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { TwoKidsChat } from '../components/illustrations/Illustrations';
+import ThemeArt from '../components/illustrations/ThemeArt';
+import ThemeAvatar from '../components/illustrations/ThemeAvatar';
+import { useIsIllustratedTheme } from '../lib/useActiveTheme';
 import { useAppStore, useActiveChild, EMPTY_RECORD } from '../store/useAppStore';
 import {
   fetchPosts,
@@ -39,6 +42,7 @@ const STATUS_FILTER_LABEL: Record<StatusFilter, string> = {
 const MEDIA_EMOJI_OPTIONS = ['📖', '🧩', '🏃', '🎨', '⚽', '🎵', '🧪', '🌱'];
 
 export default function SocialPage() {
+  const illustrated = useIsIllustratedTheme();
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
@@ -182,14 +186,17 @@ export default function SocialPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <Card variant="soft" padding="lg" className="mb-6 flex items-center justify-between gap-6 overflow-hidden">
-            <div>
-              <h2 className="font-display text-h3 font-semibold text-text-900">Ailə Sosial Məkanı</h2>
-              <p className="mt-1 text-body-sm text-text-500">
+          <Card variant="soft" padding="lg" className="th-hero mb-6 flex items-center justify-between gap-6 overflow-hidden">
+            {illustrated && (
+              <ThemeArt name="kids" className="-mb-6 -ml-2 hidden h-[132px] w-auto shrink-0 self-end sm:-mb-8 sm:block" />
+            )}
+            <div className={`relative ${illustrated ? 'flex-1' : ''}`}>
+              <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Ailə Sosial Məkanı</h2>
+              <p className="th-hero-text mt-1 text-body-sm text-text-500">
                 Uşaqlarınız burada təhlükəsiz şəkildə paylaşım edə, yaradıcılıqlarını göstərə bilərlər.
               </p>
             </div>
-            <TwoKidsChat className="hidden h-24 w-auto shrink-0 sm:block" />
+            {!illustrated && <TwoKidsChat className="hidden h-24 w-auto shrink-0 sm:block" />}
           </Card>
 
           <div className={`grid gap-6 ${authedAsParent ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
@@ -298,7 +305,7 @@ export default function SocialPage() {
                       <Card padding="lg">
                         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                           <div className="flex min-w-0 items-center gap-3">
-                            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-alt text-lg">{post.avatarEmoji}</span>
+                            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-alt text-lg"><ThemeAvatar emoji={post.avatarEmoji} /></span>
                             <div className="min-w-0">
                               <p className="truncate font-bold text-text-900">{post.handle}</p>
                               <p className="text-caption text-text-400">{post.timeAgo}</p>
@@ -356,8 +363,8 @@ export default function SocialPage() {
                       <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-xs font-bold text-text-500">
                         {i + 1}
                       </span>
-                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
-                        {row.avatarEmoji}
+                      <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-alt text-base">
+                        <ThemeAvatar emoji={row.avatarEmoji} />
                       </span>
                       <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.handle}</span>
                       <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.totalXp} XP</span>
@@ -372,8 +379,8 @@ export default function SocialPage() {
                         >
                           {row.rank}
                         </span>
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-alt text-base">
-                          {row.avatarEmoji}
+                        <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-alt text-base">
+                          <ThemeAvatar emoji={row.avatarEmoji} />
                         </span>
                         <span className="min-w-0 flex-1 truncate text-body-sm font-bold text-text-900">{row.name}</span>
                         <span className="shrink-0 text-body-sm font-bold text-sand-text">{row.xp}</span>
@@ -455,7 +462,7 @@ function PostCard({
       <Card padding="lg">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-alt text-lg">{post.avatarEmoji}</span>
+            <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-alt text-lg"><ThemeAvatar emoji={post.avatarEmoji} /></span>
             <div className="min-w-0">
               <p className="truncate font-bold text-text-900">{post.handle}</p>
             </div>
@@ -501,7 +508,7 @@ function PostCard({
             {comments === null && <p className="text-caption text-text-400">Yüklənir...</p>}
             {comments?.map((c) => (
               <div key={c.id} className="flex items-start gap-2.5">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-alt text-sm">{c.avatarEmoji}</span>
+                <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-surface-alt text-sm"><ThemeAvatar emoji={c.avatarEmoji} /></span>
                 <div className="min-w-0">
                   <p className="text-caption font-bold text-text-900">{c.handle}</p>
                   <p className="text-body-sm text-text-700">{c.body}</p>

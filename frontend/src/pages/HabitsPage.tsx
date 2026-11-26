@@ -11,6 +11,9 @@ import Button from '../components/ui/Button';
 import XpBurst, { type XpBurstItem } from '../components/ui/XpBurst';
 import { Icon } from '../lib/icons';
 import { KidWithClipboard } from '../components/illustrations/Illustrations';
+import ThemeArt from '../components/illustrations/ThemeArt';
+import type { ThemeArtName } from '../components/illustrations/themeArtAssets';
+import { useIsIllustratedTheme } from '../lib/useActiveTheme';
 import { useAppStore, useActiveChild, LEAGUE_TIERS, EMPTY_RECORD } from '../store/useAppStore';
 import { useActivityStore } from '../store/useActivityStore';
 import { celebrate } from '../lib/confetti';
@@ -67,6 +70,7 @@ interface HabitGroup {
 }
 
 export default function HabitsPage() {
+  const illustrated = useIsIllustratedTheme();
   const openMenu = useOpenMobileMenu();
   const navigate = useNavigate();
   const parent = useAppStore((s) => s.parent);
@@ -309,19 +313,23 @@ export default function HabitsPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
-          <Card variant="soft" padding="lg" className="flex items-center justify-between gap-6 overflow-hidden">
-            <div>
-              <h2 className="font-display text-h3 font-semibold text-text-900">Gündəlik Vərdişlər</h2>
-              <p className="mt-1 text-body-sm text-text-500">
+          <Card variant="soft" padding="lg" className="th-hero th-hero--stack flex items-center justify-between gap-6 overflow-hidden">
+            <div className="relative">
+              <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Gündəlik Vərdişlər</h2>
+              <p className="th-hero-text mt-1 text-body-sm text-text-500">
                 {child?.name ?? 'Uşaq'} üçün bugünkü tapşırıq matrisini tamamla!
               </p>
             </div>
-            <KidWithClipboard className="hidden h-24 w-auto shrink-0 sm:block" />
+            {illustrated ? (
+              <ThemeArt name="kid" className="-mb-6 -mr-2 h-24 w-auto shrink-0 self-end sm:-mb-8 sm:h-[136px]" />
+            ) : (
+              <KidWithClipboard className="hidden h-24 w-auto shrink-0 sm:block" />
+            )}
           </Card>
 
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="flex flex-col gap-6">
-            <Card className="bg-primary text-white" padding="lg">
+            <Card className="th-dark-card bg-primary text-white" padding="lg">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-h4 font-semibold">Bugünkü Tərəqqi</h3>
                 <span className="text-body-sm font-bold text-white/80">{todayDone} / {todayTotal}</span>
@@ -336,10 +344,10 @@ export default function HabitsPage() {
             </Card>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatTile icon="star" tint="purple-100" value={xp.toLocaleString('az-AZ')} label="Ümumi xal" />
+              <StatTile icon="star" art="xpStar" tint="purple-100" value={xp.toLocaleString('az-AZ')} label="Ümumi xal" />
               <StatTile icon="target" tint="blue-100" value={todayTotal} label="Aktiv vərdiş" />
               <StatTile icon="check" tint="green-100" value={todayDone} label="Tamamlanan" />
-              <StatTile icon="flame" tint="amber-100" value={`${weeklyStreakDisplay.badgeDays} gün`} label="Ardıcıl seriya" />
+              <StatTile icon="flame" art="flame" tint="amber-100" value={`${weeklyStreakDisplay.badgeDays} gün`} label="Ardıcıl seriya" />
             </div>
 
             {useBackend && authedAsParent && parent?.familyId && child?.childId && (
@@ -443,9 +451,10 @@ export default function HabitsPage() {
               </div>
             </Card>
 
-            <Card className="relative overflow-visible bg-primary text-white" padding="lg">
+            <Card className="th-dark-card relative overflow-visible bg-primary text-white" padding="lg">
               <XpBurst items={xpBursts} onDone={clearXpBurst} />
-              <div className="flex items-center gap-3">
+              <ThemeArt name="xpStar" className="pointer-events-none absolute -right-2 -top-4 h-20 w-auto drop-shadow-lg" />
+              <div className={`flex items-center gap-3 ${illustrated ? 'pr-14' : ''}`}>
                 <span className="flex size-11 items-center justify-center rounded-full bg-white/15 text-white">
                   <Icon name="star" size={20} />
                 </span>
@@ -459,9 +468,10 @@ export default function HabitsPage() {
               </div>
             </Card>
 
-            <Card padding="lg">
+            <Card padding="lg" className="relative overflow-hidden">
+              <ThemeArt name="calendar" className="pointer-events-none absolute right-4 top-3 h-12 w-auto" />
               <h3 className="mb-4 font-display font-semibold text-text-900">Bugünkü Xülasə</h3>
-              <div className="flex items-center gap-3">
+              <div className="relative flex items-center gap-3">
                 <IconTile icon={<Icon name="timer" size={20} />} tint="blue-100" />
                 <div>
                   <p className="font-bold text-text-900">
@@ -487,10 +497,28 @@ export default function HabitsPage() {
  * Ardıcıl seriya" row the PDF's primary Habits mockup shows under "Bugünkü
  * Tərəqqi", built entirely from values this page already computes (no new
  * data fetch). */
-function StatTile({ icon, tint, value, label }: { icon: string; tint: string; value: string | number; label: string }) {
+function StatTile({
+  icon,
+  art,
+  tint,
+  value,
+  label,
+}: {
+  icon: string;
+  /** Illustration used instead of the icon under the illustrated theme. */
+  art?: ThemeArtName;
+  tint: string;
+  value: string | number;
+  label: string;
+}) {
+  const illustrated = useIsIllustratedTheme();
   return (
-    <Card padding="sm" className="flex flex-col gap-2">
-      <IconTile icon={<Icon name={icon} size={16} />} tint={tint} size="sm" />
+    <Card padding="sm" className={`th-stat th-stat--${tint.split('-')[0]} flex flex-col gap-2`}>
+      {illustrated && art ? (
+        <ThemeArt name={art} className="h-9 w-auto self-start" />
+      ) : (
+        <IconTile icon={<Icon name={icon} size={16} />} tint={tint} size="sm" className="th-stat-icon" />
+      )}
       <div>
         <p className="font-display text-h4 font-semibold text-text-900">{value}</p>
         <p className="text-caption text-text-500">{label}</p>

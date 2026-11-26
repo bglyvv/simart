@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
       const account = await loginAdmin({ email: email.trim(), password });
       setAdmin({ name: account.fullName, email: account.email, token: account.token });
       toast.success('Admin girişi təsdiqləndi.');
-      navigate('/idareetme');
+      navigate('/admin');
     } catch (err) {
       // The backend's error text is English by design (see
       // InvalidAdminCredentialsException's doc comment) — translate the known case

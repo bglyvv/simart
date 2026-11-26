@@ -16,6 +16,12 @@
  */
 export const DEFAULT_THEME = 'default';
 
+/** Not just a palette: besides its tokens it swaps in the real artwork from
+ * SIMART_UI_UX_Implementation_Guide.pdf (see components/illustrations/
+ * ThemeArt.tsx and useIsIllustratedTheme) plus the decorative rules in
+ * index.css's [data-theme='illustrated'] section. */
+export const ILLUSTRATED_THEME = 'illustrated';
+
 export interface ThemeOption {
   id: string;
   label: string;
@@ -37,4 +43,6 @@ export const THEME_OPTIONS: ThemeOption[] = [
   // than leaving those colors entirely unused now that the rest of the app
   // has moved to the minimal neutral/sage/sand system.
   { id: 'colorful', label: 'Rəngarəng', swatch: ['#8a4fff', '#2dd4bf', '#f5b83d'] },
+  // The UI/UX handoff PDF's look, artwork included — see ILLUSTRATED_THEME.
+  { id: ILLUSTRATED_THEME, label: 'İllüstrasiyalı', swatch: ['#6d35ed', '#f5a742', '#ede7ff'] },
 ];

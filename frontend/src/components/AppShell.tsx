@@ -5,7 +5,7 @@ import ThemeFab from './ThemeFab';
 import { useUiStore } from '../store/useUiStore';
 import { useAppStore, useActiveChild } from '../store/useAppStore';
 import { fetchChildXp } from '../lib/habitsService';
-import { DEFAULT_THEME } from '../lib/themes';
+import { useActiveThemeId } from '../lib/useActiveTheme';
 
 /** Applies the active child's own chosen color theme (see src/lib/themes.ts
  * and index.css's [data-theme] blocks) to the whole document — every page
@@ -15,9 +15,7 @@ import { DEFAULT_THEME } from '../lib/themes';
  * the app's normal look (see ThemeFab's own doc comment for why this is a
  * child-only preference). */
 function useApplyChildTheme() {
-  const authedAsParent = useAppStore((s) => s.authedAsParent);
-  const child = useActiveChild();
-  const theme = authedAsParent ? DEFAULT_THEME : (child?.theme ?? DEFAULT_THEME);
+  const theme = useActiveThemeId();
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

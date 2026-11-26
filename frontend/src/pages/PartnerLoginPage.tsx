@@ -33,7 +33,7 @@ export default function PartnerLoginPage() {
       const account = await loginPartner({ email: email.trim(), password });
       setPartner({ name: account.name, email: account.email, token: account.token });
       toast.success('Tərəfdaş girişi təsdiqləndi.');
-      navigate('/tərəfdaş');
+      navigate('/partners');
     } catch (err) {
       // The backend's error text is English by design (see
       // InvalidPartnerCredentialsException's doc comment) — translate the

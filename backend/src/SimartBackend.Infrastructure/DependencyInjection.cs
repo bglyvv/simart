@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SimartBackend.Application.Abstractions;
 using SimartBackend.Infrastructure.Admin;
+using SimartBackend.Infrastructure.Books;
 using SimartBackend.Infrastructure.Content;
 using SimartBackend.Infrastructure.Economy;
 using SimartBackend.Infrastructure.Focus;
@@ -61,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IRewardProposalRepository, EfRewardProposalRepository>();
         services.AddScoped<ISocialRepository, EfSocialRepository>();
         services.AddScoped<IGameRepository, EfGameRepository>();
+        services.AddScoped<IBookRepository, EfBookRepository>();
 
         return services;
     }

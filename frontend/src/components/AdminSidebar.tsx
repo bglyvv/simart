@@ -6,10 +6,11 @@ import { useAdminStore } from '../store/useAdminStore';
 import { Icon } from '../lib/icons';
 
 const NAV_ITEMS = [
-  { key: 'content', icon: 'play', label: 'Məzmun', path: '/idareetme' },
-  { key: 'habits', icon: 'check-square', label: 'Vərdişlər', path: '/idareetme-vərdişlər' },
-  { key: 'accounts', icon: 'users', label: 'Hesablar', path: '/idareetme-hesablar' },
-  { key: 'proposals', icon: 'gift', label: 'Mükafat Təklifləri', path: '/idareetme-tekliflər' },
+  { key: 'content', icon: 'play', label: 'Məzmun', path: '/admin' },
+  { key: 'habits', icon: 'check-square', label: 'Vərdişlər', path: '/admin/habits' },
+  { key: 'accounts', icon: 'users', label: 'Hesablar', path: '/admin/accounts' },
+  { key: 'proposals', icon: 'gift', label: 'Mükafat Təklifləri', path: '/admin/proposals' },
+  { key: 'books', icon: 'books', label: 'Kitablar', path: '/admin/books' },
 ];
 
 const navItemBase =
@@ -36,6 +37,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             <NavLink
               key={item.key}
               to={item.path}
+              end
               onClick={onNavigate}
               className={({ isActive }) => `${navItemBase} ${isActive ? navItemActive : 'hover:bg-surface-alt'}`}
             >

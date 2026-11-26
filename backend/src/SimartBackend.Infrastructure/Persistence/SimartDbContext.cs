@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using SimartBackend.Domain.Common;
 using AdminEntity = SimartBackend.Domain.Entities.Admin.Admin;
+using SimartBackend.Domain.Entities.Books;
 using SimartBackend.Domain.Entities.Content;
 using SimartBackend.Domain.Entities.Economy;
 using SimartBackend.Domain.Entities.Focus;
@@ -53,6 +54,10 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
     public DbSet<Voucher> Vouchers => Set<Voucher>();
     public DbSet<RewardProposal> RewardProposals => Set<RewardProposal>();
     public DbSet<RewardProposalEvent> RewardProposalEvents => Set<RewardProposalEvent>();
+
+    public DbSet<Book> Books => Set<Book>();
+    public DbSet<BookStoreLink> BookStoreLinks => Set<BookStoreLink>();
+    public DbSet<BookImage> BookImages => Set<BookImage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -183,5 +188,23 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
             .WithMany(p => p.Events)
             .HasForeignKey(e => e.ProposalId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // A book's store links live and die with the book.
+        modelBuilder.Entity<BookStoreLink>()
+            .HasOne(l => l.Book)
+            .WithMany(b => b.StoreLinks)
+            .HasForeignKey(l => l.BookId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Book>().Property(b => b.PriceAzn).HasPrecision(10, 2);
+
+        // Real FKs onto book_image so a book can never point at a missing image;
+        // Restrict, since images are never deleted out from under a book.
+        modelBuilder.Entity<Book>().HasOne<BookImage>().WithMany()
+            .HasForeignKey(b => b.CoverImageId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Book>().HasOne<BookImage>().WithMany()
+            .HasForeignKey(b => b.BackCoverImageId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Book>().HasOne<BookImage>().WithMany()
+            .HasForeignKey(b => b.AuthorPhotoImageId).OnDelete(DeleteBehavior.Restrict);
     }
 }

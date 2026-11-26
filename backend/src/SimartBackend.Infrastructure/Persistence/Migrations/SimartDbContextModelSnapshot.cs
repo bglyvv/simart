@@ -69,6 +69,186 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                     b.ToTable("admins", (string)null);
                 });
 
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Books.Book", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("About")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("about");
+
+                    b.Property<string>("AgeRange")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("age_range");
+
+                    b.Property<string>("AuthorBio")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("author_bio");
+
+                    b.Property<string>("AuthorGender")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("author_gender");
+
+                    b.Property<string>("AuthorName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("author_name");
+
+                    b.Property<Guid?>("AuthorPhotoImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_photo_image_id");
+
+                    b.Property<Guid?>("BackCoverImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("back_cover_image_id");
+
+                    b.Property<string>("BackScene")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("back_scene");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
+                    b.Property<Guid>("CoverImageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("cover_image_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("deleted_by");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<string>("Isbn")
+                        .HasColumnType("text")
+                        .HasColumnName("isbn");
+
+                    b.Property<int>("PageCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("page_count");
+
+                    b.Property<decimal>("PriceAzn")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("price_azn");
+
+                    b.Property<string>("Quote")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("quote");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_books");
+
+                    b.HasIndex("AuthorPhotoImageId")
+                        .HasDatabaseName("ix_books_author_photo_image_id");
+
+                    b.HasIndex("BackCoverImageId")
+                        .HasDatabaseName("ix_books_back_cover_image_id");
+
+                    b.HasIndex("CoverImageId")
+                        .HasDatabaseName("ix_books_cover_image_id");
+
+                    b.HasIndex("DeletedBy")
+                        .HasDatabaseName("ix_books_deleted_by");
+
+                    b.ToTable("books", (string)null);
+                });
+
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Books.BookImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<byte[]>("Data")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("data");
+
+                    b.HasKey("Id")
+                        .HasName("pk_book_images");
+
+                    b.ToTable("book_images", (string)null);
+                });
+
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Books.BookStoreLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("BookId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("book_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer")
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("url");
+
+                    b.HasKey("Id")
+                        .HasName("pk_book_store_links");
+
+                    b.HasIndex("BookId")
+                        .HasDatabaseName("ix_book_store_links_book_id");
+
+                    b.ToTable("book_store_links", (string)null);
+                });
+
             modelBuilder.Entity("SimartBackend.Domain.Entities.Content.Playlist", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1390,6 +1570,46 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_admins_admins_deleted_by");
                 });
 
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Books.Book", b =>
+                {
+                    b.HasOne("SimartBackend.Domain.Entities.Books.BookImage", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorPhotoImageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_books_book_images_author_photo_image_id");
+
+                    b.HasOne("SimartBackend.Domain.Entities.Books.BookImage", null)
+                        .WithMany()
+                        .HasForeignKey("BackCoverImageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_books_book_images_back_cover_image_id");
+
+                    b.HasOne("SimartBackend.Domain.Entities.Books.BookImage", null)
+                        .WithMany()
+                        .HasForeignKey("CoverImageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_books_book_images_cover_image_id");
+
+                    b.HasOne("SimartBackend.Domain.Entities.Admin.Admin", null)
+                        .WithMany()
+                        .HasForeignKey("DeletedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_books_admins_deleted_by");
+                });
+
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Books.BookStoreLink", b =>
+                {
+                    b.HasOne("SimartBackend.Domain.Entities.Books.Book", "Book")
+                        .WithMany("StoreLinks")
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_book_store_links_books_book_id");
+
+                    b.Navigation("Book");
+                });
+
             modelBuilder.Entity("SimartBackend.Domain.Entities.Content.Playlist", b =>
                 {
                     b.HasOne("SimartBackend.Domain.Entities.Admin.Admin", null)
@@ -1862,6 +2082,11 @@ namespace SimartBackend.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_social_posts_admins_deleted_by");
 
                     b.Navigation("Child");
+                });
+
+            modelBuilder.Entity("SimartBackend.Domain.Entities.Books.Book", b =>
+                {
+                    b.Navigation("StoreLinks");
                 });
 
             modelBuilder.Entity("SimartBackend.Domain.Entities.Content.Playlist", b =>

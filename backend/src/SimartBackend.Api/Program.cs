@@ -8,6 +8,7 @@ using SimartBackend.Api.Contracts;
 using SimartBackend.Application;
 using SimartBackend.Application.Admin;
 using SimartBackend.Application.Admin.Commands.LoginAdmin;
+using SimartBackend.Application.Books;
 using SimartBackend.Application.Content;
 using SimartBackend.Application.Content.Commands.AssignVideo;
 using SimartBackend.Application.Content.Commands.CreatePlaylist;
@@ -98,6 +99,7 @@ using SimartBackend.Application.Partners.Queries.GetAdminRewardProposals;
 using SimartBackend.Application.Partners.Queries.GetPartnerRewardProposals;
 using SimartBackend.Application.Partners.Queries.GetVoucher;
 using SimartBackend.Domain.Content;
+using SimartBackend.Domain.Entities.Books;
 using SimartBackend.Domain.Entities.Economy;
 using SimartBackend.Domain.Entities.Games;
 using SimartBackend.Domain.Entities.Partners;
@@ -316,6 +318,69 @@ using (var scope = app.Services.CreateScope())
     }
 
     await db.SaveChangesAsync();
+}
+
+// Landing-page books — managed from the admin "Kitablar" page, but a fresh
+// database gets the five books the landing page originally shipped with, so
+// "/" is never empty. IgnoreQueryFilters so an admin soft-deleting every book
+// doesn't bring them all back on the next restart. Covers are the same JPGs
+// the frontend bundles, embedded in this assembly (see the csproj). No store
+// links, author photos or back covers — the landing page falls back to its
+// default store list, a gender-based avatar and a generated scene.
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<SimartDbContext>();
+    if (!await db.Books.IgnoreQueryFilters().AnyAsync())
+    {
+        var now = DateTimeOffset.UtcNow;
+        SeedBook[] seedBooks =
+        [
+            new SeedBook("kicik-astronavt.jpg", "Kiçik Astronavt", "Kosmos", "5 – 9", 48, 11.90m, "space", "9789952412014",
+                "Nərmin Əliyeva", "female",
+                "Uşaqlar üçün elmi-fantastik hekayələr yazır. Kosmos, ulduzlar və böyük arzular haqqında kitabların müəllifidir.",
+                "“Kiçik Astronavt” ulduzlara çatmaq arzusu ilə yaşayan balaca Elinin maraqlı səyahətindən bəhs edir. Hekayə cəsarəti, maraq hissini və arzuların gücünü öyrədir.",
+                "Ən böyük səyahət kiçik bir arzu ilə başlayır."),
+            new SeedBook("tebiyatin-sirleri.jpg", "Təbiətin Sirləri", "Təbiət", "6 – 10", 64, 13.90m, "forest", "9789952412021",
+                "Rəşad Məmmədov", "male",
+                "Təbiətşünas və uşaq yazıçısı. Meşələr, heyvanlar və təbiəti qorumaq mövzusunda kitablar yazır.",
+                "“Təbiətin Sirləri” meşənin gizli dünyasına səyahətdir. Balaca oxucular heyvanların həyatını, bitkilərin sirrini və təbiətə qayğının vacibliyini kəşf edirlər.",
+                "Təbiət ona qulaq asanlara öz sirlərini açır."),
+            new SeedBook("dostlugun-gucu.jpg", "Dostluğun Gücü", "Dostluq", "6 – 10", 96, 12.90m, "meadow", "9789952412038",
+                "Aysel Qəmbərli", "female",
+                "Uşaq ədəbiyyatı sahəsində bir çox sevilən əsərin müəllifi. Dostluq, empatiya və dəyərlər mövzusunda kitablar yazır.",
+                "“Dostluğun Gücü” — həqiqi dostluğun dəyərini, bir-birinə dəstək olmağın və çətinlikləri birlikdə dəf etməyin əhəmiyyətini göstərən maraqlı bir hekayədir.",
+                "Həqiqi dostluq — hər zaman yanındadır."),
+            new SeedBook("deniz-macerasi.jpg", "Dəniz Macərası", "Macəra", "7 – 11", 80, 14.50m, "sea", "9789952412045",
+                "Tural Həsənov", "male",
+                "Dəniz və səyahət hekayələri ilə tanınan müəllif. Kitablarında cəsarəti, komanda ruhunu və kəşf sevgisini təbliğ edir.",
+                "“Dəniz Macərası” kiçik yelkənli qayıqla uzaq adalara üzən iki dostun hekayəsidir. Dalğalar, küləklər və gözlənilməz kəşflərlə dolu bir səyahət.",
+                "Üfüq həmişə yeni bir macəra vəd edir."),
+            new SeedBook("agilli-kesflar.jpg", "Ağıllı Kəşflər", "Elm", "7 – 12", 72, 15.90m, "sunny", "9789952412052",
+                "Leyla Quliyeva", "female",
+                "Mühəndis və uşaq yazıçısı. Elm, texnologiya və yaradıcılığı sadə dillə uşaqlara sevdirir.",
+                "“Ağıllı Kəşflər” balaca robot Bitin köməyi ilə elmin maraqlı dünyasını kəşf edən uşaqlar haqqındadır. Hər fəsil yeni bir sual və sadə bir təcrübə ilə bitir.",
+                "Hər böyük kəşf bir sualla başlayır."),
+        ];
+        for (var i = 0; i < seedBooks.Length; i++)
+        {
+            var seed = seedBooks[i];
+            using var stream = typeof(Program).Assembly.GetManifestResourceStream($"SeedBooks.{seed.CoverFile}")
+                ?? throw new InvalidOperationException($"Missing embedded seed cover '{seed.CoverFile}'.");
+            using var buffer = new MemoryStream();
+            await stream.CopyToAsync(buffer);
+            var cover = new BookImage { Id = Guid.NewGuid(), ContentType = "image/jpeg", Data = buffer.ToArray(), CreatedAt = now };
+            db.BookImages.Add(cover);
+            db.Books.Add(new Book
+            {
+                Id = Guid.NewGuid(),
+                Title = seed.Title, Category = seed.Category, AgeRange = seed.Age, PageCount = seed.Pages, PriceAzn = seed.Price,
+                About = seed.About, Quote = seed.Quote, Isbn = seed.Isbn, BackScene = seed.Scene, SortOrder = i + 1,
+                AuthorName = seed.Author, AuthorBio = seed.Bio, AuthorGender = seed.Gender,
+                CoverImageId = cover.Id, CreatedAt = now, UpdatedAt = now,
+            });
+        }
+        await db.SaveChangesAsync();
+    }
 }
 
 app.MapGet("/api/content/playlists", async (ISender sender, string? audience, CancellationToken cancellationToken) =>
@@ -2395,9 +2460,168 @@ app.MapPost("/api/admin/reward-proposals/{proposalId:guid}/decline", async (
 .RequireAuthorization()
 .WithName("AdminDeclineRewardProposal");
 
+// ── Landing-page books ("Kitablar") ─────────────────────────────────────────
+// GET /api/books and the image GET are open — the public landing page reads
+// them. Everything else is admin-gated, same AdminIdClaimType check as the
+// content endpoints.
+app.MapGet("/api/books", async (ISender sender, CancellationToken cancellationToken) =>
+    Results.Ok(await sender.Send(new GetBooksQuery(), cancellationToken)))
+.WithName("GetBooks");
+
+app.MapGet("/api/books/deleted", async (ISender sender, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    return Results.Ok(await sender.Send(new GetDeletedBooksQuery(), cancellationToken));
+})
+.RequireAuthorization()
+.WithName("GetDeletedBooks");
+
+app.MapPost("/api/books", async (ISender sender, BookInput body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    try
+    {
+        var book = await sender.Send(new CreateBookCommand(body), cancellationToken);
+        return Results.Created($"/api/books/{book.Id}", book);
+    }
+    catch (InvalidBookException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("CreateBook");
+
+app.MapPut("/api/books/{id:guid}", async (ISender sender, Guid id, BookInput body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    try
+    {
+        return Results.Ok(await sender.Send(new UpdateBookCommand(id, body), cancellationToken));
+    }
+    catch (BookNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+    catch (InvalidBookException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("UpdateBook");
+
+// Drag-and-drop order from the admin list — every active book id, first to last.
+// Registered before /{id:guid} routes; "order" isn't a Guid so they can't clash anyway.
+app.MapPut("/api/books/order", async (ISender sender, ReorderBooksRequest body, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    try
+    {
+        await sender.Send(new ReorderBooksCommand(body.Ids ?? []), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (InvalidBookException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("ReorderBooks");
+
+// Soft delete — the book drops out of GET /api/books via the global IsDeleted
+// filter and appears under GET /api/books/deleted.
+app.MapDelete("/api/books/{id:guid}", async (ISender sender, Guid id, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (!Guid.TryParse(user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType), out var adminId))
+        return Results.Forbid();
+    try
+    {
+        await sender.Send(new DeleteBookCommand(id, adminId), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (BookNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("DeleteBook");
+
+app.MapPost("/api/books/{id:guid}/restore", async (ISender sender, Guid id, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    try
+    {
+        await sender.Send(new RestoreBookCommand(id), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (BookNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.WithName("RestoreBook");
+
+// Multipart upload, one image per request (form field "file"). Antiforgery is
+// off because this is a bearer-token API with no cookies, so there's nothing
+// for a cross-site form post to ride on.
+app.MapPost("/api/books/images", async (ISender sender, IFormFile? file, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    if (file is null)
+        return Results.BadRequest(new { error = "Fayl seçilməyib." });
+    if (file.Length > BookCatalog.MaxImageBytes)
+        return Results.BadRequest(new { error = "Şəkil 5 MB-dan böyük ola bilməz." });
+    try
+    {
+        using var buffer = new MemoryStream();
+        await file.CopyToAsync(buffer, cancellationToken);
+        var result = await sender.Send(new UploadBookImageCommand(buffer.ToArray()), cancellationToken);
+        return Results.Created($"/api/books/images/{result.Id}", result);
+    }
+    catch (InvalidBookException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+.RequireAuthorization()
+.DisableAntiforgery()
+.WithName("UploadBookImage");
+
+// Images never change once uploaded (a new cover is a new id), so browsers can
+// cache them for a year. nosniff plus a content type taken from the file's own
+// bytes means an upload can only ever be rendered as an image.
+app.MapGet("/api/books/images/{id:guid}", async (ISender sender, Guid id, HttpContext http, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var image = await sender.Send(new GetBookImageQuery(id), cancellationToken);
+        http.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        http.Response.Headers.XContentTypeOptions = "nosniff";
+        return Results.File(image.Data, image.ContentType);
+    }
+    catch (BookImageNotFoundException ex)
+    {
+        return Results.NotFound(new { error = ex.Message });
+    }
+})
+.WithName("GetBookImage");
+
 app.Run();
 
 // Top-level statements generate an internal Program class by default — this makes it
 // public and nameable so WebApplicationFactory<Program> (in SimartBackend.Tests) can
 // boot the real app. Doesn't change runtime behavior at all.
 public partial class Program;
+
+internal sealed record SeedBook(
+    string CoverFile, string Title, string Category, string Age, int Pages, decimal Price, string Scene, string Isbn,
+    string Author, string Gender, string Bio, string About, string Quote);
