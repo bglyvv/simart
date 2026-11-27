@@ -8,7 +8,6 @@ import Topbar, { AvatarButton, XpPill, NotificationBell, IconButton } from '../c
 import Badge from '../components/ui/Badge';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { TwoKidsChat } from '../components/illustrations/Illustrations';
 import ThemeArt from '../components/illustrations/ThemeArt';
 import ThemeAvatar from '../components/illustrations/ThemeAvatar';
 import { useIsIllustratedTheme } from '../lib/useActiveTheme';
@@ -196,7 +195,6 @@ export default function SocialPage() {
                 Uşaqlarınız burada təhlükəsiz şəkildə paylaşım edə, yaradıcılıqlarını göstərə bilərlər.
               </p>
             </div>
-            {!illustrated && <TwoKidsChat className="hidden h-24 w-auto shrink-0 sm:block" />}
           </Card>
 
           <div className={`grid gap-6 ${authedAsParent ? 'lg:grid-cols-[1fr_320px]' : ''}`}>

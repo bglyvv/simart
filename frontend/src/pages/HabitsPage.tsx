@@ -10,7 +10,6 @@ import IconTile from '../components/ui/IconTile';
 import Button from '../components/ui/Button';
 import XpBurst, { type XpBurstItem } from '../components/ui/XpBurst';
 import { Icon } from '../lib/icons';
-import { KidWithClipboard } from '../components/illustrations/Illustrations';
 import ThemeArt from '../components/illustrations/ThemeArt';
 import type { ThemeArtName } from '../components/illustrations/themeArtAssets';
 import { useIsIllustratedTheme } from '../lib/useActiveTheme';
@@ -320,11 +319,8 @@ export default function HabitsPage() {
                 {child?.name ?? 'Uşaq'} üçün bugünkü tapşırıq matrisini tamamla!
               </p>
             </div>
-            {illustrated ? (
-              <ThemeArt name="kid" className="-mb-6 -mr-2 h-24 w-auto shrink-0 self-end sm:-mb-8 sm:h-[136px]" />
-            ) : (
-              <KidWithClipboard className="hidden h-24 w-auto shrink-0 sm:block" />
-            )}
+            {/* Only the "İllüstrasiyalı" theme puts a picture in this banner. */}
+            <ThemeArt name="kid" className="-mb-6 -mr-2 h-24 w-auto shrink-0 self-end sm:-mb-8 sm:h-[136px]" />
           </Card>
 
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
