@@ -406,7 +406,7 @@ function startJourney() { if (swipeMode) { toTop(); swipeTo(1); } else scrollToP
 function backToShelf() { if (swipeMode) { toTop(); swipeTo(0); } else scrollToProgress(0); }
 on($('explore'), 'click', startJourney);
 on(backTo, 'click', backToShelf);
-on($('footerBack'), 'click', backToShelf);
+if ($('footerBack')) on($('footerBack'), 'click', backToShelf); // optional — the footer no longer has it
 on($('bPrev'), 'click', () => swipeTo(Math.round(swipeF) - 1));
 on($('bNext'), 'click', () => swipeTo(Math.round(swipeF) + 1));
 $('steps').innerHTML = HOLD.slice(1).map(() => '<i></i>').join('');

@@ -5,6 +5,7 @@ import { useAdminStore } from '../store/useAdminStore';
 import { usePartnerStore } from '../store/usePartnerStore';
 import { fetchActiveFocusLock } from '../lib/focusService';
 import LandingPage from '../pages/LandingPage';
+import { appEntryPath } from '../lib/appEntry';
 
 /** Routes that need a created family profile (the "kid app" + analytics/settings).
  *  Checks `parent` first, not just whether any child exists (a real gap before
@@ -90,16 +91,14 @@ export function RequirePartnerAuth({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-/** The "/" route: routes a visitor to the right step based on what's already set up.
- *  A device with no local session at all is a first-time/logged-out visitor —
- *  they get the public marketing page (LandingPage) instead of being bounced
- *  straight to the login form; its own "Daxil ol" button is what takes them
- *  there. A recognized returning device (parent already set) keeps the exact
- *  prior behavior — straight into the app or add-child, no public page shown. */
+/** Unknown paths ("*"): a logged-in family goes into the app, anyone else gets
+ *  the public landing page. "/" itself always renders LandingPage (see App.tsx)
+ *  — a logged-in family can still visit it, and its "Daxil ol" button takes
+ *  them straight into the app instead of to the login form. */
 export function RootRedirect() {
   const parent = useAppStore((s) => s.parent);
   const childCount = useAppStore((s) => s.children.length);
-  if (!parent) return <LandingPage />;
-  if (childCount === 0) return <Navigate to="/usaq-elave-et" replace />;
-  return <Navigate to="/aile-qapisi" replace />;
+  const entry = appEntryPath(!!parent, childCount);
+  if (!entry) return <LandingPage />;
+  return <Navigate to={entry} replace />;
 }

@@ -1,6 +1,11 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MotionConfig } from 'framer-motion';
 import { Toaster } from 'sonner';
+import LandingPage from './pages/LandingPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import PanelChooserPage from './pages/PanelChooserPage';
+import AdminMessagesPage from './pages/AdminMessagesPage';
 import { RequireFamily, RequireParentAuth, RequireAdminAuth, RequirePartnerAuth, RequireNotFocusLocked, RootRedirect } from './routes/Guards';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -43,7 +48,10 @@ export default function App() {
       <BrowserRouter>
         <Toaster position="top-center" richColors closeButton theme="light" />
         <Routes>
-          <Route path="/" element={<RootRedirect />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/haqqinda" element={<AboutPage />} />
+          <Route path="/elaqe" element={<ContactPage />} />
+          <Route path="/daxil-ol" element={<PanelChooserPage />} />
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/sifre-unutdum" element={<ForgotPasswordPage />} />
           <Route path="/sifre-sifirla" element={<ResetPasswordPage />} />
@@ -82,6 +90,7 @@ export default function App() {
           <Route path="/admin/accounts" element={<RequireAdminAuth><AdminAccountsPage /></RequireAdminAuth>} />
           <Route path="/admin/proposals" element={<RequireAdminAuth><AdminRewardProposalsPage /></RequireAdminAuth>} />
           <Route path="/admin/books" element={<RequireAdminAuth><AdminBooksPage /></RequireAdminAuth>} />
+          <Route path="/admin/messages" element={<RequireAdminAuth><AdminMessagesPage /></RequireAdminAuth>} />
 
           <Route path="/partners/login" element={<PartnerLoginPage />} />
           <Route path="/partners" element={<RequirePartnerAuth><PartnerDashboardPage /></RequirePartnerAuth>} />

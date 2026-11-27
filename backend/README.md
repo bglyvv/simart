@@ -2203,6 +2203,47 @@ from Neon afterward (the 5 seeded books and their images untouched):
 book command/query handlers, `EfBookRepository`) — same gap, same reason,
 as everything else flagged this way in this doc. Test count is still 44.
 
+### Contact messages ("Əlaqə" page)
+
+The public `/elaqe` page's "Bizə yazın" form, read by admins on `/admin/messages`.
+
+| Method | Path | Auth |
+|---|---|---|
+| POST | `/api/contact/messages` | open, rate-limited → 204 / 400 / 429 |
+| GET | `/api/admin/contact-messages` | admin → newest first |
+| POST | `/api/admin/contact-messages/{id}/read` | admin → 204 / 404 (idempotent) |
+
+- **Body:** `{ fullName, email, organization?, topic, message, website }`.
+  `topic` is one of `general|partnership|support|feedback`. `organization`
+  (up to 150) is optional; only the partnership popup sends it. Validation: name 2–100 chars, a valid
+  email up to 200, message 10–2000. The 400 messages are Azerbaijani and the
+  form shows them as-is.
+- **Spam protection:**
+  - `website` is a honeypot, an input hidden from people. If it's filled in,
+    the handler drops the message silently and still returns 204.
+  - The endpoint is rate-limited to 5 messages per 15 minutes per client
+    (ASP.NET Core's built-in rate limiter, policy `contact`).
+  - Clients are told apart by the **last** `X-Forwarded-For` entry, which
+    Render's proxy appends, falling back to the connection address. Earlier
+    entries are client-supplied, so faking one doesn't get around the limit.
+- **Table:** `contact_messages` (migrations `AddContactMessages` and
+  `AddContactOrganization`, both already applied to Neon). There's no delete or reply yet; `read_at` is the only
+  thing an admin changes.
+- **Verified:** with curl:
+  - a valid message → 204;
+  - bad name, email, topic or message → 400, each with its own message;
+  - honeypot → 204 and not stored;
+  - the 6th message from one client → 429, and a faked earlier forwarded
+    address → still 429;
+  - no token → 401.
+
+  Then through the real UI: sent a message from `/elaqe`, it showed on
+  `/admin/messages`, and "Oxundu" marked it read. All test rows were deleted
+  from Neon afterward. Not tested: a family token on the admin endpoints.
+  It's the same admin-claim check as every other admin endpoint.
+- **Zero automated test coverage**, same gap as the rest of the backend. Test
+  count is still 44.
+
 ## Layout
 
 ```

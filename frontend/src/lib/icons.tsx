@@ -23,6 +23,7 @@ import {
   Check,
   Star,
   BookOpen,
+  Mail,
   IceCream2,
   Ticket,
   Gift,
@@ -84,6 +85,7 @@ export const ICONS: Record<string, LucideIcon> = {
 
   // rewards / wallet
   books: BookOpen,
+  mail: Mail,
   'ice-cream': IceCream2,
   ticket: Ticket,
   gift: Gift,

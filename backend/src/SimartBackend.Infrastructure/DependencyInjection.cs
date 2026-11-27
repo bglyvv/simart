@@ -1,3 +1,4 @@
+using SimartBackend.Infrastructure.Contact;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,6 +64,7 @@ public static class DependencyInjection
         services.AddScoped<ISocialRepository, EfSocialRepository>();
         services.AddScoped<IGameRepository, EfGameRepository>();
         services.AddScoped<IBookRepository, EfBookRepository>();
+        services.AddScoped<IContactMessageRepository, EfContactMessageRepository>();
 
         return services;
     }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SimartBackend.Domain.Common;
 using AdminEntity = SimartBackend.Domain.Entities.Admin.Admin;
 using SimartBackend.Domain.Entities.Books;
+using SimartBackend.Domain.Entities.Contact;
 using SimartBackend.Domain.Entities.Content;
 using SimartBackend.Domain.Entities.Economy;
 using SimartBackend.Domain.Entities.Focus;
@@ -58,6 +59,8 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
     public DbSet<Book> Books => Set<Book>();
     public DbSet<BookStoreLink> BookStoreLinks => Set<BookStoreLink>();
     public DbSet<BookImage> BookImages => Set<BookImage>();
+
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -206,5 +209,15 @@ public class SimartDbContext(DbContextOptions<SimartDbContext> options) : DbCont
             .HasForeignKey(b => b.BackCoverImageId).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<Book>().HasOne<BookImage>().WithMany()
             .HasForeignKey(b => b.AuthorPhotoImageId).OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ContactMessage>(m =>
+        {
+            m.Property(x => x.FullName).HasMaxLength(100);
+            m.Property(x => x.Email).HasMaxLength(200);
+            m.Property(x => x.Organization).HasMaxLength(150);
+            m.Property(x => x.Topic).HasMaxLength(20);
+            m.Property(x => x.Message).HasMaxLength(2000);
+            m.HasIndex(x => x.CreatedAt);
+        });
     }
 }

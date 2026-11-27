@@ -1,3 +1,5 @@
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 using System.Text;
 using MediatR;
@@ -99,6 +101,7 @@ using SimartBackend.Application.Partners.Queries.GetAdminRewardProposals;
 using SimartBackend.Application.Partners.Queries.GetPartnerRewardProposals;
 using SimartBackend.Application.Partners.Queries.GetVoucher;
 using SimartBackend.Domain.Content;
+using SimartBackend.Application.Contact;
 using SimartBackend.Domain.Entities.Books;
 using SimartBackend.Domain.Entities.Economy;
 using SimartBackend.Domain.Entities.Games;
@@ -152,6 +155,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+// The public "Əlaqə" form is the one unauthenticated write that anyone can
+// repeat, so it's rate-limited per client: 5 messages per 15 minutes.
+const string ContactRateLimitPolicy = "contact";
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy(ContactRateLimitPolicy, http => RateLimitPartition.GetFixedWindowLimiter(
+        ClientIp(http),
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(15), QueueLimit = 0 }));
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -161,6 +175,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(FrontendCorsPolicy);
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -2615,7 +2630,62 @@ app.MapGet("/api/books/images/{id:guid}", async (ISender sender, Guid id, HttpCo
 })
 .WithName("GetBookImage");
 
+// ---------------------------------------------------------------- Contact ("Əlaqə" page)
+
+app.MapPost("/api/contact/messages", async (ISender sender, ContactMessageInput body, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        await sender.Send(new SendContactMessageCommand(body), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (InvalidContactMessageException ex)
+    {
+        return Results.BadRequest(new { error = ex.Message });
+    }
+})
+.RequireRateLimiting(ContactRateLimitPolicy)
+.WithName("SendContactMessage");
+
+app.MapGet("/api/admin/contact-messages", async (ISender sender, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    return Results.Ok(await sender.Send(new GetContactMessagesQuery(), cancellationToken));
+})
+.RequireAuthorization()
+.WithName("GetContactMessages");
+
+app.MapPost("/api/admin/contact-messages/{id:guid}/read", async (ISender sender, Guid id, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+{
+    if (user.FindFirstValue(JwtAuthTokenService.AdminIdClaimType) is null)
+        return Results.Forbid();
+    try
+    {
+        await sender.Send(new MarkContactMessageReadCommand(id), cancellationToken);
+        return Results.NoContent();
+    }
+    catch (ContactMessageNotFoundException)
+    {
+        return Results.NotFound();
+    }
+})
+.RequireAuthorization()
+.WithName("MarkContactMessageRead");
+
 app.Run();
+
+// Client address for rate limiting. On Render the app sits behind a proxy, so
+// RemoteIpAddress is the proxy; the proxy appends the real client address as
+// the LAST X-Forwarded-For entry (earlier entries are client-supplied and
+// could be spoofed to dodge the limit).
+static string ClientIp(HttpContext http)
+{
+    var forwarded = http.Request.Headers["X-Forwarded-For"].ToString();
+    if (!string.IsNullOrWhiteSpace(forwarded))
+        return forwarded.Split(',')[^1].Trim();
+    return http.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+}
 
 // Top-level statements generate an internal Program class by default — this makes it
 // public and nameable so WebApplicationFactory<Program> (in SimartBackend.Tests) can

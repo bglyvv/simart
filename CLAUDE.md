@@ -637,6 +637,7 @@ directly, same as a real internal tool wouldn't be advertised to end users.
 - `/admin/accounts` — `AdminAccountsPage.tsx` (account directory, read-only)
 - `/admin/proposals` — `AdminRewardProposalsPage.tsx` (partner reward proposals)
 - `/admin/books` — `AdminBooksPage.tsx` (landing-page books — see "Landing-page books" below)
+- `/admin/messages` — `AdminMessagesPage.tsx` (messages from the public "Əlaqə" page — see "Contact page" below)
 
 **What's real vs. placeholder, don't conflate them:**
 - **Real**: every page's data comes from a real backend call, verified live
@@ -1872,6 +1873,27 @@ the user up front:
     `src/assets/books/` are still needed. The trade-off: during a cold start
     a visitor may briefly see the original five rather than the latest
     edits.
+  - **Loader:** until the book list *and* every cover image are loaded, the
+    animated reading robot (`src/assets/reading-robot.webp`, no text) stands
+    on the shelf in the middle book's place. The arc, arrows and CTA are
+    hidden (`.is-loading`), and page scrolling is locked. To lay the shelf out
+    under the robot, the engine is started at once with the bundled books
+    (hidden), then restarted with the API's books when they arrive. The cover
+    wait is capped at 6 s, after which a slow image just finishes loading in
+    place.
+- **Public pages share one header, contact section and footer.**
+  `landing/markup.ts` exports `siteHeader(active)`, `CONTACT_SECTION` and
+  `SITE_FOOTER`, and `landing/siteLinks.ts` handles their links for both
+  pages. "/" always shows the landing page, even when logged in. The header
+  has no search button. "Daxil ol" opens `/daxil-ol` (`PanelChooserPage.tsx`,
+  styled like the family gate), where you pick "Ailə paneli" or
+  "Partnyor paneli". Each skips its login form when this device is already
+  signed in: family via `lib/appEntry.ts`, partner via
+  `usePartnerStore.authedAsPartner`.
+  `/haqqinda` (`AboutPage.tsx`, `landing/aboutMarkup.ts`) is the About page.
+  Its illustrations (`src/assets/about/*.webp`) were cut from the user's
+  About-page mockup, upscaled 4x locally with Real-ESRGAN, and given
+  transparent or feathered edges.
 - **Order is drag and drop** (requested right after the first version, which
   had a "Sıra" number field in the form; the field is gone now). The active
   list is a framer-motion `Reorder.Group`. Dragging starts only from each
@@ -1894,6 +1916,42 @@ the user up front:
   hard-deleted from Neon afterward. The five seeded books are untouched.
 - **Zero automated test coverage**, same gap and same reason as everything
   else flagged this way. Test count is still 44.
+
+## Contact page ("Əlaqə") — form messages land in the admin panel
+
+Requested with a design mockup. `/elaqe` (`ContactPage.tsx`) is a public page,
+open whether or not you're logged in. It shares the landing page's header and
+footer, and the header's "Əlaqə" link opens it on every public page.
+
+- **Layout:** a three-column layout from the mockup:
+  - "Əlaqə" heading, subtitle and the kids illustration;
+  - the "Bizə yazın" form (name, email, topic, message);
+  - "Əlaqə məlumatları" and "Partnyorluq" cards.
+
+  "Əməkdaşlıq təklifi göndərin" opens a popup with its own form: name,
+  company/organization, email and proposal. It's sent with the `partnership`
+  topic, and the company goes in `contact_messages.organization`.
+  "Partnership" is not offered in the "Bizə yazın" topic select
+  (`FORM_TOPICS`); the popup is the only way to send one. The popup is a
+  small custom dialog: the shared `Modal` renders inline, and the public
+  pages' `.landing-page button` reset would restyle it.
+- **Contact details** live in `src/data/contact.json`. `phone` is `null` on
+  purpose: the mockup's number looked like a placeholder, and the user chose
+  to leave it out until they send the real one. The row renders only when
+  it's set.
+- **Messages:** the form posts to the backend. Messages are stored in
+  `contact_messages` and read on `/admin/messages` ("Mesajlar" in the admin
+  sidebar), with a "Yeni" badge and an "Oxundu" button. The user picked this
+  over a mailto link or email via Resend.
+- **Spam protection:** a honeypot field plus a per-client rate limit. Full
+  contract in "Contact messages" in `backend/README.md`.
+- **Illustrations** (`src/assets/contact/`) were cut from the mockup and
+  upscaled 4x locally with Real-ESRGAN. The kids scene's top-right corner is
+  faded out, since the mockup's form card overlapped it there.
+- The landing page still has its own "Bizimlə əməkdaşlıq üçün" section. The
+  `/#contact` jump from the About page was removed now that "Əlaqə" is a page.
+- **Not built:** deleting or replying to messages, and an email notification
+  when one arrives.
 
 ## "İllüstrasiyalı" child theme — the UI/UX PDF's real artwork
 
@@ -2075,3 +2133,5 @@ this theme swaps in the mockups' actual artwork.
     books" above: a `Books` slice with images stored in Postgres,
     `/admin/books` with a "Silinmiş" tab, gender-based author placeholders,
     and a bundled-books fallback on `/` when the API is slow or down.
+19. A public "Əlaqə" page whose form messages land on `/admin/messages` — done.
+    See "Contact page" above.

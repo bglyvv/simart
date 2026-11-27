@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: 'accounts', icon: 'users', label: 'Hesablar', path: '/admin/accounts' },
   { key: 'proposals', icon: 'gift', label: 'Mükafat Təklifləri', path: '/admin/proposals' },
   { key: 'books', icon: 'books', label: 'Kitablar', path: '/admin/books' },
+  { key: 'messages', icon: 'mail', label: 'Mesajlar', path: '/admin/messages' },
 ];
 
 const navItemBase =
