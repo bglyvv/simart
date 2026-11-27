@@ -312,16 +312,19 @@ export default function HabitsPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-6">
-          <Card variant="soft" padding="lg" className="th-hero th-hero--stack flex items-center justify-between gap-6 overflow-hidden">
-            <div className="relative">
-              <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Gündəlik Vərdişlər</h2>
-              <p className="th-hero-text mt-1 text-body-sm text-text-500">
-                {child?.name ?? 'Uşaq'} üçün bugünkü tapşırıq matrisini tamamla!
-              </p>
-            </div>
-            {/* Only the "İllüstrasiyalı" theme puts a picture in this banner. */}
-            <ThemeArt name="kid" className="-mb-6 -mr-2 h-24 w-auto shrink-0 self-end sm:-mb-8 sm:h-[136px]" />
-          </Card>
+          {/* The greeting banner belongs to the "İllüstrasiyalı" theme only;
+              every other theme starts straight at the progress cards. */}
+          {illustrated && (
+            <Card variant="soft" padding="lg" className="th-hero th-hero--stack flex items-center justify-between gap-6 overflow-hidden">
+              <div className="relative">
+                <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Gündəlik Vərdişlər</h2>
+                <p className="th-hero-text mt-1 text-body-sm text-text-500">
+                  {child?.name ?? 'Uşaq'} üçün bugünkü tapşırıq matrisini tamamla!
+                </p>
+              </div>
+              <ThemeArt name="kid" className="-mb-6 -mr-2 h-24 w-auto shrink-0 self-end sm:-mb-8 sm:h-[136px]" />
+            </Card>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="flex flex-col gap-6">

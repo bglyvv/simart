@@ -185,17 +185,18 @@ export default function SocialPage() {
 
       <main className="flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto max-w-6xl">
-          <Card variant="soft" padding="lg" className="th-hero mb-6 flex items-center justify-between gap-6 overflow-hidden">
-            {illustrated && (
+          {/* The greeting banner belongs to the "İllüstrasiyalı" theme only. */}
+          {illustrated && (
+            <Card variant="soft" padding="lg" className="th-hero mb-6 flex items-center justify-between gap-6 overflow-hidden">
               <ThemeArt name="kids" className="-mb-6 -ml-2 hidden h-[132px] w-auto shrink-0 self-end sm:-mb-8 sm:block" />
-            )}
-            <div className={`relative ${illustrated ? 'flex-1' : ''}`}>
-              <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Ailə Sosial Məkanı</h2>
-              <p className="th-hero-text mt-1 text-body-sm text-text-500">
-                Uşaqlarınız burada təhlükəsiz şəkildə paylaşım edə, yaradıcılıqlarını göstərə bilərlər.
-              </p>
-            </div>
-          </Card>
+              <div className="relative flex-1">
+                <h2 className="th-hero-title font-display text-h3 font-semibold text-text-900">Ailə Sosial Məkanı</h2>
+                <p className="th-hero-text mt-1 text-body-sm text-text-500">
+                  Uşaqlarınız burada təhlükəsiz şəkildə paylaşım edə, yaradıcılıqlarını göstərə bilərlər.
+                </p>
+              </div>
+            </Card>
+          )}
 
           <div className={`grid gap-6 ${authedAsParent ? 'lg:grid-cols-[1fr_320px]' : ''}`}>
           <div className="flex min-w-0 flex-col gap-6">
